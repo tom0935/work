@@ -1,0 +1,166 @@
+﻿   @Styles.Render("~/Content/css")
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section scripts
+{
+<script type="text/javascript">
+    $(document).ready(function () {
+        initDepartmentDataGrid();
+    });
+
+    $(window).load(function () {
+        $("#CODE").textbox('textbox').bind('blur', function (e) {
+            if ($('#CODE').textbox("textbox").attr("readonly") != "readonly") {
+                var code = $("#CODE").textbox('getValue');
+                chkCode(code);
+            }
+        });
+    });
+
+    function initDepartmentDataGrid() {
+        $('#ListDG').datagrid({
+            url: '@Url.Action("getRefType", "RefType")',
+            nowrap: false,
+            sortName: 'CODE',
+            sortOrder: 'asc',
+            remoteSort: true,
+            rownumbers: true,
+            border: false,
+            singleSelect: true,
+            striped: true,
+            showPageList: true,
+            pagePosition: 'bottom',
+            pagination: true,
+            pageSize: 20,
+            pageList: [20, 50, 100],
+            columns: [[
+            //{ field: 'UUID', width: 40, checkbox: true },
+                {field: 'CODE', title: '結帳方式代碼', width: 80, sortable: true },
+                { field: 'NAME', title: '結帳方式名稱', width: 120, sortable: true },                
+            ]],
+            onSelect: function (rowIndex, row) {
+                displayForm(row);
+            }
+        });
+    }
+
+    function displayForm(row) {
+        
+        $('#cc').layout('panel', 'center').panel('setTitle', '編輯:' + row.NAME);
+        $('#CODE').textbox('setValue', row.CODE);
+        $('#CODE').textbox('setText', row.CODE); 
+        $('#NAME').val(row.NAME);
+        $('#FNAME').val(row.FNAME);
+        $('#TAXNO').val(row.TAXNO);
+        $('#EMAIL').val(row.EMAIL);
+        $('#UUID').val(row.UUID);
+        $('#NAME').validatebox('validate');
+        $('#FNAME').validatebox('validate');
+        $('#CODE').textbox('readonly', true);
+        $('#divCode').html('');
+    }
+    function doAdd() {
+        $('#CODE').textbox('readonly', false);
+        $('#cc').layout('panel', 'center').panel('setTitle', '新增');
+        $('#ff').form('clear');
+    }
+
+
+    function doSave() {
+        $('#ff').form('submit', {
+            url: '@Url.Action("doSave", "RefType")',
+            onSubmit: function () {
+                return $(this).form('enableValidation').form('validate');
+            },
+            success: function (data) {                
+                if (data.result != "0") {
+                    $.messager.alert('系統訊息', '資料儲存完成!', 'info');
+                    $('#ListDG').datagrid('reload');
+                }
+            }
+        });       
+    }
+
+    function doDelete() {
+        var row = $('#ListDG').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('系統訊息', '確定刪除 ' + row.NAME + ' 資料?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.UUID = row.UUID;
+                    $.ajax({
+                        url: '@Url.Action("doDelete", "RefType")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.result != "0") {
+                                $.messager.alert('系統訊息', '資料已刪除!', 'info');
+                                doAdd();
+                                $('#ListDG').datagrid('reload');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選擇資料!', 'warning');
+        }  
+    }
+
+
+    function chkCode(code) {
+        var obj = {};
+        obj.CODE = code;
+        $.messager.progress({ text: '檢查中,請稍後...' });
+        $.ajax({
+            url: '@Url.Action("chkCode", "RefType")',
+            type: "post",
+            data: obj,
+            dataType: "json",
+            async: false,
+            success: function (data, textStatus, jqXHR) {
+                $.messager.progress('close');
+                if (data != "0") {
+                    $('#divCode').html('代碼 ' + code + ' 已存在,請重新輸入!');
+                    $('#CODE').textbox('setValue', '');
+                    return false;
+                } else {
+                    $('#divCode').html('');
+                }
+
+            }
+        });
+    }
+</script>
+}
+
+<h2>結帳方式資料維護</h2>
+<div id="cc" class="easyui-layout" data-options="fit:true" style="padding-bottom:17em;"> 
+    <div data-options="region:'west',title:'結帳方式列表',fitColumns:true,split:true"  style="background:#eee;width:30%; height:100%">
+        <table id="ListDG"  data-options="fit:true" ></table>
+    </div>            
+    <div data-options="region:'center',title:'新增'"  style="width:70%; padding:1em 1em 1em 1em" >
+    <div class="easyui-panel" style="padding:5px;">
+        <a href="#" class="easyui-linkbutton" data-options="plain:true,iconCls:'add-icon'" onclick="doAdd()">新增</a>
+        <a href="#" class="easyui-linkbutton" data-options="plain:true,iconCls:'save-icon'" onclick="doSave()">儲存</a>
+        <a href="#" class="easyui-linkbutton" data-options="plain:true,iconCls:'delete-icon'" onclick="doDelete()">刪除</a>
+    </div>
+   <form id="ff" method="post" >    
+      <input id="UUID" name="UUID"  type="hidden" />
+            <table cellpadding="5">
+                <tr>
+                    <td><strong>結帳方式代碼:</strong></td>
+                    <td><input id="CODE" name="CODE" type="text" class="easyui-textbox" data-options="missingMessage:'該輸入項為必輸項'" required="required" style="width:180px;height:30px"/><div id="divCode" style="color:Red"></div></td>
+                </tr>
+                <tr>
+                    <td><strong>結帳方式名稱:</strong></td>
+                    <td><input id="NAME" name="NAME" type="text" class="easyui-validatebox" required="required" style="width:180px"/></td>
+                </tr>        
+            </table>
+        </form>
+    </div>
+</div>

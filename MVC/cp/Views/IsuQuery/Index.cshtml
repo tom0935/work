@@ -1,0 +1,299 @@
+﻿   @Styles.Render("~/Content/css")
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section scripts
+{
+<script type="text/javascript" src="~/Content/easyui/exts/datebox-ext.js"></script>
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script>
+    $(document).ready(function () {
+        //狀態
+        $('#STATUS').combobox({
+            url: '@Url.Action("getSTATUS", "Isu")',
+            valueField: 'CODE',
+            textField: 'NAME',
+            onLoadSuccess:function(){
+               $('#STATUS').combobox('setValue', '*');
+            }
+        });  
+        
+        //兌換券種類
+        $('#CCID').combobox({
+            url: '@Url.Action("getCCCODE", "Isu")',
+            valueField: 'CID',
+            textField: 'NAME',
+            onBeforeLoad:function(param){
+              param.CID="*";
+            },
+            onLoadSuccess:function(){
+               $('#CCID').combobox('setValue', '');
+            }
+        });
+
+        //企業
+        $('#IENTID').combobox({
+            url: '@Url.Action("getENT", "Isu")',
+            valueField: 'CID',
+            textField: 'NAME',
+            onBeforeLoad:function(param){
+              param.CID="*";
+            },
+            onLoadSuccess:function(){
+               $('#IENTID').combobox('setValue', '');
+            }
+        });
+        
+             
+    });
+    
+    $(window).load(function () {
+         var d = new Date();
+         var month = d.getMonth() ;
+         var day = d.getDate();
+         var dlg;
+         var ndate = d.getFullYear() + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day;
+         var dateToday = DateTimeUtil.parseDate(DateTimeUtil.transferIsoDate(ndate));
+         var sdt = new Date(dateToday); // 範圍最早日期
+         sdt.setDate(sdt.getDate());
+         var sdtStr = DateTimeUtil.convertDateToISOString(sdt);	
+
+         var edtDate = new Date();
+         edtDate.setDate(edtDate.getDate());
+         var edtStr = DateTimeUtil.convertDateToISOString(edtDate);
+         $('#SDT').datebox('setValue', sdtStr);
+         $('#EDT').datebox('setValue', edtStr); 
+    }); 
+
+    function initListDG() {        
+        var obj={};
+        obj.SDT= $('#SDT').datebox('getValue');
+        obj.EDT= $('#EDT').datebox('getValue');
+        obj.STATUS=$('#STATUS').combobox('getValue');
+        obj.CCID=$('#CCID').combobox('getValue');
+        obj.IENTID=$('#IENTID').combobox('getValue');
+        obj.SEARCH = $('#SEARCH').textbox('getValue').toUpperCase();
+        obj.QueryMode="1";
+        $('#ListDG').datagrid({
+            url: '@Url.Action("getIsu", "Isu")',
+            queryParams:obj,
+            nowrap: false,
+            sortName: 'CCID',
+            sortOrder: 'asc',
+            remoteSort: true,
+            rownumbers: true,
+            border: true,
+            singleSelect: true,
+            striped: true,
+            showPageList: true,
+            pagePosition: 'bottom',
+            pagination: true,
+            pageSize: 20,
+            pageList: [20, 50, 100],
+            columns: [[
+            //{ field: 'UUID', width: 40, checkbox: true },
+                { field: 'TEMPLATE', title: '預覽申請單', width: 70,align: "center",
+                        formatter: function (value, objRow, iIndex) {                                                      
+                            var strValue = "";
+                            strValue = "<a title='預覽申請單' href='#' onclick=openPreviewDialog('" + objRow.UUID + "')><img src='../Content/easyui/themes/icons/pdf-icon.png'></a>";
+                            return strValue;
+                        }                                    
+                },
+                { field: 'C1', title: '預覽兌換券', width: 70,align: "center",
+                        formatter: function (value, objRow, iIndex) {                                                      
+                            var strValue = "";                            
+                            strValue = "<a title='預覽兌換券' href='#' onclick=openPreviewCouponDialog('" + objRow.CC_NEW_TEMPLATE + "','"+objRow.APPLY_TEMPLATE+"','"+objRow.UUID+"','"+objRow.CCID+"')><img src='../Content/easyui/themes/icons/pdf-icon.png'></a>";
+                            return strValue;
+                        }                                    
+                },
+                {field: 'UUID', title: '編號', width: 40, sortable: true },
+                { field: 'APPLY_DT', title: '申請日期', width: 100, sortable: true} ,
+                { field: 'USE_CODE', title: '用途', width: 80, sortable: true,
+                    formatter: function (value, objRow, iIndex) {
+                        return value + " " + objRow.USE_NAME;
+                    }                                
+                } ,
+                { field: 'CCID', title: '券別', width: 150, sortable: true ,
+                    formatter: function (value, objRow, iIndex) {
+                        return value + " " + objRow.CC_NAME;
+                    }                
+                },
+                { field: 'CUS_CMP_NAME', title: '對象', width: 150, sortable: true },
+                { field: 'QTY', title: '數量', width: 50, sortable: true, align: "right" },
+                { field: 'STATUS', title: '狀態', width: 70, sortable: true, align: "center",
+                    formatter: function (value, objRow, iIndex) {
+                        return value + " " + objRow.STATUS_NAME;
+                    },                
+                    styler: function (value, row, index){
+                        var sstr = "";
+                        if (row.STATUS == "1") {
+                            sstr = "color:black;";
+                        } else if (row.STATUS == "2") {
+                            sstr = "color:green;";
+                        } else if (row.STATUS == "3" || row.STATUS == "4") {
+                            sstr = "color:blue;";
+                        }else{
+                           sstr = "color:red;";
+                        }
+                        return sstr;
+                    }                
+                },
+                { field: 'AUSERID', title: '申請人', width: 130, sortable: true,
+                   formatter: function (value, objRow, iIndex) {  
+                     return value + " " +objRow.AUSER_NAME;
+                   }
+                 }
+            ]],
+            onLoadSuccess: function () {
+             //$('#cc').layout('collapse','west');
+            }
+        });
+    }
+
+    function openPreviewDialog(UUID){
+        var x = document.getElementById("frameAttachment");
+        var y = (x.contentWindow || x.contentDocument);
+        if (y.document)y = y.document;
+        y.body.style.backgroundColor = "white";
+        y.body.innerHTML = "讀取中...請稍候!";
+        
+        var RPT='PreviewApplyReport';       
+        
+        $('#win').window('setTitle','預覽申請單');
+
+       //開啟PDF       
+        $('#frameAttachment').attr('src',"@Url.Action("doRunReport","Isu")"+'?RPT='+RPT + '&UUID=' +UUID );
+        $('#win').window('open'); 
+        $('#win').window('refresh');        
+    }
+
+
+
+  function openPreviewCouponDialog(CC_NEW_TEMPLATE,APPLY_TEMPLATE,UUID,CCID){
+      var urlStr="@Url.Action("doRunReport","Isu")";
+      var x = document.getElementById("frameAttachment");
+      var y = (x.contentWindow || x.contentDocument);
+      if (y.document)y = y.document;
+      y.body.style.backgroundColor = "white";
+      y.body.innerHTML = "讀取中...請稍候!";                
+      var RPT=CC_NEW_TEMPLATE;
+     if(RPT!='null'){
+       if(RPT.toLowerCase().indexOf("pdf") > 0){          
+          urlStr="@Url.Action("PreviewPDF","Isu")";            
+          if(APPLY_TEMPLATE != '' && APPLY_TEMPLATE != 'null' ){             
+             RPT = APPLY_TEMPLATE;             
+          }
+           
+       }else{
+          RPT="Preview" + RPT;
+       }
+       
+       
+        $('#win').window('setTitle','預覽兌換券');
+         //開啟PDF       
+         $('#frameAttachment').attr('src',urlStr +'?RPT=' + RPT + '&UUID=' +UUID + '&CCID='+CCID);
+         $('#win').window('open'); 
+         $('#win').window('refresh');           
+     }else{
+         $.messager.alert('系統訊息', '檔案不存在,無法預覽!', 'error');
+     }
+   }
+
+
+
+
+    function doClear(){
+       $('#SDT').datebox('setValue','');
+       $('#EDT').datebox('setValue','');
+       $('#STATUS').combobox('setValue','*');
+       $('#CCID').combobox('setValue','');
+       $('#IENTID').combobox('setValue','');
+       $('#SEARCH').textbox('setValue','');
+    }
+
+    function doCopy() {
+        var row = $('#ListDG').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('系統訊息', '確定複製申請單編號 ' + row.UUID + ' 資料?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.UUID = row.UUID;
+                    $.ajax({
+                        url: '@Url.Action("doCopy", "Isu")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.result != "0") {
+                                $.messager.alert('系統訊息', '已複製產生一筆申請單!', 'info');                                                                
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選擇資料!', 'warning');
+        }
+    }
+
+
+    </script>
+}
+<h2>查詢部門申請紀錄</h2>
+<div id="cc" class="easyui-layout" data-options="fit:true" style="padding-bottom:11em;"> 
+    <div data-options="region:'west',title:'查詢條件',fitColumns:true,split:true"  style="background:#eee;width:300px; height:100%">
+      <form>
+        <table width="245" border="0" cellpadding="3" cellspacing="2">
+        <tr>
+          <td width="104" bgcolor="#DFDFDF">申請起始日</td>
+          <td width="125"><input id="SDT" name="SDT" type="text" class="easyui-datebox" data-options="missingMessage:'該輸入項為必輸項'" required="required" style="width:150px;height:30px"/></td>
+        </tr>
+        <tr>
+          <td bgcolor="#DFDFDF">申請結束日</td>
+          <td><input id="EDT" name="EDT" type="text" class="easyui-datebox" data-options="missingMessage:'該輸入項為必輸項'" required="required" style="width:150px;height:30px"/></td>
+        </tr>
+        <tr>
+          <td bgcolor="#DFDFDF">兌換券種類</td>
+          <td>
+        <select id="CCID" class="easyui-combobox" name="CCID" data-options="prompt:'兌換券種類',editable:false" style="width:150px;height:28px">        
+        </select>          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#DFDFDF">發行關係企業</td>
+          <td>
+        <select id="IENTID" class="easyui-combobox" name="IENTID" data-options="prompt:'發行關係企業',editable:false" style="width:150px;height:28px">
+        
+        </select>          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#DFDFDF">狀態</td>
+          <td>
+        <select id="STATUS" class="easyui-combobox" name="STATUS" data-options="prompt:'請選擇狀態',editable:false" style="width:150px;height:28px">
+        </select>          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#DFDFDF">對象關鍵字</td>
+          <td>
+        <input id="SEARCH" name="SEARCH" type="text" class="easyui-textbox" data-options="prompt:'請輸入對象(公司.個人)'"  style="width:150px;height:30px"/>
+        </td>
+        </tr>
+        <tr>
+          <td colspan="2"><div align="center">
+          <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="initListDG()">查詢</a>
+          <a href="#" class="easyui-linkbutton" data-options="iconCls:'broom-icon'" onclick="doClear()">清空</a>
+          </div></td>
+          </tr>
+        </table>
+        </form>
+    </div>   
+    <div data-options="region:'center',title:''"  style="padding-bottom:3em;">
+     <a href="#" class="easyui-linkbutton" data-options="iconCls:'copy-icon'" onclick="doCopy()" >複製申請單</a>
+       <table id="ListDG" class="easyui-datagrid"  data-options="fit:true"  ></table>
+    </div>
+</div>
+<div id="win" class="easyui-window"  style="width:800px;height:600px"
+        data-options="iconCls:'pdf-icon',modal:true,closed:true,shadow:true,cache: false,minimizable:false">        
+<iframe id="frameAttachment" name="frameAttachment" frameborder="0" style="display:block; width: 100%; height: 100%; vertical-align: top; border: 0px">
+</iframe>
+</div>

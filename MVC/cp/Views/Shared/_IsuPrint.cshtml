@@ -1,0 +1,149 @@
+﻿
+<script>
+ 
+   function initListDG(url) {
+       $('#ListDG').datagrid({
+           url: url,
+           nowrap: false,
+           sortName: 'UUID',
+           sortOrder: 'desc',
+           remoteSort: true,
+           rownumbers: true,
+           border: true,
+           singleSelect: true,
+           striped: true,
+           idField: 'UUID',
+             showPageList: true,
+             pagePosition: 'bottom',
+             pagination: true,
+             pageSize: 20,
+             pageList: [20, 50, 100],
+           columns: [[
+           //{ field: 'UUID', width: 40, checkbox: true },
+               {field: 'PRINT', title: '列印', width: 40,
+               halign: "center",
+               align: "center",
+               formatter: function (value, objRow, iIndex) {
+                   return "<a title='列印' href='#' onclick=doRunReport('"+objRow.UUID+"','"+objRow.CC_NEW_TEMPLATE+"','"+objRow.CCID+"')><img src='../Content/easyui/themes/icons/print.png' border='0'></a>";
+               }
+           },
+                { field: 'TEMPLATE', title: '預覽申請單', width: 70, align: "center",
+                    formatter: function (value, objRow, iIndex) {
+                        var strValue = "";
+                        strValue = "<a title='預覽申請單' href='#' onclick=openPreviewDialog('" + objRow.UUID + "')><img src='../Content/easyui/themes/icons/pdf-icon.png'></a>";
+                        return strValue;
+                    }
+                },
+               { field: 'UUID', title: '編號', width: 40, sortable: true },
+                { field: 'CCID', title: '券別', width: 120, sortable: true,
+                    formatter: function (value, objRow, iIndex) {
+                        return value + " " + objRow.CC_NAME;
+                    }
+                },
+                { field: 'QTY', title: '張數', width: 60, sortable: true, align: "right" },
+                { field: 'CUS_CMP_NAME', title: '對象', width: 120, sortable: true },
+                { field: 'CONTENT1', title: '內容', width: 300, sortable: true, align: "left",
+                    formatter: function (value, objRow, iIndex) {
+                        var str;
+                        if (value != "" && value != null) {
+                            str = value;
+                        }
+                        if (objRow.CONTENT2 != "" && objRow.CONTENT2 != null) {
+                            str += "<br>" + objRow.CONTENT2;
+                        }
+                        if (objRow.CONTENT3 != "" && objRow.CONTENT3 != null) {
+                            str += "<br>" + objRow.CONTENT3;
+                        }
+                        if (objRow.CONTENT4 != "" && objRow.CONTENT4 != null) {
+                            str += "<br>" + objRow.CONTENT4;
+                        }
+                        if (objRow.CONTENT5 != "" && objRow.CONTENT5 != null) {
+                            str += "<br>" + objRow.CONTENT5;
+                        }
+                        if (objRow.CONTENT6 != "" && objRow.CONTENT6 != null) {
+                            str += "<br>" + objRow.CONTENT6;
+                        }
+                        return str;
+                    }
+                },
+                { field: 'IENTID', title: '申請關係企業', width: 90, sortable: true, align: "center",
+                    formatter: function (value, objRow, iIndex) {
+                        return value + " " + objRow.IENT_NAME;
+                    }
+                },
+                { field: 'ADPTID', title: '申請部門', width: 90, sortable: true,
+                    formatter: function (value, objRow, iIndex) {
+                        return value + " " + objRow.ADPT_NAME;
+                    }
+                },
+                { field: 'AUSERID', title: '申請人', width: 90, sortable: true,
+                    formatter: function (value, objRow, iIndex) {
+                        return value + " " + objRow.AUSER_NAME;
+                    }
+                }
+            ]],
+           onSelect: function (rowIndex, row) {
+
+           }
+       });
+    }
+
+    function doRunReport(UUID,CC_NEW_TEMPLATE,CCID){
+      
+        $.messager.confirm('系統訊息', '確定列印兌換券?', function (r) {
+          if (r) {
+               var urlStr="@Url.Action("doRunReport","IsuPrint")";
+                var x = document.getElementById("frameAttachment");
+                var y = (x.contentWindow || x.contentDocument);
+                if (y.document)y = y.document;
+                y.body.style.backgroundColor = "white";
+                y.body.innerHTML = "讀取中...請稍候!";        
+                //var RPT='PrintCouponReport';               
+                var RPT = CC_NEW_TEMPLATE;                
+                if (RPT.toLowerCase().indexOf("pdf") > 0){   
+                   urlStr="@Url.Action("PrintPDF","IsuPrint")";
+                }
+                $('#win').window('setTitle','兌換券列印');
+                //開啟PDF       
+                $('#frameAttachment').attr('src',urlStr +'?RPT='+RPT + '&ISUID=' + UUID +'&CCID='+CCID);
+                $('#win').window('open'); 
+                $('#win').window('refresh');
+                $('#ListDG').datagrid('reload');
+        
+            }
+          });
+    }
+
+
+ 
+
+
+
+    function openPreviewDialog(UUID){
+        var x = document.getElementById("frameAttachment");
+        var y = (x.contentWindow || x.contentDocument);
+        if (y.document)y = y.document;
+        y.body.style.backgroundColor = "white";
+        y.body.innerHTML = "讀取中...請稍候!";
+        
+        var RPT='PreviewApplyReport';       
+        
+        $('#win').window('setTitle','預覽申請單');
+
+       //開啟PDF       
+        $('#frameAttachment').attr('src',"@Url.Action("doRunReport","Isu")"+'?RPT='+RPT + '&UUID=' +UUID );
+        $('#win').window('open'); 
+        $('#win').window('refresh');        
+    }
+
+    </script>
+
+
+<div id="p" class="easyui-panel" data-options="fit:true" style="padding-bottom:13em;">
+ <table id="ListDG"  data-options="fit:true" ></table>
+ </div>
+<div id="win" class="easyui-window"  style="width:800px;height:600px"
+        data-options="iconCls:'pdf-icon',modal:true,closed:true,shadow:true,cache: false,minimizable:false">        
+<iframe id="frameAttachment" name="frameAttachment" frameborder="0" style="display:block; width: 100%; height: 100%; vertical-align: top; border: 0px">
+</iframe>
+</div>

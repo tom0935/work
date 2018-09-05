@@ -1,0 +1,1129 @@
+﻿   @Styles.Render("~/Content/css")
+@{
+    ViewBag.Title = "RoleManager";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section scripts
+{
+<script type="text/javascript" src="~/Content/easyui/exts/datagrid-filter.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#tt').treegrid({
+            url: '@Url.Action("getMenuList", "Menu")',
+            nowrap: false,
+            idField: 'UUID',
+            treeField: 'MENUITEM',
+            rownumbers: true,
+            sortName: 'UUID',
+            sortOrder: 'asc',
+            remoteSort: true,
+            border: false,
+            columns: [[
+        { field: 'MENUITEM', title: '選單名稱', width: 250,
+            styler: function (value, row, index) {
+                var str;
+                if (row.ENABLE == "0") {
+                    str = "color:#cccccc;";
+                }
+                return str;
+            }
+        },
+        { field: 'URL', title: '連結位置', width: 100 },
+        { field: 'TARGET', title: '開啟模式', width: 60 },
+        { field: 'ROLEID', title: '角色權限', width: 60 },
+        { field: 'USERID', title: '人員權限', width: 60 },
+        { field: 'MD_USER', title: '異動人員', width: 60 },
+        { field: 'MD_DT', title: '異動日期', width: 100 }
+        ]],
+            onClickRow: function (row) {
+                initMenuRoleList(row.UUID);
+                initMenuUserList(row.UUID);
+                initRoleList2(row.UUID);
+                initUserList2(row.UUID);
+                if (row != null) {
+                    selectForm(row);
+                }
+                /*
+                rowlist = $('#RoleListDG').datagrid('getChecked');
+                if (row != null && rowlist.length > 0) {
+                $('#roleSet').linkbutton('enable');
+                }*/
+            }
+        });
+        // initRoleid();
+        initRoleList();
+        initUserList();
+
+        $("#dUserID").blur(function () {
+            isUserCreated();
+        });
+    });
+   
+
+    //所有角色列表
+    function initRoleList() {
+        $('#RoleListDG').datagrid({
+            url: '@Url.Action("getRoleList", "Menu")',
+            nowrap: false,
+            sortName: 'CODE',
+            sortOrder: 'asc',
+            remoteSort: true,
+            rownumbers: true,
+            border: false,              
+            columns: [[
+                { field: 'CHK', width: 60, checkbox: true },
+                { field: 'CODE', title: '代碼', width: 60 ,sortable: true},
+                { field: 'NAME', title: '名稱', width: 150,sortable: true }                
+            ]]
+        });
+    }
+
+
+    //人員角色列表
+    function initUserRoleList(userid) {
+        var obj = {}
+        obj.userid = userid;
+        $('#UserRoleListDG').datagrid({
+            url: '@Url.Action("getUserRoleList", "Menu")',
+            nowrap: false,
+            queryParams: obj,
+            rownumbers: true,
+            border: false,
+            columns: [[
+                { field: 'CHK', width: 40, checkbox: true },
+                { field: 'CODE', title: '代碼', width: 50, sortable: true },
+                { field: 'NAME', title: '名稱', width: 130, sortable: true }
+            ]],
+            toolbar: [{
+                text: '新增',
+                iconCls: 'group-add-icon',
+                handler: function () {
+                    showUserRoleAddDialog();
+                }
+            }, {
+                text: '刪除',
+                iconCls: 'group-delete-icon-icon',
+                handler: function () {
+                    var rows = $('#UserRoleListDG').datagrid('getChecked');
+                    if (rows.length > 0) {
+                        for (var i = 0; i < rows.length; i++) {
+                            var j = $('#UserRoleListDG').datagrid('getRowIndex', rows[i]);
+                            $('#UserRoleListDG').datagrid('deleteRow', j);
+                        }
+
+                    } else {
+                        $.messager.alert('系統訊息', '您尚未選取資料!', 'warning');
+                    }
+                }
+            }]
+        });
+    }
+
+
+
+    //角色列表,排除已選擇
+    function initRoleList2(uuid) {
+        var obj = {};
+        obj.UUID = uuid;
+        $('#RoleListDG').datagrid({
+            url: '@Url.Action("getCodeList", "Menu")',
+            queryParams: obj,
+            sortName: 'CODE',
+            sortOrder: 'asc',
+            remoteSort: true,
+            rownumbers: true,
+            border: false,  
+            columns: [[
+                { field: 'CHK', width: 60, checkbox: true },
+                { field: 'CODE', title: '代碼', width: 60,sortable: true },
+                { field: 'NAME', title: '名稱', width: 150,sortable: true }
+            ]]
+        });
+    }
+
+    //目前選取選單角色列表
+    function initMenuRoleList(uuid) {
+        var obj = {};
+        obj.UUID = uuid;
+        
+        $('#MenuRoleListDG').datagrid({
+            url: '@Url.Action("getMenuRoleList", "Menu")',
+            queryParams: obj,
+            sortName: 'CODE',
+            sortOrder: 'asc',
+            remoteSort: true,
+            rownumbers: true,
+            border: false,
+            columns: [[
+                { field: 'CHK', width: 60, checkbox: true },
+                { field: 'CODE', title: '角色代碼', width: 60,sortable: true },
+                { field: 'NAME', title: '角色名稱', width: 150,sortable: true }
+            ]]
+        });
+    }
+
+
+    //所有人員列表
+    function initUserList() {
+        $('#UserListDG').datagrid({
+            url: '@Url.Action("getUserList", "Menu")',
+            sortName: 'USERID',
+            sortOrder: 'asc',
+            remoteSort: true,
+            /*
+            showPageList: true,
+            pagination: true,            
+            pageSize: 20,
+            pageList: [20, 50, 100],
+            pagePosition: 'bottom',*/
+            autoRowHeight: false,
+            border: false,
+            rownumbers: true,
+            nowrap: false,
+            striped: true,
+            columns: [[
+                { field: 'CHK', width: 60, checkbox: true },
+                { field: 'USERID', title: '帳號', width: 60, sortable: true },
+                { field: 'USERNAME', title: '名稱', width: 80, sortable: true },
+                { field: 'ENTID', title: '公司', width: 110, sortable: true,
+                    formatter: function (value, objRow, iIndex) {
+                        return value + " " + objRow.ENTNAME;
+                    }
+                },
+                { field: 'DPTID', title: '部門', width: 110, sortable: true,
+                    formatter: function (value, objRow, iIndex) {
+                        return value + " " + objRow.DPTNAME;
+                    }
+                },
+                { field: 'VALID', title: '啟用', width: 60, sortable: true,
+                    styler: function (value, row, index) {
+                        var str;
+                        if (row.VALID == "1") {
+                            str = "color:blue;";
+                        } else {
+                            str = "color:#cccccc;";
+                        }
+                        return str;
+                    }
+                }
+            ]]
+        });
+    }
+
+    //所有人員列表
+    function initUserList2(uuid) {
+        var obj = {};
+        obj.UUID = uuid;
+        $('#UserListDG').datagrid('reload', obj);
+    }
+
+
+
+
+    //目前選取人員選單列表
+    function initMenuUserList(uuid) {
+        var obj = {};
+        obj.UUID = uuid;
+
+        $('#MenuUserListDG').datagrid({
+            url: '@Url.Action("getMenuUserList", "Menu")',
+            queryParams: obj,
+            sortName: 'USERID',
+            sortOrder: 'asc',
+            remoteSort: true,
+            rownumbers: true,       
+            columns: [[
+                { field: 'CHK', width: 60, checkbox: true },
+                { field: 'USERID', title: '帳號', width: 60, sortable: true },
+                { field: 'USERNAME', title: '名稱', width: 80, sortable: true },
+                { field: 'DEPT', title: '部門', width: 180, sortable: true }               
+            ]]
+        });
+    }
+
+
+
+    function selectForm(row) {        
+        if (row != null) {
+            var LEVEL;
+            if (row.ENABLE == "1") {
+                $("#ENABLE").prop("checked", true);
+            } else {
+                $("#ENABLE").prop("checked", false);
+            }
+            $('#MENUITEM').val(row.MENUITEM);
+            $('#URL').val(row.URL);
+            if (row.LEVEL2 == "0") {
+                LEVEL = row.LEVEL1;
+            } else {
+                LEVEL = row.LEVEL2;
+            }
+            
+            $('#TARGET').combobox('setValue', row.TARGET);
+            
+            $('#LEVEL').val(LEVEL);
+            $('#ROLEID').html(row.ROLEID);
+            $('#USERID').html(row.USERID);
+            $('#MD_USER').html(row.MD_USER);
+            $('#MD_DT').html(row.MD_DT);
+            $('#CR_USER').html(row.CR_USER);
+            $('#CR_DT').html(row.CR_DT);
+        } else {
+            $('#MENUITEM').val('');
+            $('#URL').val('');
+            $('#LEVEL').val('');
+            $('#ROLEID').html('');
+            $('#USERID').html('');
+            $('#MD_USER').html('');
+            $('#MD_DT').html('');
+            $('#CR_USER').html('');
+            $('#CR_DT').html('');
+            $("#ENABLE").prop("checked", false);
+        }
+    }
+
+
+    
+    function showFormDialog() {
+        initMenuDialog();  //初始化dialog
+        var selectTreeRow = $('#tt').treegrid('getSelected');
+        var selectParent;
+        var type = "新建主選單";
+        var LEVEL1;
+        if (selectTreeRow != null) {
+           selectParent = $('#tt').treegrid('getParent', selectTreeRow.UUID);
+           if (selectTreeRow.LEVEL2 == "0") {
+               type = selectTreeRow.MENUITEM;
+           } else {
+               type = selectParent.MENUITEM;
+           }
+           LEVEL1 = selectTreeRow.LEVEL1;
+        }
+        $('#dMenuType').html(type);
+        $('#FromDialog').dialog({
+            title: '新增選單',
+            width: 400,
+            height: 300,
+            closed: false,
+            cache: false,
+            modal: true,
+            buttons: [{
+                text: '儲存',
+                iconCls: 'save-icon',
+                handler: function () {
+                    var MENUITEM, URL, ENABLE, TARGET;
+                    MENUITEM = $('#dMenuItem').val();
+                    URL = $('#dMenuUrl').val();
+                    TARGET = $('#dMenuTarget').combobox('getValue');
+                    if ($("#dMenuEnable").prop('checked')) {
+                        ENABLE = '1';
+                    } else {
+                        ENABLE = '0';
+                    }
+
+
+                    var obj = {};
+                    obj.LEVEL1 = LEVEL1;
+                    obj.MENUITEM = MENUITEM;
+                    obj.URL = URL;
+                    obj.ENABLE = ENABLE;
+                    obj.TARGET = TARGET;
+                    $.ajax({
+                        url: '@Url.Action("addMenu", "Menu")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.result != '0') {
+                                $('#FromDialog').dialog('close');
+                                $('#tt').treegrid('reload');
+                                $.messager.alert('系統訊息', '儲存成功!', 'info');
+                            }
+                        }
+                    });
+                }
+            }, {
+                text: '取消',
+                iconCls: 'icon-cancel',
+                handler: function () {
+                    $('#FromDialog').dialog('close');
+                }
+            }]
+        });
+    }
+
+    //刪除選單
+    function delMenu() {
+       var selectTreeRow = $('#tt').treegrid('getSelected');       
+       if (selectTreeRow != null && selectTreeRow.UUID!="00") {
+           $.messager.confirm('系統訊息', '是否刪除此選單: ' + selectTreeRow.MENUITEM, function (r) {
+               if (r) {
+                   var obj = {};
+                   obj.UUID = selectTreeRow.UUID;
+                   obj.LEVEL1 = selectTreeRow.LEVEL1;
+                   obj.LEVEL2 = selectTreeRow.LEVEL2;
+                   $.ajax({
+                       url: '@Url.Action("delMenu", "Menu")',
+                       type: "post",
+                       data: obj,
+                       dataType: "json",
+                       success: function (data, textStatus, jqXHR) {
+                           if (data.result != '0') {
+                               $('#tt').treegrid('reload');
+                               selectForm(null);
+                               
+                               $.messager.alert('系統訊息', '選單: ' + selectTreeRow.MENUITEM + ' 已刪除!', 'info');
+                           }
+                       }
+                   });
+               }
+           });
+      }
+   }
+
+   //儲存選單
+   function saveMenu() {
+       
+       var selectTreeRow = $('#tt').treegrid('getSelected');
+       if (selectTreeRow != null && selectTreeRow.UUID != "00") {
+           $.messager.confirm('系統訊息', '是否儲存此選單: ' + selectTreeRow.MENUITEM, function (r) {
+               if (r) {
+                   var obj = {};
+                   var LEVEL1, LEVEL2;
+                   if (selectTreeRow.LEVEL2 == "0") {
+                       LEVEL2 = "0";
+                       LEVEL1 = $('#LEVEL').val();
+                   } else {
+                       LEVEL2 = $('#LEVEL').val();
+                       LEVEL1 = selectTreeRow.LEVEL1;
+                   }
+                   var ENABLE;
+                   if ($("#ENABLE").prop('checked')) {
+                       ENABLE = '1';
+                   } else {
+                       ENABLE = '0';
+                   }
+
+                   obj.UUID = selectTreeRow.UUID;
+                   obj.MENUITEM = $('#MENUITEM').val();
+                   obj.URL = $('#URL').val();
+                   obj.TARGET = $('#TARGET').combobox('getValue');
+                   obj.LEVEL1 = LEVEL1;
+                   obj.LEVEL2 = LEVEL2;
+                   obj.ENABLE = ENABLE;
+                   obj.OLDLEVEL1 = selectTreeRow.LEVEL1;
+
+                   $.ajax({
+                       url: '@Url.Action("saveMenu", "Menu")',
+                       type: "post",
+                       data: obj,
+                       dataType: "json",
+                       success: function (data, textStatus, jqXHR) {
+                           if (data.result != '0') {
+                               $('#tt').treegrid('reload');
+                               selectForm(null);
+                               $.messager.alert('系統訊息', '選單: ' + obj.MENUITEM + ' 已儲存!', 'info');
+                           }
+                       }
+                   });
+               }
+           });        
+     }
+   }
+
+   //初始化MenuDialog
+   function initMenuDialog() {
+       $('#dMenuType').html('');
+       $('#dMenuItem').val('');
+       $('#dMenuUrl').val('');
+       $('#dMenuTarget').combobox('setValue', '0');
+       $("#ENABLE").prop("checked", false);
+   }
+
+
+   //指派角色
+   function SettingRole(action) {
+       var selectTreeRow = $('#tt').treegrid('getSelected');
+       var row;
+       if (action == "set") {
+          row = $('#RoleListDG').datagrid('getChecked');
+       } else {
+          row = $('#MenuRoleListDG').datagrid('getChecked');
+       }
+       var obj = {};
+
+       if (row.length > 0 && selectTreeRow != null) {
+           
+           if (selectTreeRow.ID == "00") {
+               $.messager.alert('系統訊息', '此節點無法指派角色!', 'warning');
+               return false;
+           }
+           obj.list = row;
+           obj.MenuUUID = selectTreeRow.UUID;
+           obj.ACTION = action;
+           $.ajax({
+               url: '@Url.Action("settingRole", "Menu")',
+               type: "post",
+               data: obj,
+               dataType: "json",
+               success: function (data, textStatus, jqXHR) {
+                   if (data.result != '0') {
+                       $('#tt').treegrid('reload');
+                       $('#RoleListDG').datagrid('reload');
+                       $('#MenuRoleListDG').datagrid('reload');
+                       $.messager.alert('系統訊息', '選單: ' + selectTreeRow.MENUITEM + ' 指派角色作業已完成!', 'info');
+                   }
+               }, beforeSend: function (xhr, settings) {
+                   settings.data =
+                   settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+               }
+           }); 
+       } else if (selectTreeRow == null) {
+         $.messager.alert('系統訊息', '尚未選取指派選單!', 'warning');
+       } else if(row.length==0) {
+         $.messager.alert('系統訊息', '尚未選取指派角色!', 'warning');
+       }
+ }
+
+
+
+
+
+ //新增修改刪除角色
+ function editRole(action) {
+     var title;
+     var UUID;
+     var obj = {};
+     row = $('#RoleListDG').datagrid('getChecked');
+      if (row.length == 0 && (action == "edit" || action == "del")) {
+          $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+          return false;
+      } else if (row.length > 1 && action == "edit") {
+          $.messager.alert('系統訊息', '編輯選取請勿超過一筆!', 'warning');
+          return false;
+      }
+
+      if (action == "add") {
+          title = "新增";
+          $('#dRoleName').val('');
+      } else if (action == "edit") {
+          title = "編輯";
+          if (row.length == 1) {
+              $('#dRoleName').val(row[0].NAME);
+              UUID = row[0].UUID;
+          }
+      } else if (action == "del") {
+      $.messager.confirm('系統訊息', '確認刪除 '+row.length+' 筆資料?', function (r) {
+          if (r) {
+              var obj = {};
+              obj.ACTION = action;
+              obj.list = row;              
+              roleAjax(obj);
+          }
+      });
+         return false;
+      }
+
+      $('#RoleDialog').dialog({
+          title: title + '角色',
+          width: 400,
+          height: 150,
+          closed: false,
+          cache: false,
+          modal: true,
+          buttons: [{
+              text: '儲存',
+              iconCls: 'save-icon',
+              handler: function () {
+                  var obj = {};
+                  obj.NAME = $('#dRoleName').val();
+                  obj.ACTION = action;
+                  obj.UUID = UUID;
+                  roleAjax(obj);
+              }
+          }, {
+              text: '取消',
+              iconCls: 'icon-cancel',
+              handler: function () {
+                  $('#RoleDialog').dialog('close');
+              }
+          }]
+      });
+
+   }
+
+   function roleAjax(obj) {
+       $.ajax({
+           url: '@Url.Action("editRole", "Menu")',
+           type: "post",
+           data: obj,
+           dataType: "json",
+           success: function (data, textStatus, jqXHR) {
+               if (data.result != '0') {
+                   $('#RoleDialog').dialog('close');
+                   $('#RoleListDG').datagrid('reload');
+                   $.messager.alert('系統訊息', '儲存成功!', 'info');
+               }
+           }, beforeSend: function (xhr, settings) {
+               settings.data =
+                   settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+           }
+       });
+   }
+
+
+   //編輯使用者
+   function editUser(action) {
+       var title;
+       var UUID;
+       var obj = {};
+       row = $('#UserListDG').datagrid('getChecked');
+       if (row.length == 0 && (action == "edit" || action == "del")) {
+           $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+           return false;
+       } else if (row.length > 1 && action == "edit") {
+           $.messager.alert('系統訊息', '編輯選取請勿超過一筆!', 'warning');
+           return false;
+       }
+
+       if (action == "add") {
+           title = "新增";
+           initUserFrom();
+           $('#dUserID').val('');
+           $('#dUserIDOld').val('');
+           
+           $('#dUserPWD').val('');
+           $('#dUserNAME').val('');
+           $('#dUserMAIL').val('');
+           $('#divChkUserMsg').html('');
+           initUserRoleList('');
+          // $('#UserRoleListDG').datagrid('loadData', { "total": 0, "rows": [] });
+       } else if (action == "edit") {           
+           title = "編輯";
+           if (row.length == 1) {
+               initUserFrom(row[0].CID);
+               $('#dUserID').val(row[0].USERID);
+               $('#dUserIDOld').val(row[0].USERID);
+               $('#dUserPWD').val(row[0].USERPWD);
+               $('#dUserNAME').val(row[0].USERNAME);
+               $('#dUserENT').combobox('setValue',row[0].CID);
+               $('#dUserDPT').combobox('setValue',row[0].DID);
+               $('#dUserMAIL').val(row[0].EMAIL);
+
+               if (row[0].VALID == "1") {
+                   $("#dUserVALID").prop("checked", true);
+               } else {
+                   $("#dUserVALID").prop("checked", false);
+               }
+               initUserRoleList(row[0].USERID);
+               UUID = row[0].UUID;
+           }
+       } else if (action == "del") {
+           $.messager.confirm('系統訊息', '確認刪除 ' + row.length + ' 筆資料?', function (r) {
+               if (r) {
+                   var obj = {};
+                   obj.ACTION = action;
+                   obj.list = row;
+                   userAjax(obj);
+               }
+           });
+           return false;
+       }
+
+       $('#dUserID').validatebox('validate');
+       $('#dUserPWD').validatebox('validate');
+
+       $('#UserDialog').dialog({
+           title: title + '人員',
+           width: 600,
+           height: 420,
+           closed: false,
+           cache: false,
+           modal: true,
+           buttons: [{
+               text: '儲存',
+               iconCls: 'save-icon',
+               handler: function () {
+                   var list = $('#UserRoleListDG').datagrid('getRows');   //取回設定角色列表
+                   var obj = {};
+                   var VALID;
+                   obj.USERID = $('#dUserID').val();
+                   obj.USERPWD = $('#dUserPWD').val();
+                   obj.USERNAME = $('#dUserNAME').val();
+                   obj.USERENT = $('#dUserENT').combobox('getText').substring(0, 2);
+                   obj.USERDPT = $('#dUserDPT').combobox('getText').substring(0, 4);
+                   obj.EMAIL = $('#dUserMAIL').val();
+
+                   if ($("#dUserVALID").prop('checked')) {
+                       VALID = '1';
+                   } else {
+                       VALID = '0';
+                   }
+                   obj.VALID = VALID;
+                   obj.ACTION = action;
+                   obj.UUID = UUID;
+                   obj.roles = list;
+                   if (chkUserForm()) {
+                       userAjax(obj);
+                   }
+               }
+           }, {
+               text: '取消',
+               iconCls: 'icon-cancel',
+               handler: function () {
+                   $('#UserDialog').dialog('close');
+               }
+           }]
+       });
+   }
+
+   //使用者表單前端驗證
+   function chkUserForm() {
+       var isValid=true;
+       isValid = $('#dUserID').validatebox('isValid');
+       isValid = $('#dUserPWD').validatebox('isValid');
+       isValid = $('#dUserENT').combobox('isValid');
+       isValid = $('#dUserDPT').combobox('isValid');
+       return isValid;
+   }
+
+   //驗證使用者是否存在
+   function isUserCreated() {
+       var obj = {};
+       obj.userid = $('#dUserID').val();
+       if (obj.userid != $('#dUserIDOld').val()) {
+           $.ajax({
+               url: '@Url.Action("isUserCreated", "Menu")',
+               type: "post",
+               data: obj,
+               dataType: "json",
+               async: true,
+               success: function (data, textStatus, jqXHR) {
+                   if (data != '0') {
+                       $('#divChkUserMsg').html('帳號 ' + obj.userid + ' 已存在,請重新輸入!');
+                       $('#dUserID').val('');
+                       return false;
+                   }
+               }
+           });
+       }
+   }
+
+   function userAjax(obj) {
+       $.ajax({
+           url: '@Url.Action("editUser", "Menu")',
+           type: "post",
+           data: obj,
+           dataType: "json",
+           success: function (data, textStatus, jqXHR) {
+               if (data.result != '0') {
+                   $('#UserDialog').dialog('close');
+                   $('#UserListDG').datagrid('reload');
+                   $.messager.alert('系統訊息', '儲存成功!', 'info');
+               }
+           }, beforeSend: function (xhr, settings) {
+               settings.data =
+                   settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+           }
+       });
+   }
+
+   //指派人員
+   function SettingUser(action) {
+       var selectTreeRow = $('#tt').treegrid('getSelected');
+       var row;
+       if (action == "set") {
+           row = $('#UserListDG').datagrid('getChecked');
+       } else {
+           row = $('#MenuUserListDG').datagrid('getChecked');
+       }
+       var obj = {};
+
+       if (row.length > 0 && selectTreeRow != null) {
+
+           if (selectTreeRow.ID == "00") {
+               $.messager.alert('系統訊息', '此節點無法指派人員!', 'warning');
+               return false;
+           }
+           
+           obj.list = row;
+           obj.MenuUUID = selectTreeRow.UUID;
+           obj.ACTION = action;
+           $.ajax({
+               url: '@Url.Action("settingUser", "Menu")',
+               type: "post",
+               data: obj,
+               dataType: "json",
+               success: function (data, textStatus, jqXHR) {
+                   
+                   if (data.result != '0') {
+                       $('#tt').treegrid('reload');
+                       $('#UserListDG').datagrid('reload');
+                       $('#MenuUserListDG').datagrid('reload');
+                       $.messager.alert('系統訊息', '選單: ' + selectTreeRow.MENUITEM + ' 指派人員作業已完成!', 'info');
+                   }
+               }, beforeSend: function (xhr, settings) {
+                   settings.data =
+                   settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+               }
+           });
+       } else if (selectTreeRow == null) {
+           $.messager.alert('系統訊息', '尚未選取指派選單!', 'warning');
+       } else if (row.length == 0) {
+           $.messager.alert('系統訊息', '尚未選取指派人員!', 'warning');
+       }
+   }
+
+
+   $(function () {
+       var dg = $('#UserListDG').datagrid();
+
+       dg.datagrid('enableFilter', [{
+           field: 'A1',
+           type: 'textbox',
+           //options: { precision: 1 },
+           op: ['equal', 'notequal', 'less', 'greater']
+       }, {
+           field: 'A2',
+           type: 'textbox',
+           //options: { precision: 1 },
+           op: ['equal', 'notequal', 'less', 'greater']
+       },
+        {
+            field: 'VALID',
+            type: 'combobox',
+            options: {
+                panelHeight: 'auto',
+                data: [{ value: '', text: '全部' }, { value: '1', text: '啟用' }, { value: '0', text: '關閉'}],
+                onChange: function (value) {
+                    if (value == '') {
+                        dg.datagrid('removeFilterRule', 'VALID');
+                    } else {
+                        dg.datagrid('addFilterRule', {
+                            field: 'VALID',
+                            op: 'equal',
+                            value: value
+                        });
+                    }
+                    dg.datagrid('doFilter');
+                }
+            }
+        }]);
+   });
+
+
+     //初始化使用者表單下拉選單
+    function initUserFrom(CID) {
+        $('#dUserENT').combobox({
+            url: '@Url.Action("getENT", "Menu")',
+            valueField: 'CID',
+            textField: 'NAME',
+            onSelect: function (record) {             
+             /*
+                CID = record.CID;
+                $('#dUserDPT').combobox({
+                    url: '@Url.Action("getDPT", "Menu")',
+                    valueField: 'DID',
+                    textField: 'NAME',
+                    onBeforeLoad: function (param) {
+                        param.CID = CID;
+                    }
+                });
+                */                
+            }
+        });
+
+       $('#dUserDPT').combobox({
+           url: '@Url.Action("getDPT", "Menu")',
+           valueField: 'DID',
+           textField: 'NAME',
+           onBeforeLoad: function (param) {
+              // param.CID = CID;
+           }
+       });
+   }
+
+   //使用者選取角色Dialog
+   function showUserRoleAddDialog() {
+       initUserRoleAddDG();
+       $('#UserRoleAddDialog').dialog({
+           title: '新增人員角色',
+           width: 300,
+           height: 400,
+           closed: false,
+           cache: false,
+           modal: true,
+           buttons: [{
+               text: '新增',
+               iconCls: 'group-add-icon',
+               handler: function () {
+                   var rows = $('#UserRoleAddDG').datagrid('getChecked');
+                   //var data=JSON.stringify(selectChecked);
+                   //$('#UserRoleListDG').datagrid('loadData', selectChecked);
+                   for (var i = 0; i < rows.length; i++) {
+                       $('#UserRoleListDG').datagrid('appendRow', rows[i]);                   
+                   }
+
+                   $('#UserRoleAddDialog').dialog('close');
+               }
+           }, {
+               text: '取消',
+               iconCls: 'icon-cancel',
+               handler: function () {
+                   $('#UserRoleAddDialog').dialog('close');
+               }
+           }]
+       });      
+   }
+
+
+   function initUserRoleAddDG() {
+      var userid = $('#dUserID').val();
+      var list = $('#UserRoleListDG').datagrid('getRows');
+       var obj = {};
+       obj.userid = userid;
+       obj.list = list;       
+           $.ajax({
+               url: '@Url.Action("getUserRoleAdd", "Menu")',
+               type: "post",
+               data: obj,
+               dataType: "json",
+               async:false,
+               success: function (data, textStatus, jqXHR) {
+                    $('#UserRoleAddDG').datagrid({     
+                    data:data,
+                    sortName: 'CODE',
+                    sortOrder: 'asc',
+                    remoteSort: true,
+                    rownumbers: true,
+                    border: false,
+                    columns: [[
+                        { field: 'CHK', width: 60, checkbox: true },
+                        { field: 'CODE', title: '代碼', width: 60, sortable: true },
+                        { field: 'NAME', title: '名稱', width: 150, sortable: true }
+                        ]]
+                    });
+               }, beforeSend: function (xhr, settings) {
+                   settings.data =
+                   settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+               }
+           }); 
+
+
+
+   }
+
+
+   //指派人員角色
+   function addUserRole(action) {
+            
+   }
+
+</script>
+}
+<h2>角色及作業分派資料維護</h2>
+
+  
+
+        
+<div id="cc" class="easyui-layout" data-options="fit:true" style="padding-bottom:15em;"  >   
+    <div data-options="region:'west',title:'選單列表',fitColumns:true,split:true"  style="background:#eee;width:35%; height:100%">
+    <table id="tt"  data-options="fit:true" ></table>
+    </div>            
+    <div data-options="region:'center',title:'編輯'"  style="width:65%; padding:1em 1em 1em 1em" >
+  
+
+    <div class="easyui-tabs" data-options="tabWidth:100,tabHeight:60,fit:true"  >
+        <div title="<span class='tt-inner'><img src='../Content/easyui/themes/icons/config-icon.png'/><br>選單編輯</span>" style="padding:5px">
+            <div style="padding:0px 0;">
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'application-add-icon'" style="width:80px" onclick="showFormDialog()">新增選單</a>
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" style="width:80px" onclick="saveMenu()">儲存選單</a>
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'delete-icon'" style="width:80px" onclick="delMenu()">刪除選單</a>
+            </div>
+        <form id="ff" method="post">
+            <table cellpadding="5">
+                <tr>
+                    <td><strong>選單名稱</strong></td>
+                    <td><input id="MENUITEM"  type="text" /></td>
+                </tr>
+                <tr>
+                    <td><strong>連結</strong></td>
+                    <td><input id="URL" type="text" /></td>
+                </tr>
+                <tr>
+                    <td><strong>順序</strong></td>
+                    <td><input id="LEVEL" type="text" /></td>
+                </tr>
+                <tr>
+                    <td><strong>啟用</strong></td>
+                    <td><input id="ENABLE" type="checkbox" /></td>
+                </tr>
+                 <tr>
+                    <td ><strong>連結方式</strong></td>
+                    <td><select id="TARGET" class="easyui-combobox" >
+                        <option value="0" selected="selected">預設視窗</option>
+                        <option value="1">開啟新視窗</option>
+                        </select>
+                    </td>      
+                </tr>
+                <tr>
+                    <td><strong>角色權限</strong></td>
+                    <td><div id="ROLEID" /></td>
+                </tr>
+                <tr>
+                    <td><strong>人員權限</strong></td>
+                    <td><div id="USERID" /></td>
+                </tr>
+                <tr>
+                    <td><strong>異動人員</strong></td>
+                    <td>
+                        <div id="MD_USER"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>異動日期</strong></td>
+                    <td>
+                       <div id="MD_DT"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>建立人員</strong></td>
+                    <td>
+                       <div id="CR_USER"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>建立日期</strong></td>
+                    <td>
+                       <div id="CR_DT"/>
+                    </td>
+                </tr>
+            </table>
+        </form>
+             
+        </div>
+        <div title="<span class='tt-inner'><img src='../Content/easyui/themes/icons/role-icon.png'/><br>選單角色</span>" style="padding:5px">
+
+          <div id="cc2" class="easyui-layout" data-options="fit:true" style="padding-bottom:0em;" >   
+            <div data-options="region:'west',fitColumns:true,split:true"  style="background:#eee;width:40%;padding-bottom:2em;">
+            <div style="padding:0px 0;">
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'group-add-icon'" style="width:80px" onclick="editRole('add')">新增角色</a>
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" style="width:80px" onclick="editRole('edit')">編輯角色</a>
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'group-delete-icon-icon'" style="width:80px" onclick="editRole('del')">刪除角色</a>
+                <a href="#" id="roleSet" class="easyui-linkbutton" data-options="iconCls:'Arrow-Right-icon'" style="width:80px" onclick="SettingRole('set')">加入權限</a>                
+            </div>
+              <table id="RoleListDG" data-options="fit:true"  ></table>  
+            </div>            
+            <div data-options="region:'center',fit:true"  style="width:60%; height:500px; padding:0em 0em 0em 0em"  >
+            <div style="padding:0px 0;">
+                <a href="#" id="roleGet" class="easyui-linkbutton" data-options="iconCls:'Arrow-Left-icon'" style="width:80px" onclick="SettingRole('get')">移除權限</a>                
+            </div>
+              <table id="MenuRoleListDG" data-options="fit:true" ></table>
+            </div>
+          </div>
+        </div>
+        <div title="<span class='tt-inner'><img src='../Content/easyui/themes/icons/user-icon.png'/><br>人員權限</span>" style="padding:5px">
+        <div id="cc3" class="easyui-layout" data-options="fit:true" style="padding-bottom:0em;" >  
+          <div data-options="region:'west',fitColumns:true,split:true"  style="background:#eee;width:40%;padding-bottom:2em;">
+            <div style="padding:0px 0;">
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'user-add-icon'" style="width:80px" onclick="editUser('add')">新增人員</a>
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" style="width:80px" onclick="editUser('edit')">編輯人員</a>
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'user-delete-icon'" style="width:80px" onclick="editUser('del')">刪除人員</a>
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'Arrow-Right-icon'" style="width:80px" onclick="SettingUser('set')">加入權限</a>                
+            </div>
+             <table id="UserListDG" data-options="fit:true"   ></table>  
+          </div> 
+          <div data-options="region:'center',fit:true"  style="width:60%; height:500px; padding:0em 0em 0em 0em"  >
+            <div style="padding:0px 0;">
+                <a href="#" id="roleGet" class="easyui-linkbutton" data-options="iconCls:'Arrow-Left-icon'" style="width:80px" onclick="SettingUser('get')">移除權限</a>                
+            </div>
+              <table id="MenuUserListDG" data-options="fit:true" ></table>
+          </div>
+        </div>
+        </div>
+
+    </div>
+    </div>
+</div>
+
+
+<div id="FromDialog" style="padding:10px">
+  <table width="100%" border="1" cellpadding="3" cellspacing="1" bordercolor="#FFFFFF">
+    <tr>
+      <td width="89" bgcolor="#CCCCCC"><strong>選單層別 </strong></td>
+      <td width="227">
+         <div id="dMenuType"></div>
+      </td>
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>選單名稱 </strong></td>
+      <td><input id="dMenuItem" type="text" style="width:180px" /></td>      
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>連結位置</strong></td>
+      <td><input id="dMenuUrl" type="text" style="width:180px" /></td>      
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>啟用</strong></td>
+      <td><input id="dMenuEnable" type="checkbox" /></td>      
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>連結方式</strong></td>
+      <td><select id="dMenuTarget" class="easyui-combobox" >
+          <option value="0" selected="selected">預設視窗</option>
+          <option value="1">開啟新視窗</option>
+          </select>
+      </td>      
+    </tr>
+  </table>
+</div>
+
+<div id="RoleDialog" style="padding:10px">
+  <table width="100%" border="1" cellpadding="2" cellspacing="1" bordercolor="#FFFFFF">
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>角色名稱 </strong></td>
+      <td><input id="dRoleName" type="text" style="width:180px" /></td>      
+    </tr>
+  </table>
+</div>
+
+<div id="UserDialog" style="padding:5px">
+<table width="100%" border="1" cellpadding="3" cellspacing="1" bordercolor="#FFFFFF">
+    <tr>
+      <td width="18%" bgcolor="#CCCCCC"><strong>帳號</strong></td>
+      <td width="32%"><input id="dUserIDOld" type="hidden" /><input id="dUserID" name="dUserID" type="text" class="easyui-validatebox" required="required" style="width:180px" /><div id="divChkUserMsg" style="color:Red"></div></td>      
+      <td width="50%" bgcolor="#CCCCCC"><div align="center"><strong>角 色</strong></div></td>
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>密碼</strong></td>
+      <td><input id="dUserPWD" type="text" class="easyui-validatebox" required="required" style="width:180px" /></td>      
+      <td rowspan="6" valign="top"><table id="UserRoleListDG"  style="width:260px" ></table> </td>
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>姓名</strong></td>
+      <td><input id="dUserNAME" type="text" class="easyui-validatebox" style="width:180px" /></td>      
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>公司</strong></td>
+      <td><input id="dUserENT" name="dUserENT" data-options="prompt:'請選擇公司',editable:false" class="easyui-combobox"  required="required" style="width:220px;height:30px"></td>      
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>部門</strong></td>
+      <td><input id="dUserDPT" name="dUserDPT" data-options="prompt:'請選擇部門',editable:false" class="easyui-combobox" required="required"  style="width:220px;height:30px"></td>         
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>EMAIL</strong></td>
+      <td><input id="dUserEMAIL" type="text" class="easyui-validatebox" data-options="prompt:'請輸入EMAIL'" style="width:220px" /></td>      
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>啟用</strong></td>
+      <td><input id="dUserVALID" type="checkbox" /></td>      
+    </tr>
+  </table>
+</div>
+<div id="UserRoleAddDialog" style="padding:5px">
+   <table id="UserRoleAddDG"  data-options="fit:true" ></table>
+</div>

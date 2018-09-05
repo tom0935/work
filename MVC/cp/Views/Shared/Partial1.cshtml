@@ -1,0 +1,71 @@
+﻿@{
+    ViewBag.Title = "首頁";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section scripts
+{    
+
+    <script type="text/javascript">
+        var menudata;
+        $(document).ready(function () {
+            $.ajax({
+                url: '@Url.Action("getMenuitem", "Menu")',
+                type: "post",
+                dataType: "json",
+                async: false,
+                success: function (data, textStatus, jqXHR) {
+                    menudata = data;
+                    init(menudata);
+                }
+            });
+        });
+
+        $(window).load(function () {
+            $.each(menudata.MENUS, function (i, sm) {
+                if (sm.MENUS.length == 0) { //若回傳長度為0代表無第二層選單,則關閉第一層
+                    $('#mb' + i).menubutton("disable");
+                }
+            });
+        });
+
+        function init(data) {
+            var childmenu = "";
+            var menulist = "";
+            $.each(data.MENUS, function (i, sm) {
+                childmenu = "<div id='mc" + i + "' style='width: 220px;'>";
+                $.each(sm.MENUS, function (j, o) {
+                    childmenu += "<div id='mcm" + i + j + "' onclick=doClick('" + o.URL + "')>" + o.TITLE
+                    + "</div> ";
+                });
+                childmenu += "</div>";
+                menulist = "<a href='#' id='mb" + i + "' class='easyui-menubutton' menu='#mc" + i + "' onclick='doClick(this)' >" + sm.TITLE + "</a>";
+                $("#form1").append($(childmenu));
+                $("#dMenu").append($(menulist));
+            });
+
+        }
+        function doClick(obj) {
+            window.location.href = '@Url.Action("RoleManager", "Menu")';
+        }
+
+
+
+
+
+    </script>
+    }
+
+@section featured {
+    <section class="featured">
+        <div class="content-wrapper">
+      <hgroup class="title">
+      <form id="form1" runat="server">
+         <div id="dMenu" class="function_box_on"  style=" padding: 5px; width: 100%;">
+         </div>
+      </form>
+
+      </hgroup>
+        </div>
+    </section>
+}
+

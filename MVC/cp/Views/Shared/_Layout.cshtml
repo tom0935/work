@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+    <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <meta charset="utf-8" />
+        <title>@ViewBag.Title - Howard Coupon</title>
+        <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+        <meta name="viewport" content="width=device-width" />
+        @Styles.Render("~/Content/css")
+        @Scripts.Render("~/bundles/modernizr")
+        <!--
+    <link href="~/Content/easyui/themes/bootstrap/easyui.css" rel="stylesheet" />	
+	<link href="~/Content/easyui/themes/icon.css" rel="stylesheet" type="text/css">
+	<link href="~/Content/easyui/demo/demo.css" rel="stylesheet" type="text/css" >
+    <link href="~/Content/mystyle.css" rel="stylesheet" type="text/css" >    
+    <script src="~/Content/easyui/jquery.easyui.min.js"></script>
+    
+    
+    <link href="~/Content/mystyle.css" rel="stylesheet" type="text/css" >
+    -->
+    @Styles.Render("~/Content/themes/easyui/css")    
+    <script src="~/Content/easyui/jquery.min.js"></script>
+    <script src="~/Content/easyui/jquery.easyui.min.js"></script>
+
+    @Scripts.Render("~/bundles/easyui")
+     @RenderSection("scripts", required: false)
+    </head>
+    <body >
+        <header>
+            <div class="content-wrapper" >
+                
+                    <p class="site-title"><img src="~/Images/logo.png" width="20px" height="20px" align="absmiddle"  /> Howard Coupon 兌換券系統</p>
+                
+                <div class="float-right">
+                    <section id="login">
+                        @Html.Partial("_LoginPartial")
+                    </section>
+
+                </div>
+            </div>
+        </header>
+       <!-- <div id="body"  > -->
+      <!--  <div id="body" > -->
+        @if (Request.IsAuthenticated)
+        {
+            @Html.Partial("~/Views/Shared/_MenuPartial.cshtml");
+        }                  
+                @RenderSection("featured", required: false)
+             <!--<section class="content-wrapper main-content clear-fix">-->
+            <!--<section class="content-wrapper" > -->
+                @RenderBody()
+                 
+    <!--
+            </section>
+        </div>
+        -->
+     <!--   </div> -->
+       <!-- @Scripts.Render("~/bundles/jquery") -->
+       
+    </body>
+</html>

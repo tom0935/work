@@ -1,0 +1,22 @@
+﻿   @Styles.Render("~/Content/css")
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";   
+}
+<h2>重印兌換券 <input id="UUID" name="UUID" type="text" class="easyui-textbox" data-options="prompt:'請輸入申請單號',buttonText:'查詢',buttonIcon:'icon-search'" style="width:180px;height:25px"/></h2>  
+
+@{Html.RenderPartial("~/Views/Shared/_IsuPrint.cshtml");}
+<script>
+    $(document).ready(function () {
+        initListDG('@Url.Action("getIsu", "IsuRePrint")');
+
+        $('#UUID').textbox({ onClickButton: function () {
+            var obj = {};
+            obj.UUID = this.value;
+            $('#ListDG').datagrid('reload', obj);            
+        }
+        });
+    });
+
+
+</script>
