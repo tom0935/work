@@ -1,0 +1,72 @@
+
+-- old
+select * from (Select RIGHT(REPLICATE('0', 2) + ccid , 2) + ientid + RIGHT(REPLICATE('0', 6) + CAST(seqno as NVARCHAR)  , 6) + RIGHT(REPLICATE('0', 4) + CAST(chkno as NVARCHAR)  , 4) as CNO,* from ci) as ci where CNO=:cno
+
+
+
+--
+select * from ci where seqno='44474' and chkno='6648'
+update ci set status='5',s5date=CAST('2015-05-07' AS DATETIME),s5userid='11011',s5entid='22',s5dptid='1101' where seqno='44474' and chkno='6648'
+
+
+
+
+
+--
+select * from ci where s5userid='00498' and CONVERT(VARCHAR(8),s5date,112)=convert(datetime, '20150401', 112)
+update ci set s5date=CAST('2015-03-31' AS DATETIME) where s5userid='00498' and CONVERT(VARCHAR(8),s5date,112)=convert(datetime, '20150401', 112)
+
+
+
+
+
+
+
+--CONVERT(VARCHAR(8),fixdt,112)>=convert(datetime, '20150410', 112) and
+--CONVERT(VARCHAR(8),fixdt,112)< convert(datetime, '20150410', 112) 
+
+
+select Ccid,IentId,
+RIGHT(REPLICATE('0', 6) + CAST(seqno as NVARCHAR)  , 6) SeqNo,
+RIGHT(REPLICATE('0', 4) + CAST(chkno as NVARCHAR)  , 4) ChkNo
+from CINoStore where ccid='42' and seqno > 20000 order by seqno
+
+
+
+
+
+	update isu_2016 set Description1=b.Description1,Description2=b.Description2,Description3=b.Description3,Description4=b.Description4,Description5=b.Description5,Description6=b.Description6 
+	from (SELECT Description1,Description2,Description3,Description4,Description5,Description6,isuid from isu_2016) b
+	where isu_2016.isuid='45358' and b.IsuId=45308
+
+
+--複製
+update isu set Description1=b.Description1,Description2=b.Description2,Description3=b.Description3,Description4=b.Description4,Description5=b.Description5,Description6=b.Description6 
+	from (SELECT Description1,Description2,Description3,Description4,Description5,Description6,isuid from isu) b
+	where isu.isuid='45358' and b.IsuId=45308
+
+
+
+
+
+
+
+
+---
+--ex2015
+select isuid '申請單號',RIGHT(REPLICATE('0', 2) + ccid , 2) + ientid + RIGHT(REPLICATE('0', 6) + CAST(seqno as NVARCHAR)  , 6) + RIGHT(REPLICATE('0', 4) + CAST(chkno as NVARCHAR)  , 4) '券號' ,
+xdate '有效日期起日',xdy '有效日期迄日'
+from ci 
+where ccid='99' 
+and xdate between convert(datetime, '20150101', 112) and convert(datetime, '20151231', 112)
+and xdy <=convert(datetime, '20160229', 112)
+and (status='4' or s5date <= convert(datetime, '20160229', 112))
+
+
+
+
+
+--查詢(txt) 每月撈
+select IEntTaxNo + '0000' + left(CINo , 10) + RIGHT(REPLICATE('0', 6) + CAST(uprc as NVARCHAR)  , 6)+ CONVERT(VARCHAR(8),S3Date,112) from vCIComplete 
+where (CIStatus='5' AND UseId in (10,11) AND S5Date>='2017/12/1 00:00:00' AND S5Date<='2017/12/31 23:59:59') 
+OR (CIStatus='9' AND UseId in (10,11) AND CIS9Date>='2017/12/1 00:00:00' AND CIS9Date<='2017/12/31 23:59:59') and IEntId ='01' order by CINo 
