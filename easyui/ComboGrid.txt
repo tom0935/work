@@ -1,0 +1,41 @@
+//ComboGrid 
+<%@page contentType="text/html" pageEncoding="UTF-8"%>                                                
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>            
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>     
+<%@ taglib prefix="st" uri="http://www.springframework.org/tags"%>         
+<%@ taglib prefix="sf" uri="http://www.springframework.org/tags/form"%>    
+<st:url value="/easyui" var="urlpath"/>    <!-- controller 回應路徑 --!>                            
+
+<html>
+<head>                                                            
+<meta http-equiv="Content-Type" content="text/html; charset=BIG5">
+<title>EasyUi</title>                                       
+</head>                                                           
+<body>
+<script>
+$(function(){
+		$('#combo').combogrid({
+    panelWidth:200,              //寬(視需求定義)
+    url: '${urlpath}/txType',    //json url ---> controller(/easyui/txType)
+    idField:'VALUE',             //下拉清單代碼
+    textField:'ITEM',            //下拉清單文字
+    mode:'local',			           //排序資料進行遠端/本地端 排序,若設定remote 則easyui會傳入'q'參數至controller
+    columns:[[                   //下拉清單顯示欄位 
+      {field:'VALUE',title:'代碼',width:80},
+      {field:'ITEM',title:'異動狀態',align:'left',width:120}
+    ]],
+    filter: function(q, row){
+    	var opts = $(this).combogrid('options');
+    	return row[opts.textField].indexOf(q) == 0;
+    },
+    onHidePanel:function(){	
+    var g = $('#txStatus').combogrid('grid');	
+    var r = g.datagrid('getSelected');				               
+    $('#txStatus').combobox('setText',r.VALUE + r.ITEM );
+    }
+});
+</script>  
+    
+<input type="text"  name="combo" id="combo" style="width:150px" ></input>
+
+</body></html>
