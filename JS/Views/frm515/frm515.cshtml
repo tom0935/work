@@ -1,0 +1,79 @@
+﻿@{
+    ViewBag.Title = "Frm515 其他租約到期一覽表";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+
+    });   //ready end
+
+    $(window).load(function () {
+
+
+
+
+
+    });
+ 
+
+    function getObj() {
+        var obj = {};        
+        obj.FEEYM = $.trim($('#FEEYM').val());
+        obj.OPT = $("input[name='OPT']:checked").val();
+        return obj;
+    }
+
+  
+    function doPrint() {
+        if ($.trim($('#FEEYM').val()) != '') {
+            $('#ifm').form('submit', {
+                url: '@Url.Action("doRunReport", "Frm515")',
+                //  queryParams:obj,
+                dataType: "json",
+                contentType: "application/json",
+                onSubmit: function (param) {
+                    param.obj = JSON.stringify(getObj());
+
+                }
+            });
+
+        } else {
+            $.messager.alert('系統訊息', '尚未輸入到期年度!', 'warning');
+        }
+
+
+
+    }
+
+</script>
+<h2>Frm515 其他租約到期一覽表</h2>
+<a id="btnClear" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-print'" onclick="doPrint()">列印</a>
+<br />
+<br />
+ 
+<table width="800" border="1">
+    <tr>
+        <td width="50">到期年度</td>
+        <td width="411">
+            <input name="FEEYM" type="text" id="FEEYM" class="easyui-textbox" style="width:70px;height:28px" data-options="prompt:'YYYY'">
+        </td>
+    </tr>
+    <tr>
+        <td width="50">選擇項目</td>
+        <td width="411">
+            <input id="OPT" name="OPT" type="radio" value="1" checked>
+            車位
+            <input id="OPT" name="OPT" type="radio" value="2">
+            傢俱
+            <input id="OPT" name="OPT" type="radio" value="3">
+            俱樂部
+            <input id="OPT" name="OPT" type="radio" value="*">
+            全部
+        </td>
+    </tr>
+</table>
+<form name="ifm" id="ifm" method="post" enctype="application/x-www-form-urlencoded"></form>
+

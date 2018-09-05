@@ -1,0 +1,377 @@
+﻿@{
+    ViewBag.Title = "Frm206 住戶訂報作業";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+
+
+        $('#ttf206').tabs({
+            onSelect: function (title, index) {
+                switch (index) {
+                    case 0:
+
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                }
+            }
+        });
+
+        $("#f206DT1").datebox({
+            onSelect: function (date) {
+                //  f206DG1init();
+            }
+        });
+
+
+        //房屋編號下拉選單
+        $('#f206HOUSE').combogrid({
+            panelWidth: 200,
+            idField: 'CNO',
+            textField: 'CNO',
+            mode: 'remote',
+            method: 'get',
+            fitColumns: true,
+            url: '@Url.Action("Grid", "Frm107")',
+            columns: [[
+                { field: 'CNO', title: '房屋編號', width: 60 },
+                { field: 'DOOR', title: '門號', width: 60 },
+                { field: 'FLOR', title: '樓層', width: 60 }
+            ]],
+            onSelect: function (index, row) {
+                initCONTRAH();
+            }
+        });
+
+
+
+        //人員列表
+        $('#f206LOGUSR').combobox({
+            url: '@Url.Action("getLOGUSR", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM'
+            //editable: false
+        });
+
+
+
+        //報紙種類
+        $('#f206NEWSTP').combobox({
+            url: '@Url.Action("getNEWSTP", "Frm206")',
+            valueField: 'CNO',
+            textField: 'CNM',
+            editable: false
+        });
+
+
+
+
+
+
+    });   //ready end
+
+    $(window).load(function () {
+        var dt = new Date();
+        var d2 = new Date();
+        d2.setFullYear(d2.getFullYear() + 1);
+        var month = d2.getMonth();
+        var day = d2.getDate();
+        var addyy = d2.getFullYear() + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day;
+        var dateToday = DateTimeUtil.parseDate(DateTimeUtil.transferIsoDate(addyy));
+
+        var nowDate = DateTimeUtil.convertDateToISOString(dt);
+        var nowDate2 = DateTimeUtil.convertDateToISOString(dateToday);
+
+
+        $('#f206DT1').datebox('setValue', nowDate);
+        $('#f206DT2').datebox('setValue', nowDate2);
+
+        //  $('#NOWDT').datebox('setValue', nowDate);
+
+
+        f206DG1init();
+
+
+    });
+
+
+
+    function f206DG1init() {
+
+        $('#f206DG1').datagrid({
+            url: '@Url.Action("getDG1", "Frm206")',
+            width: '600',
+            height: '180',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                { field: 'RMNO', title: '房屋編號', sortable: true, width: 60, halign: "center", align: "center", sortable: true },
+                { field: 'NEWSNM', title: '訂閱種類', sortable: true, width: 150, halign: "center", align: "center", sortable: true },
+                { field: 'AMT', title: '每月費用', sortable: true, width: 80, halign: "center", align: "right", sortable: true },
+                { field: 'DT1', title: '訂閱日期', sortable: true, width: 90, halign: "center", align: "center", sortable: true },
+                { field: 'DT2', title: '結束日期', sortable: true, width: 90, halign: "center", align: "center", sortable: true }
+            ]],
+            onSelect: function (rowIndex, row) {
+                initf206FORM(row);
+            }
+        });
+    }
+
+
+
+
+    //房屋合約
+    function initCONTRAH() {
+        var value = $('#f206HOUSE').combogrid('getValue');
+        if (value != null) {
+            var obj = {};
+            obj.CNO = $.trim(value);
+            $.ajax({
+                url: '@Url.Action("getCONTRAH", "Frm201")',
+                type: "post",
+                data: obj,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    if (data.length > 0) {
+                        $('#f206CONTRAH_TAGID').val($.trim(data[0].TAGID));
+                        var obj1 = {};
+                        obj1.TAGID = $.trim(data[0].TAGID);
+                        //姓名列表
+                        $('#f206MAN').combobox({
+                            url: '@Url.Action("getOWNER2", "Frm201c")',
+                            valueField: 'CNM',
+                            textField: 'CNM',
+                            editable: false,
+                            onBeforeLoad: function (param) {
+                                param.TAGID = obj1.TAGID;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    function initf206FORM(row) {
+        $('#f206MAN').combobox('setText', $.trim(row.MAN));
+        $('#f206HOUSE').combogrid('setValue', $.trim(row.RMNO));
+        $('#f206NEWSTP').combobox('setValue', $.trim(row.NEWSTP));
+        $('#f206NOTES').val($.trim(row.NOTES));
+        $('#f206DT1').datebox('setValue', row.DT1);
+        $('#f206DT2').datebox('setValue', row.DT2);
+        $('#f206AMT').val($.trim(row.AMT));
+        $('#f206LOGUSR').combobox('setText', $.trim(row.LOGUSR));
+        $('#f206TAGID').val(row.TAGID);
+        f206DG1init();
+    }
+
+    function doAdd() {
+        if (doCheck()) {
+            $.messager.confirm('執行確認', "確認要新增資料?", function (r) {
+                if (r) {
+                    var obj = getObj();
+                    obj.TAGID = null;
+                    $.ajax({
+                        url: '@Url.Action("doAdd", "Frm206")',
+                        type: "post",
+                        data: getObj(),
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f206DG1').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已新增!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+
+
+
+
+
+    function doSave() {
+        if (doCheck()) {
+            $.messager.confirm('執行確認', "確認儲存?", function (r) {
+                if (r) {
+                    var obj = getObj();
+                    obj.TAGID = $('#f206TAGID').val();
+                    $.ajax({
+                        url: '@Url.Action("doSave", "Frm206")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f206DG1').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function getObj() {
+        var obj = {};
+        obj.MAN = $.trim($('#f206MAN').combobox('getText'));
+        obj.RMNO = $.trim($('#f206HOUSE').combogrid('getValue'));
+        obj.DT1 = $('#f206DT1').datebox('getValue');
+        obj.DT2 = $('#f206DT2').datebox('getValue');
+        obj.NEWSTP = $('#f206NEWSTP').combobox('getValue');
+        obj.NEWSNM = $.trim($('#f206NEWSTP').combobox('getText'));
+        obj.AMT = $.trim($('#f206AMT').val());
+        obj.NOTES = $.trim($('#f206NOTES').val());
+        obj.LOGUSR = $.trim($('#f206LOGUSR').combobox('getText'));
+        obj.RMTAG = $.trim($('#f206CONTRAH_TAGID').val());
+        return obj;
+    }
+
+
+    function doClear() {
+        $('#f206TAGID').val('');
+        $('#f206MAN').combobox('setValue', '');
+        $('#f206HOUSE').combogrid('setValue', '');
+        $('#f206NOTES').val('');
+        $('#f206NEWSTP').combobox('setValue', '');
+        $('#f206LOGUSR').combobox('setValue', '');
+        $('#f206DT1').datebox('setValue', '');
+        $('#f206DT2').datebox('setValue','');
+        $('#f206AMT').val('');
+
+    }
+
+
+    //作廢
+    function doRemove() {
+        var row = $('#f206DG1').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('執行確認', '確定要停止訂閱?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.TAGID = $.trim(row.TAGID);
+                    $.ajax({
+                        url: '@Url.Action("doRemove", "Frm206")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f206DG1').datagrid('reload');
+                                doClear();
+                                $.messager.alert('系統訊息', '選取資料已停止訂閱!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+        }
+    }
+
+
+    function doCheck() {
+        var pass = false;
+        if ($('#f206HOUSE').combobox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取住戶資料!', 'warning');
+        } else if ($('#f206NEWSTP').combobox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取報紙種類!', 'warning');
+        } else if ($('#f206DT1').datebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入訂閱日期!', 'warning');
+        } else if ($('#f206DT2').datebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入結束日期!', 'warning');
+        } else {
+            pass = true;
+        }
+        return pass;
+    }
+
+
+
+
+
+
+</script>
+<h2>Frm206 住戶訂報作業</h2>
+
+<a id="btnCAdd" href="#" class="easyui-linkbutton" data-options="iconCls:'add-icon'" onclick="doAdd()">新增</a>
+<a id="btnCSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSave()">存檔</a>
+<a id="btnRemove" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="doRemove()">停止訂閱</a>
+<br />
+<br />
+<input type="hidden" id="f206TAGID" name="f206TAGID" />
+<input type="hidden" id="f206CONTRAH_TAGID" name="f206CONTRAH_TAGID" />
+<table width="1024" border="1">
+    <tr>
+        <td width="490" valign="top">
+            <table width="490" border="0">
+                <tr>
+                    <td width="105"><div align="right">房屋編號</div></td>
+                    <td width="375">
+                        <input type="text" name="f206HOUSE" id="f206HOUSE" style="width:80px" data-options="required:true" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">住戶姓名</div></td>
+                    <td>
+                        <input type="text" id="f206MAN" name="f206MAN" class="easyui-combobox" style="width:250px;height:28px"  />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">報紙種類</div></td>
+                    <td>
+                        <input type="text" id="f206NEWSTP" name="f206NEWSTP" style="width:150px;height:28px" data-options="required:true" />
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><div align="right">訂閱日期</div></td>
+                    <td><input type="text" id="f206DT1" name="f206DT1" class="easyui-datebox" style="width:160px;height:28px" data-options="required:true,prompt:'YYYY-MM-DD',validType:['date']" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">結束日期</div></td>
+                    <td><input type="text" id="f206DT2" name="f206DT2" class="easyui-datebox" style="width:160px;height:28px" data-options="required:true,prompt:'YYYY-MM-DD',validType:['date']" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">每日費用</div></td>
+                    <td><input type="text" id="f206AMT" name="f206AMT" style="width:80px;height:20px"  /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">備註</div></td>
+                    <td><input type="text" id="f206NOTES" name="f206NOTES" style="width:300px;height:20px"  /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">記錄人員</div></td>
+                    <td><input type="text" id="f206LOGUSR" name="f206LOGUSR" style="width:180px;height:28px" /></td>
+                </tr>
+            </table>
+        </td>
+        <td width="518" valign="top">
+            <table id="f206DG1" data-options="fit:true"></table>
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+

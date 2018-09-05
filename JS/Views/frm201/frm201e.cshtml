@@ -1,0 +1,336 @@
+﻿@{
+    Layout = null;
+}
+<script>
+    var cpmgr;
+    $(document).ready(function () {
+
+        var obj = {};
+        obj.TAGID = $.trim($('#CONTRAH_TAGID').val());
+        $('#eDEALERNM').val($('#DEALERNM').val());
+
+        var getGridJSON = '@Url.Action("getContractDG", "Frm201e")';
+        $('#eDG').datagrid({
+            url: getGridJSON,
+            queryParams: obj,
+            border: true,
+            rownumbers: false,
+            nowrap: true,
+            pagination: false,
+            idField: 'CNO',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                {
+                    field: 'CNNO',
+                    title: '合約編號',
+                    sortable: true,
+                    width: 90,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'RNTP',
+                    title: '類別',
+                    sortable: true,
+                    width: 50,
+                    halign: "center",
+                    align: "center",
+                    sortable: true
+                },
+                {
+                    field: 'NAME',
+                    title: '項目',
+                    sortable: true,
+                    width: 150,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                }
+            ]],
+            onSelect: function (index, row) {
+
+                showeForm(row);
+            }
+        });
+
+
+        //人員列表
+        $('#eLOGUSR').combobox({
+            url: '@Url.Action("getLOGUSR", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM'
+            //editable: false
+        });
+
+        // $('#jHOUSE').html($('#HOUSE').combogrid('getValue'));
+    });   //ready end
+
+
+    function showeForm(row) {
+        switch (row.CNO) {
+            case '1':
+                $('input[name=eCNTRATP][value=1]').prop("checked", true);
+                break;
+            case '2':
+                $('input[name=eCNTRATP][value=2]').prop("checked", true);
+                break;
+            case '3':
+                $('input[name=eCNTRATP][value=3]').prop("checked", true);
+                break;
+            case '4':
+                $('input[name=eCNTRATP][value=4]').prop("checked", true);
+                break;
+            case '5':
+                $('input[name=eCNTRATP][value=5]').prop("checked", true);
+                break;
+        }
+        
+        
+        $('#eCNNO').val(row.CNNO);
+        $('#eDT1').datebox('setValue', row.DT1);
+        $('#eDT2').datebox('setValue', row.DT2);
+        $('#eOTHERN').val(row.OTHERN);
+        $('#eTAGID').val(row.TAGID);
+
+        $('#eENDDT').datebox('setValue', row.DT2);
+
+    }
+
+    function doSavee() {
+
+        if (chk()) {
+            $.messager.confirm('執行確認', '您確定要進行資料異動?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.JOBTAG = $.trim($('#CONTRAH_TAGID').val());
+                    obj.TAGID = $.trim($('#eTAGID').val());
+                    obj.CNNO = $.trim($('#eCNNO').val());
+                    obj.CNTRATP = $('input:radio:checked[name="eCNTRATP"]').val();
+                    obj.DT1 = $('#eDT1').datebox('getValue');
+                    obj.DT2 = $('#eDT2').datebox('getValue');
+                    obj.ENDDT = $('#eENDDT').datebox('getValue');
+                    obj.JOBTP = $('input:radio:checked[name="eJOBTP"]').val();
+                    obj.PAYTP = $('input:radio:checked[name="ePAYTP"]').val();
+                    obj.LOGUSR = $('#eLOGUSR').combobox('getText');
+                    obj.NOTES = $.trim($('#eOTHERN').val() + " " + $('#eCNNO').val());
+                    obj.RMNO = $('#HOUSE').combogrid('getValue');
+                    obj.DEALERNM = $('#eDEALERNM').val();
+                    obj.AMT = $.trim($('#eAMT').val());
+                    obj.DISTP = $('#eDISTP').combobox('getValue');
+                    obj.OTHERN = $.trim($('#eOTHERN').val());
+                    var rows = $('#eDG').datagrid('getRows');
+                    obj.LIST = rows;
+
+                    
+                    $.ajax({
+                        url: '@Url.Action("doSave", "Frm201e")',
+                        data: obj,
+                        type: "post",
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            $('#eDG').datagrid('reload');
+                            $('#UPDNOTE_DG').datagrid('reload');
+                            $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                        },
+                        beforeSend: function (xhr, settings) {
+                            settings.data =
+                               settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+
+
+    function chk() {
+
+        var dt2Str = $('#eDT2').datebox('getValue');
+        var dt2 = new Date(dt2Str);
+
+        var enddate = $('#eENDDT').datebox('getValue');        
+        var eDT = new Date(enddate);
+
+        var b=false;
+        var row = $('#eDG').datagrid('getSelected');
+        var eJOBTP = $('input:radio:checked[name="eJOBTP"]').val();
+        var ePAYTP = $('input:radio:checked[name="ePAYTP"]').val();
+        if (row == null) {
+            $.messager.alert('系統訊息', '尚未選取解約項目!', 'warning');
+        } else if (eJOBTP == undefined) {
+            $.messager.alert('系統訊息', '尚未選取作業別!', 'warning');
+        } else if ($('#eENDDT').datebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入解約日期!', 'warning');
+        } else if (dt2.dateDiff("d", eDT) < 0 && eJOBTP=='1') {
+            $.messager.alert('系統訊息', '您選擇到期解約,解約日應不可小於到期日!請重新輸入', 'warning');
+        } else if (ePAYTP == undefined) {
+            $.messager.alert('系統訊息', '尚未選取付款方式!', 'warning');
+        } else if ($('#eAMT').validatebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入解約金!', 'warning');
+        } else {
+            b = true;
+        }
+        return b;
+    }
+
+    function chkJOBTAG(rdo) {
+        var ecntratp = $('input:radio:checked[name="eCNTRATP"]').val();
+        if (ecntratp == undefined) {
+            $.messager.alert('系統訊息', '請先選擇租約!', 'warning');
+            $('input[name=eJOBTP]').prop("checked", false);
+            return false;
+        }
+
+        var dt1 = new Date(DateTimeUtil.transferIsoDate($('#jDT20').datebox('getValue')));
+        dt1.setDate(dt1.getDate() + 1);
+        $('#jDT11').datebox('setValue', DateTimeUtil.convertDateToISOString(dt1));
+        var dt2 = new Date(DateTimeUtil.transferIsoDate($('#jDT20').datebox('getValue')));
+        dt2.setFullYear(dt1.getFullYear() + 1);
+        $('#jDT21').datebox('setValue', DateTimeUtil.convertDateToISOString(dt2));
+
+        if (rdo == '1') {
+            if (jcntratp != "1") {
+                $.messager.alert('系統訊息', '只限房屋租屋!', 'warning');
+                $('input[name=jJOBTP]').prop("checked", false);
+            }
+            
+        } else {
+            if (jcntratp != "1") {
+                $.messager.alert('系統訊息', '請注意房屋主約的有效期限不得大於房屋的有效期限!', 'warning');
+            }
+            $('#eCNNO1').val($('#eCNNO').val());
+        }
+    }
+
+    function showeQueryDialog() {
+        var value = $('#HOUSE').combogrid('getValue');
+        if (value != "") {
+            $('#eQueryDialog').dialog({
+                title: '解約作業 - 房屋編號: ' + value,
+                width: 600,
+                height: 400,
+                closed: false,
+                cache: false,
+                resizable: true,
+                href: '@Url.Action("Frm201eQueryDialog", "Frm201")',
+                modal: true
+            });
+        } else {
+            $.messager.alert('系統訊息', '請選擇房號!', 'warning');
+        }
+    }
+
+    Date.prototype.dateDiff = function (interval, objDate) {
+        var dtEnd = new Date(objDate);
+        if (isNaN(dtEnd)) return undefined;
+        switch (interval) {
+            case "s": return parseInt((dtEnd - this) / 1000);
+            case "n": return parseInt((dtEnd - this) / 60000);
+            case "h": return parseInt((dtEnd - this) / 3600000);
+            case "d": return parseInt((dtEnd - this) / 86400000);
+            case "w": return parseInt((dtEnd - this) / (86400000 * 7));
+            case "m": return (dtEnd.getMonth() + 1) + ((dtEnd.getFullYear() - this.getFullYear()) * 12) - (this.getMonth() + 1);
+            case "y": return dtEnd.getFullYear() - this.getFullYear();
+        }
+    }
+</script>
+
+<a id="btneSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSavee()">解約</a>
+<a id="btneQuery" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="showeQueryDialog()">租金查詢</a>
+<input type="hidden" id="eOTHERN" name="eOTHERN" value="" />
+<input type="hidden" id="eTAGID" name="eTAGID" value="" />
+<table width="796" border="1" cellpadding="4" cellspacing="3">
+
+    <tr>
+        <td width="200"><div align="right">合約標的</div></td>
+        <td colspan="2">
+            <input name="eCNTRATP" id="eCNTRATP" type="radio" value="1" onclick="return false" />
+            房屋
+            <input name="eCNTRATP" id="eCNTRATP" type="radio" value="2" onclick="return false" />
+            車位
+            <input name="eCNTRATP" id="eCNTRATP" type="radio" value="3" onclick="return false" />
+            傢俱
+            <input name="eCNTRATP" id="eCNTRATP" type="radio" value="4" onclick="return false" />
+            俱樂部
+            <input name="eCNTRATP" id="eCNTRATP" type="radio" value="5" onclick="return false" />
+            雜項
+        </td>
+    </tr>
+    <tr>
+        <td><div align="right">合約編號</div></td>
+        <td width="347"><input type="text" id="eCNNO" name="eCNNO" style="width:160px;height:20px" readonly /></td>
+        <td width="284" rowspan="10" valign="top"><table id="eDG" data-options="fit:true,modal:true"></table></td>
+    </tr>
+    <tr>
+        <td><div align="right">起迄</div></td>
+        <td>
+            <input type="text" id="eDT1" name="eDT1" class="easyui-datebox" style="width:130px;height:28px" readonly> 至
+            <input type="text" id="eDT2" name="eDT2" class="easyui-datebox" style="width:130px;height:28px" readonly>
+        </td>
+    </tr>
+    <tr>
+        <td><div align="right">作業別</div></td>
+        <td>
+            <input name="eJOBTP" id="eJOBTP" type="radio" value="1"  />
+            到期解約
+            <input name="eJOBTP" id="eJOBTP" type="radio" value="2"  />
+            中途解約
+        </td>
+    </tr>
+    <tr>
+        <td><div align="right">承租人</div></td>
+        <td><input type="text" id="eDEALERNM" name="eDEALERNM" style="width:250px" /></td>
+    </tr>
+    <tr>
+        <td><div align="right">解約日</div></td>
+        <td>
+            <input type="text" id="eENDDT" name="eENDDT" class="easyui-datebox" style="width:130px;height:28px" data-options="required:true" />
+        </td>
+    </tr>
+    <tr>
+        <td><div align="right">解約金</div></td>
+        <td><input type="text" id="eAMT" name="eAMT" class="easyui-validatebox" style="width:160px;height:20px" data-options="required:true" /></td>
+    </tr>
+    <tr>
+        <td><div align="right">付款方式</div></td>
+        <td>
+            <input name="ePAYTP" id="ePAYTP" type="radio" value="1"  />
+            從履約保證金扣除
+            <input name="ePAYTP" id="ePAYTP" type="radio" value="2" />
+            另付
+        </td>
+    </tr>
+    <tr>
+        <td><div align="right">解約原因</div></td>
+        <td>
+            <select id="eDISTP" name="eDISTP" class="easyui-combobox" data-options="editable:false" style="width:100px;height:28px">
+                <option value="調職">調職</option>
+                <option value="預算不足">預算不足</option>
+                <option value="置產遷宅">置產遷宅</option>
+                <option value="噪音">噪音</option>
+                <option value="格局變更">格局變更</option>
+                <option value="更名解約不遷出">更名解約不遷出</option>
+                <option value="其他">其他</option>
+            </select>                 
+        </td>
+    </tr>
+    <tr>
+        <td height="38" valign="top"><div align="right">承辦人</div></td>
+        <td valign="top">
+            <label>
+                <input type="text" id="eLOGUSR" name="eLOGUSR" style="width:160px;height:28px" />
+            </label>
+        </td>
+    </tr>
+    <tr>
+        <td height="78" valign="top"><div align="right">備註</div></td>
+        <td valign="top"><textarea id="eNOTES" name="eNOTES" cols="35" rows="5" style="width:300px"></textarea></td>
+    </tr>
+</table>
+<div id="eQueryDialog"></div>

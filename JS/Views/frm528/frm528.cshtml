@@ -1,0 +1,89 @@
+﻿@{
+    ViewBag.Title = "Frm528 俱樂部消費明細表";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+
+    });   //ready end
+
+    $(window).load(function () {
+
+
+
+
+
+    });
+
+
+    function getObj() {
+        var obj = {};
+        obj.SYM = $.trim($('#SYM').datebox('getValue'));
+        obj.EYM = $.trim($('#EYM').datebox('getValue'));
+        obj.SORTYPE = $("input[name='SORTYPE']:checked").val();
+        obj.PRINTTYPE = $("input[name='PRINTTYPE']:checked").val();
+        return obj;
+    }
+
+
+    function doPrint() {
+        var obj = getObj();
+        if (obj.SYM != '' && obj.EYM != '') {
+            $('#ifm').form('submit', {
+                url: '@Url.Action("doRunReport", "Frm528")',
+                //  queryParams:obj,
+                dataType: "json",
+                contentType: "application/json",
+                onSubmit: function (param) {
+                    param.obj = JSON.stringify(obj);
+
+                }
+            });
+
+        } else {
+            $.messager.alert('系統訊息', '尚未輸入帳單年月!', 'warning');
+        }
+
+
+
+    }
+
+</script>
+<h2>Frm528 俱樂部消費明細表</h2>
+<a id="btnClear" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-print'" onclick="doPrint()">列印</a>
+<br />
+<br />
+
+<table width="800" border="1">
+    <tr>
+        <td width="50">帳單日期</td>
+        <td width="411">
+            <input name="SYM" type="text" id="SYM" class="easyui-datebox" style="width:150px;height:28px" data-options="prompt:'YYYY-MM-DD'"> ~ 迄<input name="EYM" type="text" id="EYM" class="easyui-datebox" style="width:150px;height:28px" data-options="prompt:'YYYY-MM-DD'">
+        </td>
+    </tr>
+    <tr>
+        <td width="50">資料排序</td>
+        <td width="411">
+            <input id="SORTYPE" name="SORTYPE" type="radio" value="1" checked>
+            依消費日
+            <input id="SORTYPE" name="SORTYPE" type="radio" value="2">
+            依消費科目
+        </td>
+    </tr>
+    <tr>
+        <td width="50">列印選擇</td>
+        <td width="411">
+            <input id="PRINTTYPE" name="PRINTTYPE" type="radio" value="1" checked>
+            已付
+            <input id="PRINTTYPE" name="PRINTTYPE" type="radio" value="2">
+            未付
+            <input id="PRINTTYPE" name="PRINTTYPE" type="radio" value="*">
+            全部
+        </td>
+    </tr>
+</table>
+<form name="ifm" id="ifm" method="post" enctype="application/x-www-form-urlencoded"></form>
+

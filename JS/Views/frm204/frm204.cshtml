@@ -1,0 +1,520 @@
+﻿@{
+    ViewBag.Title = "Frm204 住戶交辦事項";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+
+
+        $('#ttf204').tabs({
+            onSelect: function (title, index) {
+                switch (index) {
+                    case 0:
+
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                }
+            }
+        });
+        /*
+        $("#f204LOGDT").datebox({
+            onSelect: function (date) {
+            }
+        });
+        */
+        $("#f204DT1").datebox({
+            onSelect: function (date) {
+                //  f204DG1init();
+            }
+        });
+
+
+        //房屋編號下拉選單
+        $('#f204HOUSE').combogrid({
+            panelWidth: 200,
+            idField: 'CNO',
+            textField: 'CNO',
+            mode: 'remote',
+            method: 'get',
+            fitColumns: true,
+            url: '@Url.Action("Grid", "Frm107")',
+            columns: [[
+                { field: 'CNO', title: '房屋編號', width: 60 },
+                { field: 'DOOR', title: '門號', width: 60 },
+                { field: 'FLOR', title: '樓層', width: 60 }
+            ]],
+            onSelect: function (index, row) {
+                initCONTRAH();
+            }
+        });
+
+
+
+        //人員列表
+        $('#f204LOGUSR').combobox({
+            url: '@Url.Action("getLOGUSR", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM'
+            //editable: false
+        });
+
+        //發文單位列表
+        $('#f204FUNCDEP').combobox({
+            url: '@Url.Action("getFUNCDEP", "Frm204")',
+            valueField: 'CNO',
+            textField: 'CNM',
+            editable: false
+        });
+
+
+
+
+
+
+
+    });   //ready end
+
+    $(window).load(function () {
+        var dt = new Date();
+        //nowDate.setDate(edtDate.getDate());
+        var nowDate = DateTimeUtil.convertDateToISOString(dt);
+        $('#f204DT1').datebox('setValue', nowDate);
+        $('#f204LOGDT').datebox('setValue', nowDate);
+        
+        //  $('#NOWDT').datebox('setValue', nowDate);
+
+
+        f204DG2init();
+        f204DG3init();
+
+
+    });
+
+    function f204DG1init() {
+        var obj1 = {};
+        obj1.TAGID = $('#f204TAGID').val();
+        $('#f204DG1').datagrid({
+            url: '@Url.Action("getDG1", "Frm204")',
+            queryParams: obj1,
+            width: '600',
+            height: '180',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                { field: 'DT', title: '處理日', sortable: true, width: 120, halign: "center", align: "center", sortable: true },
+                { field: 'NOTES', title: '處理說明', sortable: true, width: 500, halign: "center", align: "left", sortable: true }
+            ]],
+            onSelect: function (rowIndex, row) {
+                // initf204FORM(row);
+            }
+        });
+    }
+
+    function f204DG2init() {
+        $('#f204DG2').datagrid({
+            url: '@Url.Action("getDG2", "Frm204")',
+            width: '600',
+            height: '180',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true ,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                { field: 'RMNO', title: '房號', sortable: true, width: 60, halign: "center", align: "center", sortable: true },
+                { field: 'MAN', title: '住戶姓名', sortable: true, width: 150, halign: "center", align: "left", sortable: true },
+                { field: 'COMPLNTP', title: '抱怨種類', sortable: true, width: 60, halign: "center", align: "left", sortable: true },
+                { field: 'NOTES', title: '抱怨事項', sortable: true, width: 300, halign: "center", align: "left", sortable: true }
+            ]],
+            onSelect: function (rowIndex, row) {
+                initf204FORM(row);
+            }
+        });
+    }
+
+    function f204DG3init() {
+        $('#f204DG3').datagrid({
+            url: '@Url.Action("getDG3", "Frm204")',
+            width: '670',
+            height: '500',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                { field: 'RMNO', title: '房號', sortable: true, width: 60, halign: "center", align: "center", sortable: true },
+                { field: 'MAN', title: '住戶姓名', sortable: true, width: 150, halign: "center", align: "left", sortable: true },
+                { field: 'COMPLNTP', title: '抱怨種類', sortable: true, width: 60, halign: "center", align: "left", sortable: true },
+                { field: 'NOTES', title: '抱怨事項', sortable: true, width: 300, halign: "center", align: "left", sortable: true }
+            ]],
+            onSelect: function (rowIndex, row) {
+                $('#f204NOTES2').html("房號 : " + row.RMNO + "<br>抱怨事項 : " + row.NOTES + "<br>結案日期 : " + row.ENDDT);
+            }
+        });
+    }
+
+
+    //房屋合約
+    function initCONTRAH() {
+        var value = $('#f204HOUSE').combogrid('getValue');
+        if (value != null) {
+            var obj = {};
+            obj.CNO = $.trim(value);
+            $.ajax({
+                url: '@Url.Action("getCONTRAH", "Frm201")',
+                type: "post",
+                data: obj,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    if (data.length > 0) {
+                        $('#f204CONTRAH_TAGID').val($.trim(data[0].TAGID));
+                        var obj1 = {};
+                        obj1.TAGID = $.trim(data[0].TAGID);
+                        //姓名列表
+                        $('#f204MAN').combobox({
+                            url: '@Url.Action("getOWNER2", "Frm201c")',
+                            valueField: 'CNM',
+                            textField: 'CNM',
+                            editable: false,
+                            required: true,
+                            onBeforeLoad: function (param) {
+                                param.TAGID = obj1.TAGID;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    function initf204FORM(row) {
+        $('#f204MAN').combobox('setText', $.trim(row.MAN));
+        $('#f204HOUSE').combogrid('setValue', $.trim(row.RMNO));
+        $('#f204COMPLNTP').combobox('setValue', $.trim(row.COMPLNTP));
+        $('#f204FUNCDEP').combobox('setValue', $.trim(row.FUNCDEP));
+        $('#f204NOTES').val($.trim(row.NOTES));
+        $('#f204NOTES').validatebox('validate');
+        $('#f204LOGDT').datebox('setValue',row.LOGDT);
+        $('#f204LOGUSR').combobox('setText', $.trim(row.LOGUSR));
+        $('#f204ISEND').combobox('setValue', $.trim(row.ISEND));
+        $('#f204TAGID').val(row.TAGID);
+        f204DG1init();
+    }
+
+    function doAdd() {
+        var isClose = $('#f204ISEND').combobox('getValue');
+        var CloseStr;
+        if (isClose == "Y") {
+            CloseStr = "確定要新增住戶抱怨事項且結案?";
+        } else {
+            CloseStr = "確定要新增住戶抱怨事項?";
+        }
+           
+        if (doCheck()) {
+            $.messager.confirm('執行確認', CloseStr, function (r) {
+                if (r) {
+                    var obj = getObj();
+                    obj.TAGID = null;
+                    $.ajax({
+                        url: '@Url.Action("doAdd", "Frm204")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f204DG2').datagrid('reload');
+                                $('#f204DG3').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已新增!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function doAdd2() {
+        if ($('#f204NOTES1').validatebox('isValid') && $('#f204DT1').datebox('isValid') && $('#f204TAGID').val() !="") {
+            $.messager.confirm('執行確認', '要新增本案進度?', function (r) {
+                if (r) {
+                    var obj = getObj();
+                    obj.DT = $('#f204DT1').datebox('getValue');
+                    obj.NOTES = $('#f204NOTES1').val();
+                    obj.TAGID = $('#f204TAGID').val();
+
+                    $.ajax({
+                        url: '@Url.Action("doAdd2", "Frm204")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f204DG1').datagrid('reload');
+                                $.messager.alert('系統訊息', '本案進度資料已新增!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '資料輸入不完整!', 'warning');
+        }
+    }
+
+
+
+
+    function doSave() {
+        var isClose = $('#f204ISEND').combobox('getValue');
+        var CloseStr;
+        if (isClose == "Y") {
+            CloseStr = "確定要儲存且結案?";
+        }else{
+            CloseStr = "確定要儲存?";
+        }
+        if (doCheck()) {
+            $.messager.confirm('執行確認', CloseStr, function (r) {
+                if (r) {
+                    var obj = getObj();
+                    obj.TAGID = $('#f204TAGID').val();
+                    $.ajax({
+                        url: '@Url.Action("doSave", "Frm204")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f204DG2').datagrid('reload');
+                                $('#f204DG3').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function getObj() {
+        var obj = {};
+        obj.MAN = $('#f204MAN').combobox('getText');
+        obj.RMNO = $('#f204HOUSE').combogrid('getValue');
+        obj.COMPLNTP = $('#f204COMPLNTP').combobox('getValue');
+        obj.FUNCDEP = $('#f204FUNCDEP').combobox('getValue');
+        obj.NOTES = $('#f204NOTES').val();
+        obj.LOGDT = $('#f204LOGDT').datebox('getValue');
+        obj.LOGUSR = $('#f204LOGUSR').combobox('getText');
+        obj.ISEND = $('#f204ISEND').combobox('getValue');
+        return obj;
+    }
+
+
+    function doClear() {
+        $('#f204TAGID').val('');
+        $('#f204MAN').combobox('setValue', '');
+        $('#f204HOUSE').combogrid('setValue', '');
+        $('#f204NOTES').val('');
+        $('#f204COMPLNTP').combobox('setValue','');
+        $('#f204FUNCDEP').combobox('setValue','');
+        $('#f204LOGDT').datebox('setValue', '');
+        $('#f204LOGUSR').combobox('setValue', '');
+        $('#f204ISEND').combobox('setValue','');
+    }
+
+    function doCheck() {
+        var pass = false;
+        if ($('#f204HOUSE').combobox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取住戶資料!', 'warning');
+        } else if ($('#f204MAN').combobox('isValid')==false) {
+            $.messager.alert('系統訊息', '尚未輸入住戶姓名!', 'warning');
+        } else if ($('#f204NOTES').validatebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入抱怨事項!', 'warning');
+        } else if ($('#f204FUNCDEP').combobox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取發文單位!', 'warning');
+        } else if ($('#f204LOGDT').datebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入記錄日期!', 'warning');
+        } else {
+            pass = true;
+        }
+        return pass;
+    }
+
+
+    //完成交辦
+    function doSuccess() {
+
+        var row = $('#f204DG1').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('執行確認','選取房號:'+ row.RMNO +' 您已完成本項工作了嗎?確認要完成交辦?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.TAGID = $.trim(row.TAGID);
+                    $.ajax({
+                        url: '@Url.Action("doSuccess", "Frm202")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f204DG1').datagrid('reload');
+                                $.messager.alert('系統訊息','房號:'+ row.RMNO +',已完成交辦!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+        }
+    }
+
+    //取消交辦
+    function doRemove() {
+        var row = $('#f204DG2').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('執行確認', '選取房號:'+ row.RMNO +' 抱怨事項確定要刪除?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.TAGID = $.trim(row.TAGID);
+                    $.ajax({
+                        url: '@Url.Action("doRemove", "Frm204")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f204DG2').datagrid('reload');
+                                doClear();
+                                $.messager.alert('系統訊息', '房號:' + row.RMNO + '資料已刪除!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+        }
+    }
+
+
+
+</script>
+<h2>Frm204 住戶抱怨處理</h2>
+
+<a id="btnCAdd" href="#" class="easyui-linkbutton" data-options="iconCls:'add-icon'" onclick="doAdd()">新增</a>
+<a id="btnCSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSave()">存檔</a>
+<a id="btnRemove" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="doRemove()">刪除</a>
+<input type="hidden" id="f204TAGID" name="f204TAGID" />
+<table width="1024" border="1">
+    <tr>
+        <td valign="top">
+            <table width="600" border="0">
+                <tr>
+                    <td width="180"><div align="right">房屋編號</div></td>
+                    <td width="420">
+                        <input type="text" name="f204HOUSE" id="f204HOUSE" style="width:80px" data-options="required:true" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">住戶姓名</div></td>
+                    <td>
+                        <input type="text" id="f204MAN" name="f204MAN" class="easyui-combobox" style="width:250px;height:28px" data-options="required:true" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">抱怨種類</div></td>
+                    <td>
+                        <select id="f204COMPLNTP" class="easyui-combobox" data-options="editable:false" name="204COMPLNTP" style="width:60px;height:28px">
+                            <option value="硬體">硬體</option>
+                            <option value="軟體">軟體</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top"><div align="right">抱怨事項</div></td>
+                    <td valign="top">
+                        <label>
+                            <textarea id="f204NOTES" name="f204NOTES" cols="50" rows="10" class="easyui-validatebox" data-options="required:true"></textarea>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">發文單位</div></td>
+                    <td><input type="text" id="f204FUNCDEP" name="f204FUNCDEP" style="width:160px;height:28px" data-options="required:true" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">記錄人員</div></td>
+                    <td><input type="text" id="f204LOGUSR" name="f204LOGUSR" style="width:180px;height:28px"  /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">記錄日期</div></td>
+                    <td><input type="text" id="f204LOGDT" name="f204LOGDT" class="easyui-datebox" style="width:160px;height:28px" data-options="required:true,prompt:'YYYY-MM-DD',validType:['date']" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">結案註記</div></td>
+                    <td>
+                        <select id="f204ISEND" class="easyui-combobox" data-options="editable:false" name="f204ISEND" style="width:60px;height:28px">
+                            <option value="Y">Y</option>
+                            <option value="N" selected>N</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td>
+            <div id="ttf204" class="easyui-tabs" style="height:700px;width:700px">
+                <div title="本案進度" style="padding:10px" data-options="iconCls:'Calendar-icon',fit:true">
+                    <a id="btnCSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doAdd2()">存檔</a>
+                    <table width="600" border="0">
+                        <tr>
+                            <td width="200"><div align="right">處理日期</div></td>
+                            <td width="400"><input type="text" id="f204DT1" name="f204DT1" class="easyui-datebox" style="width:160px;height:28px" data-options="required:true,prompt:'YYYY-MM-DD',validType:['date']" /></td>
+                        </tr>
+                        <tr>
+                            <td valign="top"><div align="right">處理說明</div></td>
+                            <td valign="top">
+                                <textarea id="f204NOTES1" name="f204NOTES1" cols="35" rows="6" class="easyui-validatebox" data-options="required:true"></textarea>
+                            </td>
+                        </tr>
+                    </table>
+                    <table id="f204DG1" data-options="fit:true"></table>
+                </div>
+                <div title="處理中" style="padding:10px" data-options="iconCls:'Calendar-icon'">
+                    <table id="f204DG2" data-options="fit:true"></table>
+                </div>
+                <div title="已結案" style="padding:10px" data-options="iconCls:'Calendar-icon'">
+                    <table id="f204DG3"></table>
+                    <div id="f204NOTES2" ></div>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+
+
+
+

@@ -1,0 +1,336 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+    <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <meta charset="utf-8" />
+        <title>@ViewBag.Title - Jasper </title>
+        <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+        <meta name="viewport" content="width=device-width" />
+        @Styles.Render("~/Content/css")
+        @Scripts.Render("~/bundles/modernizr")
+        <style>
+body, ul.navigation, ul.navigation li, ul.navigation ul, a{
+    margin: 0;
+    padding: 0;
+    font-size: 9pt;
+    text-decoration: none;
+}
+ul.navigation,ul.navigation li {
+    list-style: none;    
+    z-index:999;
+}            
+ul.navigation li {
+    position: relative;
+    float: left;        
+}
+/* 選單 li 裡面連結之樣式 */
+ul.navigation li a{
+    display: block;
+    padding: 12px 25px;
+    background: #888;
+    color: #FFF;
+}
+
+ul.navigation > li > a:hover{
+    color: #666;
+    background: #DDD
+}
+/* 特定在第一層 > 第二層之後下拉部分之樣式 */
+ul.navigation li ul{
+    display: none;
+    float: left;
+    position: absolute;
+    left: 0;    
+    margin: 0;
+    background: #FFF;
+     text-align:left;
+    
+}
+/* 當第一層選單被觸發時，指定第二層顯示 */
+ul.navigation li:hover > ul{
+    display: block;    
+    
+}
+/* 特定在第二層或之後下拉部分 li 之樣式 */
+ul.navigation ul li {
+    border-bottom: 1px solid #DDD;
+    
+}
+/* 特定在第二層或之後下拉部分 li （最後一項不要底線）之樣式 */
+ul.navigation ul li:last-child {
+    border-bottom: none;    
+}
+/* 第二層或之後 選單 li 之樣式 */
+ul.navigation ul a {
+    width: 150px;
+    padding: 5px 12px;    
+    color: #999;        
+    background: #CCC;
+     border-collapse:collapse;     
+
+}
+ul.navigation ul a:hover {        
+    background: #CCC;            
+}
+/* 第三層之後，上一層的選單觸發則顯示出來（皆為橫向拓展） */
+ul.navigation ul li:hover > ul{
+    display: block;
+    position: absolute;
+    top: 0;    
+    left: 100%;
+}
+/* 箭頭向下 */
+.arrow-bottom {
+    display: inline-block;
+    margin-left: 5px;
+    border-top: 4px solid #999;
+    border-right: 4px solid transparent;    
+    border-left: 4px solid transparent;        
+    width: 1px;
+    height: 1px;
+}
+/* 箭頭向右 */
+.arrow-right {
+    display: inline-block;
+    margin-left: 12px;    
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    border-left: 3px solid #999;        
+    width: 1px;
+    height: 1px;
+}
+        </style>
+        
+        @RenderSection("styles",required:false)
+    <link href="~/Content/easyui/themes/default/easyui.css" rel="stylesheet" />	
+	<link href="~/Content/easyui/themes/icon.css" rel="stylesheet" type="text/css">
+	<link href="~/Content/easyui/demo/demo.css" rel="stylesheet" type="text/css" >
+    <script src="~/Content/easyui/jquery.min.js"></script>
+    <script src="~/Content/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="~/Content/easyui/locale/easyui-lang-zh_TW.js"></script>
+    <script type="text/javascript" src="~/Content/easyui/easyloader.js"></script>
+    <script type="text/javascript" src="~/Content/easyui/exts/datebox-ext.js"></script>
+    <script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+
+
+   <!-- @Scripts.Render("~/bundles/jquery") -->
+        @RenderSection("scripts", required: false)
+
+        <script>
+            $(function () {
+                $("ul.navigation > li:has(ul) > a").append('<div class="arrow-bottom"></div>');
+               // $("ul.navigation > li ul:has(li) > a").append('<div class="arrow-right"></div>');
+            });        
+        </script>
+
+    </head>
+    <body>
+        <header>
+            <div class="content-wrapper">
+                <font style="font-weight:bold;font-size:larger">Jasper 傑仕堡租屋系統 v1.0 </font>
+
+                <div class="float-right">
+                    <section id="login">
+                        @Html.Partial("_LoginPartial")
+                    </section>
+                    @if (Request.IsAuthenticated)
+                    {                        
+                    <nav>
+                        <ul id="menu" class="navigation">
+                            <li><a href="">基本作業</a>
+                                <ul>
+                                <li>@Html.ActionLink("101 房屋資料維護", "frm101", "frm101")</li>
+                                <li>@Html.ActionLink("102 報紙資料維護", "frm102", "frm102")</li>
+                                <li>@Html.ActionLink("103 報社資料維護", "frm103", "frm103")</li>
+                                <li>@Html.ActionLink("104 國籍資料維護", "frm104", "frm104")</li>
+                                <li>@Html.ActionLink("105 設備資料維護", "frm105", "frm105")</li>
+                                <li>@Html.ActionLink("106 仲介資料維護", "frm106", "frm106")</li>
+                                <li>@Html.ActionLink("107 房屋牌價維護", "frm107", "frm107")</li>
+                                <li>@Html.ActionLink("108 費用分類維護", "frm108", "frm108")</li>
+                                <li>@Html.ActionLink("109 費用科目維護", "frm109", "frm109")</li>
+                                <li>@Html.ActionLink("110 車位資料維護", "frm110", "frm110")</li>
+                                <li>@Html.ActionLink("111 合約公司維護", "frm111", "frm111")</li>
+                                <li>@Html.ActionLink("112 職稱資料維護", "frm112", "frm112")</li>
+                                <li>@Html.ActionLink("113 幫傭資料維護", "frm113", "frm113")</li>
+                                <li>@Html.ActionLink("114 廠商資料維護", "frm114", "frm114")</li>
+                                <li>@Html.ActionLink("115 帳號權限維護", "frm115", "frm115")</li>
+                              <!--  <li>@Html.ActionLink("199 參數資料維護", "frm199", "frm199")</li>-->
+                                </ul>
+                            </li>
+                            <li><a href="">例行作業</a>
+                                <ul>
+                                <li>@Html.ActionLink("201 租屋作業", "frm201", "frm201")</li>
+                                <li>@Html.ActionLink("202 住戶交辦事項", "frm202", "frm202")</li>
+                                <li>@Html.ActionLink("203 櫃檯收支作業", "frm203", "frm203")</li>
+                                <li>@Html.ActionLink("204 住戶抱怨處理", "frm204", "frm204")</li>
+                                <li>@Html.ActionLink("205 工程修繕作業", "frm205", "frm205")</li>
+                                <li>@Html.ActionLink("206 住戶訂報作業", "frm206", "frm206")</li>
+                                <li>@Html.ActionLink("207 住戶雜費作業", "frm207", "frm207")</li>
+                                <li>@Html.ActionLink("208 廠商付款作業", "frm208", "frm208")</li>
+                                <li>@Html.ActionLink("209 住戶沖帳作業", "frm209", "frm209")</li>
+                                <li>@Html.ActionLink("210 解約戶沖帳作業", "frm210", "frm210")</li>
+                                <li>@Html.ActionLink("211 商場收入作業", "frm211", "frm211")</li>
+                                <li>@Html.ActionLink("212 計時停車收入作業", "frm212", "frm212")</li>
+                                <li>@Html.ActionLink("213 水費輸入作業", "frm213", "frm213")</li>
+                                <li>@Html.ActionLink("214 週轉金撥補作業", "frm214", "frm214")</li>                                
+                                </ul>                            
+                            </li>
+                            <li><a href="">其他作業</a>
+                                <ul>
+                                <li>@Html.ActionLink("301 市區資訊服務", "frm301", "frm301")</li>
+                                <li>@Html.ActionLink("302 費用預算作業", "frm302", "frm302")</li>
+                                <li>@Html.ActionLink("303 收入預估作業", "frm303", "frm303")</li>
+                                <li>@Html.ActionLink("304 住戶資料查詢", "frm304", "frm304")</li>
+                                <li>@Html.ActionLink("305 年度住房率預估作業", "frm305", "frm305")</li>
+                                </ul>                             
+                            </li>
+                            
+                            <li><a href="">俱樂部作業</a>
+                                <ul>
+                                <li>@Html.ActionLink("401 會員入會作業", "frm401", "frm401")</li>
+                                <li>@Html.ActionLink("402 會員課程設計", "frm402", "frm402")</li>
+                                <li>@Html.ActionLink("403 俱樂部消費作業", "frm403", "frm403")</li> 
+                                </ul>                                                         
+                            </li>                         
+                            
+                            <li>
+                                <a href="">報表作業</a>
+                                <ul>
+                                    <li>@Html.ActionLink("501 每月帳單", "frm501", "frm501")</li>
+                                    <li>@Html.ActionLink("502 電瓦帳單", "frm502", "frm502")</li>
+                                    <li>@Html.ActionLink("503 廠商付款清冊", "frm503", "frm503")</li>
+                                    <li>@Html.ActionLink("506 停車收費月報表", "frm506", "frm506")</li>
+                                    <li>@Html.ActionLink("507 年度租金一覽表", "frm507", "frm507")</li>
+                                    <li>@Html.ActionLink("508 年度修繕總表", "frm508", "frm508")</li>
+                                    <li>@Html.ActionLink("511 租約到期一覽表", "frm511", "frm511")</li>
+                                    <li>@Html.ActionLink("512 租約異動記錄表", "frm512", "frm512")</li>
+                                    <li>@Html.ActionLink("513 住戶一覽表", "frm513", "frm513")</li>
+                                    <li>@Html.ActionLink("514 計時停車收入報表", "frm514", "frm514")</li>
+                                    <li>@Html.ActionLink("515 其他租約到期一覽表", "frm515", "frm515")</li>
+                                    <li>@Html.ActionLink("516 住戶國籍分析表", "frm516", "frm516")</li>
+                                    <li>@Html.ActionLink("517 週轉金撥補明細表", "frm517", "frm517")</li>
+                                    <li>@Html.ActionLink("518 代收代付明細表", "frm518", "frm518")</li>
+                                    <li>@Html.ActionLink("519 專線管理報表", "frm519", "frm519")</li>
+                                    <li>@Html.ActionLink("520 設備分佈報表", "frm520", "frm520")</li>
+                                    <li>@Html.ActionLink("521 住戶車位一覽表", "frm521", "frm521")</li>
+                                    <li>@Html.ActionLink("522 仲介成交明細表", "frm522", "frm522")</li>
+                                    <li>@Html.ActionLink("523 仲介成交統計表", "frm523", "frm523")</li>
+                                    <li>@Html.ActionLink("524 電話帳單明細表", "frm524", "frm524")</li>
+                                    <li>@Html.ActionLink("525 水電瓦帳單明細表", "frm525", "frm525")</li>
+                                    <li>@Html.ActionLink("526 俱樂部會員明細表", "frm526", "frm526")</li>
+                                    <li>@Html.ActionLink("527 俱樂部課程明細表", "frm527", "frm527")</li>
+                                    <li>@Html.ActionLink("528 俱樂部消費明細表", "frm528", "frm528")</li>
+                                </ul>
+                            </li>
+                              
+
+                            <!--<li>@Html.ActionLink("504 經營管理費用表", "frm504", "frm504")</li>
+                                <li>@Html.ActionLink("505 經營績效報表", "frm505", "frm505")</li>-->                            
+                           <!-- <li>@Html.ActionLink("509 年度住房率比較表", "frm509", "frm509")</li>
+                                <li>@Html.ActionLink("510 年度收入比較表", "frm510", "frm510")</li>-->
+
+                        </ul>
+                    </nav>
+                    }
+                </div>
+            </div>
+        </header>
+        <div id="body">
+            @RenderSection("featured", required: false)
+            <section class="content-wrapper main-content clear-fix">
+                @RenderBody()
+            </section>
+        </div>
+        <!--
+        <footer>
+            <div class="content-wrapper">
+                <div class="float-left">
+                    <p>&copy; @DateTime.Now.Year - Jasper</p>
+                </div>
+            </div>
+        </footer>
+            -->
+
+
+        <!--
+        <div class="easyui-panel" style="padding:5px;">
+            <a href="#" class="easyui-linkbutton" data-options="plain:true">Jasper 傑仕堡租屋系統</a>
+            <a id="btn-m1" href="#" class="easyui-menubutton" data-options="menu:'#mm1'">基本作業</a>
+            <a id="btn-m2" href="#" class="easyui-menubutton" data-options="menu:'#mm2'">例行作業</a>
+            <a id="btn-m3" href="#" class="easyui-menubutton" data-options="menu:'#mm3'">其他作業</a>
+            <a id="btn-m4" href="#" class="easyui-menubutton" data-options="menu:'#mm4'">俱樂部作業</a>
+            <a id="btn-m5" href="#" class="easyui-menubutton" data-options="menu:'#mm5'">報表作業</a>
+        </div>
+        <div id="mm1" style="width:150px;">
+            <div>@Html.ActionLink("101 房屋資料維護", "frm101", "frm101")</div>
+            <div>@Html.ActionLink("102 報紙資料維護", "frm102", "frm102")</div>
+            <div>@Html.ActionLink("103 報社資料維護", "frm103", "frm103")</div>
+            <div>@Html.ActionLink("104 國籍資料維護", "frm104", "frm104")</div>
+            <div>@Html.ActionLink("105 設備資料維護", "frm105", "frm105")</div>
+            <div>@Html.ActionLink("106 仲介資料維護", "frm106", "frm106")</div>
+            <div>@Html.ActionLink("107 房屋牌價維護", "frm107", "frm107")</div>
+            <div>@Html.ActionLink("108 費用分類維護", "frm108", "frm108")</div>
+            <div>@Html.ActionLink("109 費用科目維護", "frm109", "frm109")</div>
+            <div>@Html.ActionLink("110 車位資料維護", "frm110", "frm110")</div>
+            <div>@Html.ActionLink("111 合約公司維護", "frm111", "frm111")</div>
+            <div>@Html.ActionLink("112 職稱資料維護", "frm112", "frm112")</div>
+            <div>@Html.ActionLink("113 幫傭資料維護", "frm113", "frm113")</div>
+            <div>@Html.ActionLink("114 廠商資料維護", "frm114", "frm114")</div>
+            <div>@Html.ActionLink("115 帳號權限維護", "frm115", "frm115")</div>
+        </div>
+        <div id="mm2" style="width:200px;">
+            <div>@Html.ActionLink("201 租屋作業", "frm201", "frm201")</div>
+            <div>@Html.ActionLink("202 住戶交辦事項", "frm202", "frm202")</div>
+            <div>@Html.ActionLink("203 櫃檯收支作業", "frm203", "frm203")</div>
+            <div>@Html.ActionLink("204 住戶抱怨處理", "frm204", "frm204")</div>
+            <div>@Html.ActionLink("205 工程修繕作業", "frm205", "frm205")</div>
+            <div>@Html.ActionLink("206 住戶訂報作業", "frm206", "frm206")</div>
+            <div>@Html.ActionLink("207 住戶雜費作業", "frm207", "frm207")</div>
+            <div>@Html.ActionLink("208 廠商付款作業", "frm208", "frm208")</div>
+            <div>@Html.ActionLink("209 住戶沖帳作業", "frm209", "frm209")</div>
+            <div>@Html.ActionLink("210 解約戶沖帳作業", "frm210", "frm210")</div>
+            <div>@Html.ActionLink("211 商場收入作業", "frm211", "frm211")</div>
+            <div>@Html.ActionLink("212 計時停車收入作業", "frm212", "frm212")</div>
+            <div>@Html.ActionLink("213 水費輸入作業", "frm213", "frm213")</div>
+            <div>@Html.ActionLink("214 週轉金撥補作業", "frm214", "frm214")</div>    
+        </div>
+        <div id="mm3" style="width:200px;">
+            <div>@Html.ActionLink("301 市區資訊服務", "frm301", "frm301")</div>
+            <div>@Html.ActionLink("302 費用預算作業", "frm302", "frm302")</div>
+            <div>@Html.ActionLink("303 收入預估作業", "frm303", "frm303")</div>
+            <div>@Html.ActionLink("304 住戶資料查詢", "frm304", "frm304")</div>
+            <div>@Html.ActionLink("305 年度住房率預估作業", "frm305", "frm305")</div>
+        </div>
+        <div id="mm4" style="width:200px;">
+            <div>@Html.ActionLink("401 會員入會作業", "frm401", "frm401")</div>
+            <div>@Html.ActionLink("402 會員課程設計", "frm402", "frm402")</div>
+            <div>@Html.ActionLink("403 俱樂部消費作業", "frm403", "frm403")</div> 
+        </div>
+        <div id="mm5" style="width:200px;">
+            <div>@Html.ActionLink("501 每月帳單", "frm501", "frm501")</div>
+            <div>@Html.ActionLink("502 電瓦帳單", "frm502", "frm502")</div>
+            <div>@Html.ActionLink("503 廠商付款清冊", "frm503", "frm503")</div>
+            <div>@Html.ActionLink("506 停車收費月報表", "frm506", "frm506")</div>
+            <div>@Html.ActionLink("507 年度租金一覽表", "frm507", "frm507")</div>
+            <div>@Html.ActionLink("508 年度修繕總表", "frm508", "frm508")</div>
+            <div>@Html.ActionLink("511 租約到期一覽表", "frm511", "frm511")</div>
+            <div>@Html.ActionLink("512 租約異動記錄表", "frm512", "frm512")</div>
+            <div>@Html.ActionLink("513 住戶一覽表", "frm513", "frm513")</div>
+            <div>@Html.ActionLink("514 計時停車收入報表", "frm514", "frm514")</div>
+            <div>@Html.ActionLink("515 其他租約到期一覽表", "frm515", "frm515")</div>
+            <div>@Html.ActionLink("516 住戶國籍分析表", "frm516", "frm516")</div>
+            <div>@Html.ActionLink("517 週轉金撥補明細表", "frm517", "frm517")</div>
+            <div>@Html.ActionLink("518 代收代付明細表", "frm518", "frm518")</div>
+            <div>@Html.ActionLink("519 專線管理報表", "frm519", "frm519")</div>
+            <div>@Html.ActionLink("520 設備分佈報表", "frm520", "frm520")</div>
+            <div>@Html.ActionLink("521 住戶車位一覽表", "frm521", "frm521")</div>
+            <div>@Html.ActionLink("522 仲介成交明細表", "frm522", "frm522")</div>
+            <div>@Html.ActionLink("523 仲介成交統計表", "frm523", "frm523")</div>
+            <div>@Html.ActionLink("524 電話帳單明細表", "frm524", "frm524")</div>
+            <div>@Html.ActionLink("525 水電瓦帳單明細表", "frm525", "frm525")</div>
+            <div>@Html.ActionLink("526 俱樂部會員明細表", "frm526", "frm526")</div>
+            <div>@Html.ActionLink("527 俱樂部課程明細表", "frm527", "frm527")</div>
+            <div>@Html.ActionLink("528 俱樂部消費明細表", "frm528", "frm528")</div>
+        </div>-->
+    </body>
+</html>

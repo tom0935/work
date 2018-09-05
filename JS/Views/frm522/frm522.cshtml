@@ -1,0 +1,118 @@
+﻿@{
+    ViewBag.Title = "Frm522 仲介成交明細表";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+        Initialize_DataGrid();
+    });   //ready end
+
+    $(window).load(function () {
+
+
+
+
+
+    });
+ 
+
+    function Initialize_DataGrid() {
+        var getGridJSON = '@Url.Action("Grid", "Frm522")';
+        $('#DataGrid').datagrid({
+            title: '選擇仲介',
+            url: getGridJSON,
+            width: '300',
+            height: '400',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,           
+            idField: 'CNO',
+            striped: true,
+            showHeader: true,
+            fitColumns: true,
+            remoteSort: false,
+            singleSelect: false,
+            columns: [[
+                 { field: 'CHK', title: '列印', sortable: true, width: 10, halign: "center", align: "center", checkbox: true },
+                {
+                    field: 'CNO',
+                    title: '仲介編號',
+                    sortable: true,
+                    width: 30,
+                    halign: "center",
+                    align: "center"
+                },
+                {
+                    field: 'CNM',
+                    title: '仲介名稱',
+                    sortable: true,
+                    width: 120,
+                    halign: "center",
+                    align: "left"
+                }
+            ]]
+        });
+
+    }
+
+
+
+
+
+
+    
+    function getObj() {
+        var obj = {};
+        obj.SYM = $.trim($('#SYM').datebox('getValue'));
+        obj.EYM = $.trim($('#EYM').datebox('getValue'));
+        return obj;
+    }
+
+  
+    function doPrint() {
+        var row = $('#DataGrid').datagrid('getChecked');
+        if (row.length > 0 ) {
+            $('#ifm').form('submit', {
+                url: '@Url.Action("doRunReport", "Frm522")',
+                //  queryParams:obj,
+                dataType: "json",
+                contentType: "application/json",
+                onSubmit: function (param) {
+                    param.list = JSON.stringify(row);
+                    param.obj = JSON.stringify(getObj());
+                }
+            });
+
+        } else {
+            $.messager.alert('系統訊息', '尚未選取年度!', 'warning');
+        }
+
+
+
+    }
+
+</script>
+<h2>Frm522 仲介成交明細表</h2>
+<a id="btnClear" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-print'" onclick="doPrint()">列印</a>
+<br />
+<br />
+ 
+<table width="450" border="1">
+    <tr>
+        <td width="120">選擇起迄</td>
+        <td width="411">
+            <input name="SYM" type="text" id="SYM" class="easyui-datebox" style="width:150px;height:28px" data-options="prompt:'YYYY-MM-DD'"> ~ 迄<input name="EYM" type="text" id="EYM" class="easyui-datebox" style="width:150px;height:28px" data-options="prompt:'YYYY-MM-DD'">
+        </td>
+    </tr>
+    <tr>
+        <td width="106" height="305" valign="top">請擇仲介</td>
+        <td width="257" valign="top">
+            <table id="DataGrid"></table>
+        </td>
+    </tr>
+</table>
+<form name="ifm" id="ifm" method="post" enctype="application/x-www-form-urlencoded"></form>
+

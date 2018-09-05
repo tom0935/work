@@ -1,0 +1,166 @@
+﻿@{
+    ViewBag.Title = "Frm504 經營管理費用表";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+
+        initF504();
+
+
+
+
+
+
+
+
+    });   //ready end
+
+    $(window).load(function () {
+
+
+
+
+
+    });
+
+
+
+
+
+
+    function initF504() {
+        $.ajax({
+            url: '@Url.Action("getCONF", "Frm504")',
+            type: "post",
+            dataType: "json",
+            success: function (data, textStatus, jqXHR) {
+                $('#FEEYM').val($.trim(data[0].FEEYM));
+                $('#SENDDT').val($.trim(data[0].SENDDT));
+                $('#ACP1').val($.trim(data[0].ACP1));
+                $('#ACP2').val($.trim(data[0].ACP2));
+                $('#SENDER').val($.trim(data[0].SENDER));
+                $('#TXNO').val($.trim(data[0].TXNO));
+                $('#ATTN').val($.trim(data[0].ATTN));
+                $('#UPRC').val($.trim(data[0].UPRC));
+                $('#PINS').val($.trim(data[0].PINS));
+            }
+        });
+    }
+
+
+
+ 
+
+    function doSave() {
+
+        $.messager.confirm('執行確認', "確認儲存?", function (r) {
+            if (r) {
+                var obj = getObj();
+
+                $.ajax({
+                    url: '@Url.Action("doSave", "Frm504")',
+                    type: "post",
+                    data: obj,
+                    dataType: "json",
+                    success: function (data, textStatus, jqXHR) {
+                        if (data.status != '0') {
+                            $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                        }
+                    }
+                });
+            }
+        });
+
+    }
+
+    function getObj() {
+        var obj = {};
+        
+        obj.FEEYM = $.trim($('#FEEYM').val());
+        obj.SENDDT = $.trim($('#SENDDT').val());
+        obj.ACP1 = $.trim($('#ACP1').val());
+        obj.ACP2 = $.trim($('#ACP2').val());
+        obj.SENDER = $.trim($('#SENDER').val());
+        obj.TXNO = $.trim($('#TXNO').val());
+        obj.ATTN = $.trim($('#ATTN').val());
+        obj.UPRC = $.trim($('#UPRC').val());
+        obj.PINS = $.trim($('#PINS').val());
+        return obj;
+    }
+
+  
+    function doPrint(mode) {
+        
+        $('#ifm').form('submit', {
+            url: '@Url.Action("doRunReport", "Frm504")',
+          //  queryParams:obj,
+            dataType: "json",
+            contentType: "application/json",
+            onSubmit: function (param) {
+                param.obj = JSON.stringify(getObj());
+                if (mode == "2") {
+                    param.list = JSON.stringify(row);
+                }
+            }
+        });
+    
+  
+
+
+
+    }
+
+</script>
+<h2>Frm504 經營管理費用表</h2>
+<a id="btnCSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSave()">存檔</a>
+<a id="btnClear" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-print'" onclick="doPrint()">列印</a>
+<br />
+<br />
+    <input type="hidden" id="TAGID" name="TAGID" />
+    <input type="hidden" id="CONTRAH_TAGID" name="CONTRAH_TAGID" />
+ 
+<table width="800" border="1">
+    <tr>
+        <td width="107">請款年月</td>
+        <td width="411"><input name="FEEYM" type="text" id="FEEYM" class="easyui-textbox" style="width:70px;height:28px" data-options="prompt:'YYYYMM'"></td>
+    </tr>
+    <tr>
+        <td>發文日期</td>
+        <td><input name="SENDDT" type="text" id="SENDDT" style="width:400px"></td>
+    </tr>
+    <tr>
+        <td>受文者</td>
+        <td><input name="ACP1" type="text" id="ACP1" style="width:400px"></td>
+    </tr>
+    <tr>
+        <td>副本收受者</td>
+        <td><input name="ACP2" type="text" id="ACP2" style="width:400px"></td>
+    </tr>
+    <tr>
+        <td>發文者</td>
+        <td><input name="SENDER" type="text" id="SENDER" style="width:400px"></td>
+    </tr>
+    <tr>
+        <td>發文文號</td>
+        <td><input name="TXNO" type="text" id="TXNO" style="width:400px"></td>
+    </tr>
+    <tr>
+        <td>主旨</td>
+        <td><input name="ATTN" type="text" id="ATTN" style="width:400px"></td>
+    </tr>
+    <tr>
+        <td>管理費計算</td>
+        <td>
+            <input name="UPRC" type="text" id="UPRC" style="width:90px" >
+            元 / 坪 標的物標準總坪數
+            <input name="PINS" type="text" id="PINS" style="width:90px">
+            坪
+        </td>
+    </tr>
+</table>
+<form name="ifm" id="ifm" method="post" enctype="application/x-www-form-urlencoded"></form>
+

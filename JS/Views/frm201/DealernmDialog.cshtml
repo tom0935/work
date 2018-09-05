@@ -1,0 +1,97 @@
+﻿@{
+    Layout = null;
+}
+
+<script>
+    $(document).ready(function () {
+        $('#DealernmDG').datagrid({
+            rownumbers: true,
+            nowrap: true,
+            border:false,
+            pagination: false,
+            pageSize: 0,
+            idField: 'CNO',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: true,
+            singleSelect: true,
+            sortName: 'CNO',
+            sortOrder: 'asc',
+            url: '@Url.Action("Grid", "Frm111")',
+            columns: [[
+                {
+                    field: 'CNO',
+                    title: '公司編號',
+                    sortable: true,
+                    width: 50,
+                    halign: "center",
+                    align: "center",
+                    sortable: true
+                },
+                {
+                    field: 'CNM',
+                    title: '公司名稱',
+                    sortable: true,
+                    width: 200,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'CPID',
+                    title: '統編',
+                    sortable: true,
+                    width: 100,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'TEL',
+                    title: '電話',
+                    sortable: true,
+                    width: 130,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'CPMGR',
+                    title: '負責人',
+                    sortable: true,
+                    width: 110,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                }
+            ]],
+            onDblClickRow: function (index, row) {
+                doSelectDealernm();
+            }
+        });
+    });   //ready end
+
+    $(function () {
+        var dg = $('#DealernmDG').datagrid();
+        dg.datagrid('enableFilter', [{
+            field: 'A1',
+            type: 'textbox',
+            //options: { precision: 1 },
+            op: ['equal', 'notequal', 'less', 'greater']
+        }]);
+    });
+
+    function doSelectDealernm() {
+        var row = $('#DealernmDG').datagrid('getSelected');
+        if (row != null) {
+            $('#DEALERNM').val(row.CNM);
+            initDealman(row.CNO, '');
+            $('#DealernmDialog').dialog('close');
+        } else {
+            $.messager.alert('系統訊息', '您尚未選取資料!', 'warning');
+        }
+    }
+</script>
+<table id="DealernmDG" data-options="fit:true,modal:true"></table>
+

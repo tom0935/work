@@ -1,0 +1,411 @@
+﻿@{
+    ViewBag.Title = "Frm101 房屋資料維護";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section scripts
+{
+
+ <script type="text/javascript">
+    $(document).ready(function () {
+        Initialize_DataGrid();
+    });
+
+    function Initialize_DataGrid() {
+        var getGridJSON = '@Url.Action("Grid", "Frm101")';
+        $('#DataGrid').datagrid({
+            title: '房屋資料維護',
+            url: getGridJSON,
+            width: '650',
+            height: '400',
+            rownumbers: true,
+            nowrap: true,
+            pagination: true,
+            pageSize: 20,
+            idField: 'CNO',
+            striped: true,
+            showHeader: true,
+            fitColumns: true,
+            remoteSort: true,
+            singleSelect: true,
+            sortName: 'CNO',
+            sortOrder: 'asc',
+            columns: [[
+                {
+                    field: 'CNO',
+                    title: '房屋編號',
+                    sortable: true,
+                    width: 50,
+                    halign: "center",
+                    align: "center",
+                    sortable: true
+                },
+                {
+                    field: 'PINS',
+                    title: '坪數',
+                    sortable: true,
+                    width: 50,
+                    halign: "center",
+                    align: "center",
+                    sortable: true
+                },
+                {
+                    field: 'ADR1',
+                    title: '地址',
+                    sortable: true,
+                    width: 150,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'DOOR',
+                    title: '門號',
+                    sortable: true,
+                    width: 50,
+                    halign: "center",
+                    align: "center",
+                    sortable: true
+                },
+                {
+                    field: 'FLOR',
+                    title: '樓層',
+                    sortable: true,
+                    width: 20,
+                    halign: "center",
+                    align: "center",
+                    sortable: true
+                }
+            ]],
+            onSelect: function (rowIndex, rowData) {
+                $('#CNO').val($.trim(rowData.CNO));
+                $('#PINS').val($.trim(rowData.PINS));
+                $('#ADR1').val($.trim(rowData.ADR1));
+                $('#DOOR').val($.trim(rowData.DOOR));
+                $('#FLOR').val($.trim(rowData.FLOR));
+                $('#PINS0').val($.trim(rowData.PINS0));
+                $('#PRCN').val($.trim(rowData.PRCN));
+                $('#EXTNO').val($.trim(rowData.EXTNO));
+                $('#STY').combobox('setValue', $.trim(rowData.STY));
+                $('#LOCT').combobox('setValue', $.trim(rowData.LOCT));
+                $('#PICNM').val($.trim(rowData.PICNM));
+                $('#IP1').val($.trim(rowData.IP1));
+                $('#IP2').val($.trim(rowData.IP2));
+                $('#WATERNO').val($.trim(rowData.WATERNO));
+                $('#ELECNO').val($.trim(rowData.ELECNO));
+                $('#GASNO').val($.trim(rowData.GASNO));
+            }
+        });
+
+    }
+
+    function openDialog() {
+        var obj = {};
+        obj.CNO = $.trim($('#CNO').val());
+        if (obj.CNO != '') {
+            $('#dlg').dialog({
+                title: '房屋編號:' + obj.CNO + ' 歷史牌價',
+                width: 600,
+                height: 400,
+                closed: false,
+                cache: false,
+                modal: true,
+                iconCls: 'icon-tip'
+            });
+
+
+            $('#dlgDataGrid').datagrid({
+                queryParams: obj,
+                url: '@Url.Action("Dlg", "Frm101")',
+                width: '500',
+                height: '400',
+                maximized: true,
+                rownumbers: true,
+                columns: [[
+                      {
+                          field: 'YR',
+                          title: '年度',
+                          sortable: true,
+                          width: 50,
+                          halign: "center",
+                          align: "center",
+                          sortable: true
+                      },
+                      {
+                          field: 'DT1',
+                          title: '日期起',
+                          sortable: true,
+                          width: 150,
+                          halign: "center",
+                          align: "center",
+                          sortable: true
+                      },
+                      {
+                          field: '150',
+                          title: '日期迄',
+                          sortable: true,
+                          width: 150,
+                          halign: "center",
+                          align: "center",
+                          sortable: true
+                      },
+                      {
+                          field: 'RENTAL',
+                          title: '月租費',
+                          sortable: true,
+                          width: 80,
+                          halign: "center",
+                          align: "center",
+                          sortable: true
+                      },
+                      {
+                          field: 'MGFEE',
+                          title: '管理費',
+                          sortable: true,
+                          width: 80,
+                          halign: "center",
+                          align: "center",
+                          sortable: true
+                      }
+                ]]
+            });
+        } else {
+
+            $.messager.alert('系統訊息', '未輸入房屋編號!', 'warning');
+        }
+    }
+
+    function openDialog2() {
+        
+        url = '@Url.Content("~/Images/PIC/")' + $.trim($('#PICNM').val()) + ".gif";
+        $("#pic1").attr("src", url);
+        $('#dlg2').dialog({
+            title: '預覽',
+            width: 600,
+            height: 400,
+            closed: false,
+            cache: false,
+            modal: true,
+            iconCls: 'icon-tip'
+        });
+    }
+
+    //新增
+    function doAdd() {
+        doClear();
+        if ($('#mode').val() == 'save') {
+            $('#btnAdd').linkbutton({ text: '取消新增' });
+            $('#mode').val('add');
+            $('#CNO').attr('readonly', false);
+        } else {
+            $('#btnAdd').linkbutton({ text: '新增' });
+            $('#mode').val('save');
+            $('#CNO').attr('readonly', true);
+        }
+    }
+
+    //儲存
+    function doSave() {
+
+        var mode = $.trim($('#mode').val());
+        /*
+        if ($.trim($('#mode').val()) = 'save') {
+            modeUrl = "frm101Save";
+        } else {
+            modeUrl = "frm101Create";
+        }*/
+
+        var bResult = $('#editForm').form('validate');
+        if (bResult) {
+            $.ajax({
+                url: '@Url.Action("Save", "Frm101")',
+                type: "post",
+                data: getObj(mode),
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    if (data.status != '0') {
+                        $('#btnAdd').linkbutton('enable');
+                        $('#DataGrid').datagrid('reload');
+                        $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                    } else {
+                        $.messager.alert('系統訊息', data.message, 'error');
+                    }
+                    $('#mode').val('save');
+                    $('#btnAdd').linkbutton({ text: '新增' });
+                }
+            });
+        }
+    }
+    function doRemove() {
+        var selectRow = $('#DataGrid').datagrid('getSelected');
+
+        if (selectRow != null) {
+            var obj = {};
+            obj.CNO = selectRow.CNO;
+            $.messager.confirm('執行確認', '是否確認刪除房屋編號:' + obj.CNO + ' 此筆資料?', function (r) {
+                if (r) {
+                    $.ajax({
+                        url: '@Url.Action("Remove", "Frm101")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $.messager.alert('系統訊息', '資料已刪除!', 'info');
+                                doClear();
+                                $('#DataGrid').datagrid('reload');
+                            } else {
+                                $.messager.alert('系統訊息', data.message, 'error');
+                            }
+
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '您尚未選取資料', 'warning');
+        }
+    }
+
+    function doClear() {
+        $('#CNO').val('');
+        $('#PINS').val('');
+        $('#ADR1').val('');
+        $('#DOOR').val('');
+        $('#FLOR').val('');
+        $('#PINS0').val('');
+        $('#PRCN').val('');
+        $('#EXTNO').val('');
+        //$('#STY').combobox('setValue', '');
+        //$('#LOCT').combobox('setValue', '');
+        $('#PICNM').val('');
+        $('#IP1').val('');
+        $('#IP2').val('');
+        $('#WATERNO').val('');
+        $('#ELECNO').val('');
+        $('#GASNO').val('');
+    }
+
+    function getObj(mode) {
+        var obj = {};
+        obj.CNO = $.trim($('#CNO').val());
+        obj.PINS = $.trim($('#PINS').val());
+        obj.ADR1 = $.trim($('#ADR1').val());
+        obj.DOOR = $.trim($('#DOOR').val());
+        obj.FLOR = $.trim($('#FLOR').val());
+        obj.PINS0 = $.trim($('#PINS0').val());
+        obj.PRCN = $.trim($('#PRCN').val());
+        obj.EXTNO = $.trim($('#EXTNO').val());
+        obj.STY = $.trim($('#STY').combobox('getValue'));
+        obj.LOCT = $.trim($('#LOCT').combobox('getValue'));
+        obj.PICNM = $.trim($('#PICNM').val());
+        obj.IP1 = $.trim($('#IP1').val());
+        obj.IP2 = $.trim($('#IP2').val());
+        obj.WATERNO = $.trim($('#WATERNO').val());
+        obj.ELECNO = $.trim($('#ELECNO').val());
+        obj.GASNO = $.trim($('#GASNO').val());
+        obj.mode = mode;
+        return obj;
+    }
+
+</script>
+}     
+ 
+
+<h2>Frm101 房屋資料維護</h2>
+<a id="btnReload" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-reload'" onclick="Initialize_DataGrid()">重新顯示</a>
+<a id="btnAdd" href="#" class="easyui-linkbutton" data-options="iconCls:'add-icon'" onclick="doAdd()">新增</a>
+<a id="btnSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSave()">儲存</a>
+<a id="btnRemove" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="doRemove()">刪除</a>
+<form id="editForm" name="editForm" method="post" >
+<input type="hidden" id="mode" name="mode" value="save" />
+<table width="800" border="1">
+  <tr>
+    <td>
+<table width="530" border="1">
+  <tr>
+    <td width="70">房屋編號</td>
+    <td width="530"><label>
+      <input type="text" name="CNO" id="CNO" class="easyui-validatebox" style="width:80px"   data-options="required:true" readonly />
+   <a href="javascript:void(0)" class="easyui-linkbutton" onclick="openDialog()">顯示牌價</a> </label></td>
+  </tr>
+  <tr>
+    <td>坪數</td>
+    <td><input type="text" name="PINS" id="PINS" style="width:80px" size="7" /></td>
+  </tr>
+  <tr>
+    <td>地址</td>
+    <td><input type="text" name="ADR1" id="ADR1" style="width:250px"  />
+    <input name="DOOR" id="DOOR" type="text" size="5" style="width:30px" />
+    號
+    <input name="FLOR" id="FLOR" type="text" size="5" style="width:30px" />
+    樓</td>
+  </tr>
+</table>
+<table id="DataGrid"></table>    
+    </td>
+    <td>
+<table width="280" border="1">
+  <tr>
+    <td width="150">權狀坪數</td>
+    <td width="99"><input type="text" name="PINS0" id="PINS0"  style="width:100px" size="7" /></td>
+  </tr>
+  <tr>
+    <td>公設%</td>
+    <td><input type="text" name="PRCN" id="PRCN"  style="width:100px" size="3" /></td>
+  </tr>
+  <tr>
+    <td>住戶分機</td>
+    <td><input type="text" name="EXTNO" id="EXTNO"  style="width:100px" size="6" /></td>
+  </tr>
+  <tr>
+    <td>房間座向</td>
+    <td><label>
+    <select id="LOCT" class="easyui-combobox" data-options="editable:false" name="LOCT" style="width:100px;">    
+    <option value="東南">東南</option>
+    <option value="西北">西北</option>
+    </select>
+    </label></td>
+  </tr>
+  <tr>
+    <td>裝潢樣式</td>
+    <td>
+    <select id="STY" class="easyui-combobox" data-options="editable:false" name="STY" style="width:100px;">    
+    <option value="福華">福華</option>
+    <option value="其他">其他</option>
+    </select>
+    </td>
+  </tr>
+  <tr>
+    <td>格局圖樣</td>
+    <td><input type="text" name="PICNM" id="PICNM"  style="width:100px" /><a href="#" class="easyui-linkbutton" onclick="openDialog2()">預覽</a></td>
+  </tr>
+  <tr>
+    <td>網路IP_1</td>
+    <td><input type="text" name="IP1" id="IP1"  style="width:150px" /></td>
+  </tr>
+  <tr>
+    <td>網路IP_2</td>
+    <td><input type="text" name="IP2" id="IP2"  style="width:150px" /></td>
+  </tr>
+  <tr>
+    <td>水表號碼</td>
+    <td><input type="text" name="WATERNO" id="WATERNO"  style="width:100px" /></td>
+  </tr>
+  <tr>
+    <td>電表號碼</td>
+    <td><input type="text" name="ELECNO" id="ELECNO"  style="width:100px" /></td>
+  </tr>
+  <tr>
+    <td>瓦斯表號</td>
+    <td><input type="text" name="GASNO" id="GASNO"  style="width:100px" /></td>
+  </tr>
+</table> 
+    
+    </td>
+  </tr>
+</table>
+</form>    
+<div id="dlg"><table id="dlgDataGrid"></table> </div>
+<div id="dlg2"><img id="pic1" src=""/></div>
+
+

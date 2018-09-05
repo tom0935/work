@@ -1,0 +1,276 @@
+﻿@{
+    ViewBag.Title = "Frm503 廠商付款清冊";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+        //人員列表
+        $('#LOGUSR').combobox({
+            url: '@Url.Action("getLOGUSR", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM'
+            //editable: false
+        });
+    });   //ready end
+
+    $(window).load(function () {
+        f503DG1init();
+    });
+
+
+
+    function f503DG1init() {
+
+        $('#f503DG1').datagrid({
+            url: '@Url.Action("getDG1", "Frm503")',
+            width: '550',
+            height: '500',
+            queryParams: getObj(),
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: false,
+            columns: [[
+                { field: 'Print', title: '列印', sortable: true, width: 100, halign: "center", align: "center", checkbox: true },
+                { field: 'MKRNM', title: '廠商', sortable: true, width: 180, halign: "center", align: "left" },
+                { field: 'PAYSTA', title: '付款', sortable: true, width: 60, halign: "center", align: "center" },
+                { field: 'AMTSUM', title: '付款金額', sortable: true, width: 80, halign: "center", align: "right"},
+                { field: 'VNO', title: '發票號碼', sortable: true, width: 100, halign: "center", align: "left"}
+            ]],
+            onSelect: function (rowIndex, row) {
+                //initf503FORM(row);
+            }
+        });
+    }
+
+
+
+
+
+
+    function initf503FORM(row) {
+        $('#FEEYM').textbox('setValue',row.FEEYM);
+
+        if ($.trim(row.FIXAREA) == "1") {
+            $('input[name=FIXAREA][value=1]').prop("checked", true);
+        } else if ($.trim(row.FIXAREA) == "2") {
+            $('input[name=FIXAREA][value=2]').prop("checked", true);
+        } else if ($.trim(row.FIXAREA) == "3") {
+            $('input[name=FIXAREA][value=3]').prop("checked", true);
+        }
+
+        if ($.trim(row.FIXQUIP) == "1") {
+            $('input[name=FIXQUIP][value=1]').prop("checked", true);
+        } else if ($.trim(row.FIXQUIP) == "2") {
+            $('input[name=FIXQUIP][value=2]').prop("checked", true);
+        } else if ($.trim(row.FIXQUIP) == "3") {
+            $('input[name=FIXQUIP][value=3]').prop("checked", true);
+        }
+
+        if ($.trim(row.PAYSTA) == "1") {
+            $('input[name=PAYSTA][value=1]').prop("checked", true);
+        } else if ($.trim(row.PAYSTA) == "2") {
+            $('input[name=PAYSTA][value=2]').prop("checked", true);
+        } else if ($.trim(row.PAYSTA) == "3") {
+            $('input[name=PAYSTA][value=3]').prop("checked", true);
+        }
+
+        if ($.trim(row.OPSAVE) == "Y") {
+            $('input[name=OPSAVE][value=Y]').prop("checked", true);
+        } else if ($.trim(row.OPSAVE) == "N") {
+            $('input[name=OPSAVE][value=N]').prop("checked", true);
+        }
+
+        $('#LOGUSR').combobox('setValue', row.LOGUSR);
+
+    }
+
+    function doSave() {
+        var o = getObj();
+        var row = $('#f503DG1').datagrid('getChecked');
+        var obj={};
+        obj.list = row;        
+        if (row.length > 0) {
+            if (o.OPSAVE == "N") {
+                $.messager.confirm('執行確認', "是否要將這批廠商請款清單存檔,以免重複請款?", function (r) {
+                    if (r) {
+                        $.ajax({
+                            url: '@Url.Action("doSave", "Frm503")',
+                            type: "post",
+                            data: JSON.stringify(obj),
+                            dataType: "json",
+                            contentType: "application/json",
+                            success: function (data, textStatus, jqXHR) {
+                                if (data.status != '0') {
+                                    doPrint();
+                                    $.messager.alert('系統訊息', '本批廠商請款清單已經存檔!', 'info');                                    
+                                }
+                            }
+                        });
+                    } else {
+                        doPrint();
+                    }
+                });
+            } else {
+                $.ajax({
+                    url: '@Url.Action("doSave", "Frm503")',
+                    type: "post",
+                    data: JSON.stringify(obj),
+                    contentType: "application/json",
+                    dataType: "json",
+                    success: function (data, textStatus, jqXHR) {
+                        if (data.status != '0') {
+                            doPrint();
+                            $.messager.alert('系統訊息', '本批廠商請款清單已經存檔!', 'info');                            
+                        }
+                    }
+                });
+            }
+        } else {
+            $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+        }
+    }
+
+    function doPrint() {
+        var row = $('#f503DG1').datagrid('getChecked');
+        $('#ifm').form('submit', {
+            url: '@Url.Action("doRunReport", "Frm503")',
+            dataType: "json",
+            contentType: "application/json",
+            onSubmit: function (param) {
+                param.obj = JSON.stringify(getObj());
+                param.list = JSON.stringify(row);
+            }
+        });
+    }
+
+    function doQuery() {
+        /*if ($('#FEEYM').val() == "") {
+            $.messager.alert('系統訊息', '尚未輸入付款年月!', 'warning');
+        }*/
+        $('#f503DG1').datagrid('reload', getObj());
+    }
+
+
+
+
+
+
+    function getObj() {
+        var obj = {};
+
+        obj.FEEYM = $.trim($('#FEEYM').textbox('getValue'));
+        obj.FIXAREA = $("input[name='FIXAREA']:checked").val();
+        obj.FIXQUIP = $("input[name='FIXQUIP']:checked").val();
+        obj.PAYSTA = $("input[name='PAYSTA']:checked").val();
+        obj.OPSAVE = $("input[name='OPSAVE']:checked").val();
+
+        obj.LOGUSR = $.trim($('#LOGUSR').combobox('getText'));                
+        return obj;
+    }
+
+
+
+
+
+
+
+    function doCheck() {
+        var pass = false;
+       if ($('#LOGUSR').combobox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入記錄人員!', 'warning');
+        } else {
+            pass = true;
+        }
+        return pass;
+    }
+
+
+
+
+
+
+</script>
+<h2>Frm503 廠商付款清冊</h2>
+
+<a id="btnCAdd" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery()">廠商清單</a>
+<a id="btnCSave" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-print'" onclick="doSave()">列印</a>
+<br />
+<br />
+<input type="hidden" id="f503TAGID" name="f503TAGID" />
+<input type="hidden" id="f503CONTRAH_TAGID" name="f503CONTRAH_TAGID" />
+<table width="1024" height="500" border="1">
+    <tr>
+        <td width="490" valign="top">
+            <table width="490" border="0">
+                <tr>
+                    <td width="105"><div align="right">付款年月</div></td>
+                    <td width="375">
+                        <input type="text" name="FEEYM" id="FEEYM" class="easyui-textbox" style="width:100px;height:28px" data-options="prompt:'YYYYMM'" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">維護區域</div></td>
+                    <td>
+                     
+                        <input name="FIXAREA" type="radio" value="1" checked>
+                            住宅
+                            <input name="FIXAREA" type="radio" value="2">
+                            俱樂部
+                            <input name="FIXAREA" type="radio" value="3">
+                            公共區
+                            <input name="FIXAREA" type="radio" value="*" >
+                            全部
+                     
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">維護項目</div></td>
+                    <td>
+                        <input name="FIXQUIP" type="radio" value="1" checked>
+                        設備
+                        <input name="FIXQUIP" type="radio" value="2">
+                        其他
+                        <input name="FIXQUIP" type="radio" value="*" >
+                        全部
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">付款狀態</div></td>
+                    <td>
+                        <input name="PAYSTA" type="radio" value="1" checked>
+                        已付
+                        <input name="PAYSTA" type="radio" value="2">
+                        未付
+                        <input name="PAYSTA" type="radio" value="*">
+                        全部
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">製表人</div></td>
+                    <td><input type="text" id="LOGUSR" name="LOGUSR" style="width:180px;height:28px"  /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">請款記錄是否存檔</div></td>
+                    <td>
+                        <input name="OPSAVE" type="radio" value="Y">
+                        是
+                        <input name="OPSAVE" type="radio" value="N" checked>
+                        否
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td width="518" valign="top">
+            <table id="f503DG1"></table>
+        </td>
+    </tr>
+</table>
+<form name="ifm" id="ifm" method="post" enctype="application/x-www-form-urlencoded"></form>

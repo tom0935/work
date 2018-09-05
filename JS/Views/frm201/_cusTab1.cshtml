@@ -1,0 +1,76 @@
+﻿<table width="787" border="1" >
+    <tr>
+        <td width="94">姓名</td>
+        <td colspan="3">
+            <label>
+                <input type="text" id="MAN" name="MAN" style="width:300px" class="easyui-validatebox" data-options="required:true" /><input id="TAGID1" name="TAGID1" type="hidden" />
+            </label>
+        </td>
+        <td width="92">性別</td>
+        <td width="87">
+            <select id="SEX" class="easyui-combobox" data-options="editable:false" name="SEX" style="width:60px;height:28px">
+                <option value="男">男</option>
+                <option value="女">女</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td height="25">國籍</td>
+        <td width="182"><input type="text" id="CNTRY" name="CNTRY" style="width:160px;height:28px" /></td>
+        <td width="62">血統</td>
+        <td width="96"> <input type="text" id="BLOD" name="BLOD" style="width:160px;height:28px" /></td>
+        <td>血型</td>
+        <td>
+            <select id="BLODTP" class="easyui-combobox" data-options="editable:false" name="BLODTP" style="width:60px;height:28px">
+                <option value=""></option>
+                <option value="A">A型</option>
+                <option value="B">B型</option>
+                <option value="O">O型</option>
+                <option value="AB">AB型</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td>關係</td>
+        <td><input type="text" id="APPES" name="APPES" style="width:160px;height:28px" /></td>
+        <td>進住日</td>
+        <td><input type="text" id="CIDT" name="CIDT" class="easyui-datebox" style="width:160px;height:28px" /></td>
+        <td>遷出日</td>
+        <td><input type="text" id="CODT" name="CODT" class="easyui-datebox" style="width:160px;height:28px" /></td>
+    </tr>
+    <tr>
+        <td>EMAIL</td>
+        <td colspan="3"><input type="text" id="EMAIL" name="EMAIL" style="width:300px" /></td>
+        <td>EMAIL密碼</td>
+        <td><input type="text" id="EMAILPWD" name="EMAILPWD" /></td>
+    </tr>
+    <tr>
+        <td>生日</td>
+        <td><input type="text" id="BIRTH" name="BIRTH" class="easyui-datebox" style="width:160px;height:28px" /></td>
+        <td>證號</td>
+        <td colspan="3"><input type="text" id="PID" name="PID" /></td>
+    </tr>
+    <tr>
+        <td>職稱</td>
+        <td>
+            <select id="POSL" name="POSL" class="easyui-combobox" data-options="editable:false" style="width:100px;height:28px">
+                <option value="高階主管">高階主管</option>
+                <option value="中階主管">中階主管</option>
+                <option value="一般行政">一般行政</option>
+            </select>        
+        </td>
+        <td>婚姻</td>
+        <td colspan="3">
+                <input name="MARRI" id="MARRI" type="radio" value="1"/>
+                已婚            
+                <input name="MARRI" id="MARRI" type="radio" value="2"/>
+                未婚            
+        </td>
+    </tr>
+    <tr>
+        <td>備註</td>
+        <td colspan="5"><input type="text" id="NOTES" name="NOTES" style="width:450px;" /></td>
+    </tr>
+</table>
+<br />
+<table id="cusTab1DG"></table>

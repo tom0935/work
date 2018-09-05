@@ -1,0 +1,374 @@
+﻿@{
+    ViewBag.Title = "Frm402 會員課程設計";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+        f402DG1init();
+
+        //房屋編號下拉選單
+        $('#HOUSE').combogrid({
+            queryParams: '',
+            panelWidth: 200,
+            idField: 'CNO',
+            textField: 'CNO',
+            mode: 'remote',
+            method: 'get',
+            fitColumns: true,
+            url: '@Url.Action("Grid", "Frm107")',
+            columns: [[
+                { field: 'CNO', title: '房屋編號', width: 60 },
+                { field: 'DOOR', title: '門號', width: 60 },
+                { field: 'FLOR', title: '樓層', width: 60 }
+            ]],
+            onSelect: function (index, row) {
+                initCONTRAH();
+            }
+        });
+
+        //姓名
+        $('#JOINER').combogrid({
+            queryParams: '',
+            panelWidth: 400,
+            idField: 'USER',
+            textField: 'USER',
+            mode: 'remote',
+            method: 'get',
+            fitColumns: true,
+            editable: false,
+            url: '@Url.Action("getCNM", "Frm201f")',
+            columns: [[
+                { field: 'TYPE', title: '角色', width: 50 },
+                { field: 'USER', title: '姓名', width: 350 }
+            ]]
+        });
+
+        $('#TM').combobox({
+            url: '@Url.Action("getTM", "Frm402")',
+            valueField: 'CNO',
+            textField: 'CNM'
+        });
+
+        $('#CLASNM').combobox({
+            url: '@Url.Action("getCLASNM", "Frm402")',
+            valueField: 'CNO',
+            textField: 'CNM',
+            onSelect: function (row) {                
+                $('#TEACHER').combobox({
+                    url: '@Url.Action("getTEACHER", "Frm402")',
+                    valueField: 'CNO',
+                    textField: 'CNM',
+                    onBeforeLoad: function (param) {
+                        param.CNO =row.CNO;
+                    }
+                });
+            }
+        });
+
+
+        //人員列表
+        $('#LOGUSR').combobox({
+            url: '@Url.Action("getLOGUSR", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM'
+        });
+
+
+
+
+
+    });   //ready end
+
+    $(window).load(function () {
+
+
+
+
+
+    });
+
+    //房屋合約
+    function initCONTRAH() {
+        var value = $('#HOUSE').combogrid('getValue');
+        if (value != null) {
+            var obj = {};
+            obj.CNO = $.trim(value);
+            $.ajax({
+                url: '@Url.Action("getCONTRAH", "Frm201")',
+                type: "post",
+                data: obj,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    var obj = {};
+                    obj.TAGID = $.trim(data[0].TAGID);
+                    $('#CONTRAH_TAGID').val($.trim(data[0].TAGID));
+
+                    var g = $('#JOINER').combogrid('grid');
+                    g.datagrid('reload', obj);
+                    $('#JOINER').combogrid('setValue', '');
+                }
+            });
+        }
+    }
+
+    function f402DG1init() {
+        var obj = {};
+        obj.q = "";
+        $('#f402DG1').datagrid({
+            url: '@Url.Action("getDG1", "Frm402")',
+            width: '800',
+            height: '500',
+            queryParams: obj,
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                { field: 'DT', title: '開課日', sortable: true, width: 80, halign: "center", align: "center", sortable: true },
+                { field: 'TM', title: '課程時間', sortable: true, width: 80, halign: "center", align: "center", sortable: true },
+                { field: 'CLASNM', title: '課程名稱', sortable: true, width: 150, halign: "center", align: "left", sortable: true },
+                { field: 'TEACHER', title: '授課老師', sortable: true, width: 150, halign: "center", align: "left", sortable: true },
+                { field: 'RMNO', title: '房號', sortable: true, width: 60, halign: "center", align: "center", sortable: true },
+                { field: 'JOINER', title: '學員', sortable: true, width: 150, halign: "center", align: "left", sortable: true },
+                { field: 'MANS', title: '人數', sortable: true, width: 60, halign: "center", align: "center", sortable: true }
+            ]],
+            onSelect: function (rowIndex, row) {
+                initf402FORM(row);
+            }
+        });
+    }
+
+
+
+
+
+
+    function initf402FORM(row) {        
+        $('#DT').datebox('setValue', $.trim(row.DT));
+        $('#TM').combobox('setValue', $.trim(row.TM));
+        $('#CLASNM').combobox('setText', $.trim(row.CLASNM));
+        $('#TEACHER').combobox('setText', $.trim(row.TEACHER));
+        $('#HOUSE').combogrid('setValue', $.trim(row.RMNO));
+        $('#JOINER').combobox('setText', $.trim(row.JOINER));
+        $('#MANS').combobox('setValue', $.trim(row.MANS));
+        $('#LOGUSR').combobox('setText', $.trim(row.LOGUSR));
+        $('#f402TAGID').val(row.TAGID);
+    }
+
+    function doAdd() {
+        if (doCheck()) {
+            $.messager.confirm('執行確認', "確認要新增資料?", function (r) {
+                if (r) {
+                    var obj = getObj();
+                    obj.TAGID = null;
+                    $.ajax({
+                        url: '@Url.Action("doAdd", "Frm402")',
+                        type: "post",
+                        data: getObj(),
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f402DG1').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已新增!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+
+
+
+
+    function doSave() {
+        if (doCheck()) {
+            $.messager.confirm('執行確認', "確認儲存?", function (r) {
+                if (r) {
+                    var obj = getObj();
+
+                    $.ajax({
+                        url: '@Url.Action("doSave", "Frm402")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f402DG1').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function getObj() {
+        var obj = {};
+        obj.DT = $('#DT').datebox('getValue');
+        obj.TM = $('#TM').combobox('getValue');
+        obj.CLASNM = $('#CLASNM').combobox('getText');
+        obj.TEACHER = $('#TEACHER').combobox('getText');
+        obj.RMNO = $('#HOUSE').combogrid('getValue');
+        obj.JOINER = $('#JOINER').combobox('getText');
+        obj.MANS = $('#MANS').combobox('getValue');        
+        obj.LOGUSR = $.trim($('#LOGUSR').combobox('getText'));
+        obj.RMTAG = $.trim($('#CONTRAH_TAGID').val());
+        obj.TAGID = $.trim($('#f402TAGID').val());
+        return obj;
+    }
+
+
+    function doClear() {
+        $('#DT').datebox('setValue','');
+        $('#TM').combobox('setValue','');
+        $('#CLASNM').combobox('setValue', '');
+        $('#TEACHER').combobox('setValue', '');
+        $('#HOUSE').combogrid('setValue', '');
+        $('#JOINER').combobox('setText', '');
+        $('#JOINER').combobox('setValue','');
+        $('#MANS').combobox('setValue','0');
+        $('#LOGUSR').combobox('setValue', '');
+        $('#CONTRAH_TAGID').val('');
+        $('#f402TAGID').val('');
+
+    }
+
+
+    //作廢
+    function doRemove() {
+        var row = $('#f402DG1').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('執行確認', '確定要刪除資料?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.TAGID = $.trim(row.TAGID);
+                    $.ajax({
+                        url: '@Url.Action("doRemove", "Frm402")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f402DG1').datagrid('reload');
+                                doClear();
+                                $.messager.alert('系統訊息', '選取資料已刪除!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+        }
+    }
+
+
+    function doCheck() {
+        var pass = false;
+        if ($('#DT').datebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入開課日期!', 'warning');
+        } else if ($('#JOINER').combobox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入學員姓名!', 'warning');
+        } else if ($('#MANS').combobox('getValue') == 0) {
+            $.messager.alert('系統訊息', '上課人數不可為0!', 'warning');
+        } else {
+            pass = true;
+        }
+        return pass;
+    }
+
+
+
+
+
+
+</script>
+<h2>Frm402 會員課程設計</h2>
+<a id="btnClear" href="#" class="easyui-linkbutton" data-options="iconCls:'broom-icon'" onclick="doClear()">清空</a>
+<a id="btnCAdd" href="#" class="easyui-linkbutton" data-options="iconCls:'add-icon'" onclick="doAdd()">新增</a>
+<a id="btnCSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSave()">存檔</a>
+<a id="btnRemove" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="doRemove()">刪除</a>
+<br />
+<br />
+<input type="hidden" id="f402TAGID" name="f402TAGID" />
+<input type="hidden" id="CONTRAH_TAGID" name="CONTRAH_TAGID" />
+<table width="1024" height="500" border="1">
+    <tr>
+        <td width="490" valign="top">
+            <table width="490" border="0">
+                <tr>
+                    <td width="105"><div align="right">開課日期</div></td>
+                    <td width="375"><input type="text" name="DT" id="DT" class="easyui-datebox" data-options="required:true,prompt:'YYYY-MM-DD',validType:['date']" style="width:150px;height:28px" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">課程時間</div></td>
+                    <td>
+                        <input type="text" id="TM" name="TM" style="width:150px;height:28px" data-options="editable:false" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">課程名稱</div></td>
+                    <td><input type="text" id="CLASNM" name="CLASNM" style="width:150px;height:28px" data-options="editable:false" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">授課老師</div></td>
+                    <td><input type="text" id="TEACHER" name="TEACHER" class="easyui-combobox"  style="width:150px;height:28px" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">房號</div></td>
+                    <td><input type="text" id="HOUSE" name="HOUSE" data-options="editable:false" style="width:100px;height:28px" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">學員姓名</div></td>
+                    <td><input type="text" id="JOINER" name="JOINER" data-options="editable:false,required:true" style="width:250px;height:28px" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">上課人數</div></td>
+                    <td>
+                        <select id="MANS" class="easyui-combobox" name="MANS" data-options="editable:false" style="width:60px;height:28px">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">承辦人</div></td>
+                    <td><input type="text" id="LOGUSR" name="LOGUSR" style="width:180px;height:28px"  /></td>
+                </tr>
+            </table>
+        </td>
+        <td width="518" valign="top">
+            <table id="f402DG1"></table>
+        </td>
+    </tr>
+</table>

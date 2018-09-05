@@ -1,0 +1,370 @@
+﻿@{
+    ViewBag.Title = "Frm107 房屋牌價維護";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        Initialize_DataGrid();
+        initDataGrid2('-');
+
+        //年度
+        $('#YR').combobox
+		({
+		    url: '@Url.Action("getYR", "Frm107")',
+		    valueField: 'VALUE',
+		    textField: 'ITEM',		    		    
+		});
+    });
+
+    function Initialize_DataGrid() {
+        var getGridJSON = '@Url.Action("Grid", "Frm107")';
+        $('#DataGrid').datagrid({
+            title: '房號選擇',
+            url: getGridJSON,
+            width: '120',
+            height: '600',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            pageSize: 20,
+            idField: 'CNO',
+            striped: true,
+            showHeader: true,
+            fitColumns: true,
+            remoteSort: true,
+            singleSelect: false,
+            sortName: 'CNO',
+            sortOrder: 'asc',
+            checkbox:true,
+            columns: [[
+                {
+                    field: 'CNO',
+                    title: '房屋編號',
+                    sortable: true,
+                    width: 10,
+                    halign: "center",
+                    align: "center",
+                    sortable: true,
+                    checkbox: true
+                },
+                {
+                    field: 'CNO2',
+                    title: '房屋編號',
+                    sortable: true,
+                    width: 50,
+                    halign: "center",
+                    align: "center",
+                }
+            ]],
+            onCheck: function (rowIndex, rowData) {
+                //var objCheckedRow = $('#DataGrid').datagrid('getRowIndex',rowData);
+                //console.info(objCheckedRow);
+                var obj = {};
+                $('#RMNO').val($.trim(rowData.CNO));                
+                initDataGrid2(rowData.CNO);
+            },
+            onUncheck: function (rowIndex, rowData) {
+                var obj = {};
+                $('#RMNO').val('');
+                initDataGrid2(null);
+            }
+
+        });
+
+    }
+
+    function initDataGrid2(cno) {
+        var obj = {};
+        obj.CNO = cno;
+        $('#DataGrid2').datagrid({
+            url: '@Url.Action("Grid2", "Frm107")',
+            showHeader: true,
+            queryParams: obj,
+            singleSelect: true,
+            width: '620',
+            height: '400',
+            remoteSort: true,            
+            sortName: 'YR',
+            sortOrder: 'asc',
+            columns: [[
+                {
+                    field: 'YR',
+                    title: '年度',
+                    width: 80,
+                    halign: "center",
+                    align: "center",
+                    sortable: true
+                },
+              {
+                  field: 'RMNO',
+                  title: '房號',
+                  width: 100,
+                  halign: "center",
+                  align: "left",
+                  sortable: true
+              },
+                {
+                    field: 'DT1',
+                    title: '日期起',
+                    width: 120,
+                    halign: "center",
+                    align: "center",
+                    sortable: true
+                },
+              {
+                  field: 'DT2',
+                  title: '日期迄',
+                  width: 120,
+                  halign: "center",
+                  align: "center",
+                  sortable: true
+              },
+            {
+                field: 'MGFEE',
+                title: '管理費',
+                width: 100,
+                halign: "center",
+                align: "right",
+                sortable: true
+            },
+            {
+                field: 'RENTAL',
+                title: '月租費',
+                width: 100,
+                halign: "center",
+                align: "right",
+                sortable: true
+            }
+            ]],
+            onSelect: function (rowIndex, rowData) {                
+                $('#YR').combobox('setValue', $.trim(rowData.YR));
+                $("#DT1").datebox('setValue', $.trim(rowData.DT1));
+                $("#DT2").datebox('setValue', $.trim(rowData.DT2));
+                $('#TAGID').val($.trim(rowData.TAGID));
+                $('#RMNO').val($.trim(rowData.RMNO));                
+                $('#RENTAL').val($.trim(rowData.RENTAL));
+                $('#MGFEE').val($.trim(rowData.MGFEE));
+                //$('#TAGID').val($.trim(rowData.TAGID));
+            }
+        });
+    }
+
+    //新增
+    function doAdd() {
+        doClear();
+        if ($('#mode').val() == 'save') {
+            $('#btnAdd').linkbutton({ text: '取消新增' });
+            $('#mode').val('add');            
+        } else {
+            $('#btnAdd').linkbutton({ text: '新增' });
+            $('#mode').val('save');            
+        }
+    }
+
+    function vaildate() {
+        var DT1 = $("#DT1").datebox("getValue");
+        var DT2 = $("#DT2").datebox("getValue");
+
+        if (!(DT1.match(/^(\d{4})-(\d{2})-(\d{2})$/))) {            
+            $.messager.alert('系統訊息', "請填寫正確日期格式(YYYY-MM-DD)", 'error');
+            $("#DT1").focus();
+            return false;
+        }
+
+        if (!(DT2.match(/^(\d{4})-(\d{2})-(\d{2})$/))) {
+            $.messager.alert('系統訊息', "請填寫正確日期格式(YYYY-MM-DD)", 'error');
+            $("#DT2").focus();
+            return false;
+        }
+
+        if (DT1 != "" && DT2 != "") {
+            if (dateDiff(DT1, DT2) < 0) {                
+                $.messager.alert('系統訊息', "起始年月不得晚於截止年月", 'error');
+                $("#DT1").focus();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function dateDiff(dateStr1, dateStr2) {
+        dateStr1 = DateTimeUtil.transferIsoDate(dateStr1);
+        dateStr2 = DateTimeUtil.transferIsoDate(dateStr2);
+        var date1 = new Date(dateStr1);
+        var date2 = new Date(dateStr2);
+        if (isNaN(date1)) {
+            date1 = new Date(dateStr1.replace(/[-]/g, '/'));
+        }
+        if (isNaN(date2)) {
+            date2 = new Date(dateStr2.replace(/[-]/g, '/'));
+        }
+        return (date2 - date1) / 86400000;
+    }
+
+
+    //儲存
+    function doSave() {
+        
+        var mode = $.trim($('#mode').val());
+        var bResult = $('#editForm').form('validate');
+        if (bResult && vaildate()) {
+            $.ajax({
+                url: '@Url.Action("Save", "Frm107")',
+                type: "post",
+                data: getObj(mode),
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    if (data.status != '0') {
+                        $('#btnAdd').linkbutton('enable');
+                        $('#DataGrid2').datagrid('reload');
+                        $.messager.alert('系統訊息', '資料已儲存!', 'info');                        
+                    } else {
+                        $.messager.alert('系統訊息', data.message, 'error');
+                    }
+                    $('#mode').val('save');
+                    $('#btnAdd').linkbutton({ text: '新增' });
+                }, beforeSend: function (xhr, settings) {                    
+                    settings.data =
+                    settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+               
+                }
+
+            });
+        }
+    }
+
+
+
+    function doRemove() {
+        var selectRow = $('#DataGrid').datagrid('getSelected');
+        
+        if (selectRow != null) {
+            var obj = {};
+            obj.TAGID = selectRow.TAGID;
+            $.messager.confirm('執行確認', '是否確認刪除牌價資料:' + obj.TAGID + ' 此筆資料?', function (r) {
+                if (r) {
+                    $.ajax({
+                        url: '@Url.Action("Remove", "Frm107")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $.messager.alert('系統訊息', '資料已刪除!', 'info');
+                                doClear();
+                                $('#DataGrid').datagrid('reload');
+                            } else {
+                                $.messager.alert('系統訊息', data.message, 'error');
+                            }
+
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '您尚未選取資料', 'warning');
+        }
+    }
+
+    function doClear() {
+        $("#DT1").datebox('setValue', '');
+        $("#DT2").datebox('setValue', '');
+        $('#RMNO').val('');
+        $('#RENTAL').val('');
+        $('#MGFEE').val('');
+    }
+
+    function getObj(mode) {
+        var objCheckedRow = $('#DataGrid').datagrid('getChecked');
+        /*
+        var aryCno = new Array();
+        $.each(objCheckedRow, function (iIndex, objField) {
+            aryCno[iIndex] = objField.CNO.toString();
+        });*/
+
+        var obj = {};     
+        obj.YR = $.trim($('#YR').combobox('getValue'));        
+        obj.DT1 = $.trim($("#DT1").datebox('getValue'));
+        obj.DT2 = $.trim($("#DT2").datebox('getValue'));
+       // obj.RMNO = $.trim($('#RMNO').val());
+        obj.RENTAL = $.trim($('#RENTAL').val());
+        obj.MGFEE = $.trim($('#MGFEE').val());
+        obj.TAGID = $.trim($('#TAGID').val());
+        if (objCheckedRow.length == 1) {
+            obj.RMNO = $.trim($('#RMNO').val());
+        } else {
+            obj.CNO = objCheckedRow;
+        }
+
+        obj.mode = mode;
+        return obj;
+    }
+
+
+
+</script>
+<h2>Frm107 房屋牌價維護</h2>
+<a id="btnReload" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-reload'" onclick="Initialize_DataGrid()">重新顯示</a>
+<a id="btnAdd" href="#" class="easyui-linkbutton" data-options="iconCls:'add-icon'" onclick="doAdd()">新增</a>
+<a id="btnSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSave()">儲存</a>
+<a id="btnRemove" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="doRemove()">刪除</a>
+<br />
+<br />
+<table width="900" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td width="199" valign="top">
+            <strong>房屋牌價維護</strong>
+            <table id="DataGrid"></table>
+            <br>
+            <br>
+            <br />
+        </td>
+        <td width="701" valign="top">
+            <strong>目前選擇房屋編號</strong><input type="text" name="RMNO" id="RMNO" class="easyui-validatebox" style="width:80px" size="5"  readonly="readonly" /><br />
+           
+            <form id="editForm" name="editForm" method="post">
+                <input type="hidden" id="mode" name="mode" value="save" />
+                <input type="hidden" id="TAGID" name="TAGID" value="" />
+                <table width="600" border="0" cellpadding="2" cellspacing="0">
+                    <tr>
+                        <td width="130">年度</td>
+                        <td align="left">
+                            <input id="YR" name="YR" class="easyui-combobox" data-options="editable:false" style="width:150px;">                            
+                        </td>
+                        <td width="130">日期起</td>
+                        <td align="left"><input type="text" name="DT1" id="DT1" class="easyui-datebox" style="width:150px" /></td>
+                    </tr>
+                    <tr>
+                        <td>月租費</td>
+                        <td><input type="text" name="RENTAL" id="RENTAL" class="easyui-validatebox" style="width:150px" /></td>
+                        <td>日期迄</td>
+                        <td><input type="text" name="DT2" id="DT2" class="easyui-datebox" style="width:150px" /></td>
+                    </tr>
+                    <tr>
+                        <td>管理費</td>
+                        <td><input type="text" name="MGFEE" id="MGFEE" class="easyui-validatebox" style="width:150px" /></td>
+                        <td>&nbsp;</td>
+                        <td align="left">&nbsp;</td>
+                    </tr>
+                </table>
+                <table id="DataGrid2"></table>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+            </form>
+        </td>
+    </tr>
+
+
+</table>
+
+
+
+
+

@@ -1,0 +1,543 @@
+﻿@{
+    ViewBag.Title = "Frm210 解約戶沖帳作業";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+
+
+        $('#ttf210').tabs({
+            onSelect: function (title, index) {
+                switch (index) {
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        doClear();
+                        break;
+                }
+            }
+        });
+        /*
+        $("#f210LOGDT").datebox({
+            onSelect: function (date) {
+            }
+        });
+        */
+        $("#f210DT1").datebox({
+            onSelect: function (date) {
+                //  f210DG1init();
+            }
+        });
+
+
+        //房屋編號下拉選單
+        $('#f210HOUSE').combogrid({
+            panelWidth: 320,
+            idField: 'RMNO',
+            textField: 'RMNO',
+            mode: 'remote',
+            method: 'get',
+            fitColumns: true,
+            url: '@Url.Action("getHouseGrid", "Frm210")',
+            columns: [[
+                { field: 'RMNO', title: '房屋編號', width: 60 },
+                { field: 'MLIVER', title: '住戶', width: 150 },
+                { field: 'ENDDT', title: '解約日', width: 100 }
+                
+            ]],
+            onSelect: function (index, row) {
+                initCONTRAH();
+            }
+        });
+        /*
+        _SQL = "SELECT RMNO,MLIVER,ENDDT,TAGID FROM CONTRAH " + ;
+        "WHERE CNSTA = 'C' 
+        */
+        //人員列表
+        $('#f210LOGUSR').combobox({
+            url: '@Url.Action("getLOGUSR", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM'
+            //editable: false
+        });
+
+        //發文單位列表
+        $('#f210FUNCDEP').combobox({
+            url: '@Url.Action("getFUNCDEP", "Frm210")',
+            valueField: 'CNO',
+            textField: 'CNM',
+            editable: false
+        });
+
+
+
+
+
+
+
+    });   //ready end
+
+    $(window).load(function () {
+        var dt = new Date();
+        //nowDate.setDate(edtDate.getDate());
+        var nowDate = DateTimeUtil.convertDateToISOString(dt);
+        $('#f210DT1').datebox('setValue', nowDate);
+        $('#f210LOGDT').datebox('setValue', nowDate);
+
+        //  $('#NOWDT').datebox('setValue', nowDate);
+
+
+
+        f210DG3init();
+
+
+    });
+
+    function f210DG1init() {
+        var obj1 = {};
+        obj1.TAGID = $('#f210CONTRAH_TAGID').val();
+        $('#f210DG1').datagrid({
+            url: '@Url.Action("getDG1", "Frm210")',
+            queryParams: obj1,
+            width: '600',
+            height: '180',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                { field: 'FEEYM', title: '費用月份', sortable: true, width: 90, halign: "center", align: "center" },
+                { field: 'FEENM', title: '收費項目', sortable: true, width: 150, halign: "center", align: "left" },
+                { field: 'FEEAMT', title: '費用金額', sortable: true, width: 90, halign: "center", align: "right" },
+                { field: 'PAYAMT', title: '已繳金額', sortable: true, width: 90, halign: "center", align: "right" }
+            ]],
+            onSelect: function (rowIndex, row) {
+                initf210FORM(row);
+            }
+        });
+    }
+
+    function f210DG2init() {
+        var obj = {};
+        obj.RMTAG = $('#f210CONTRAH_TAGID').val();
+
+        $('#f210DG2').datagrid({
+            url: '@Url.Action("getDG2", "Frm210")',
+            queryParams: obj,
+            width: '600',
+            height: '180',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                { field: 'FEEYM', title: '費用月份', sortable: true, width: 90, halign: "center", align: "center" },
+                { field: 'FEENM', title: '收費項目', sortable: true, width: 150, halign: "center", align: "left" },
+                { field: 'FEEAMT', title: '費用金額', sortable: true, width: 90, halign: "center", align: "right" },
+                { field: 'PAYAMT', title: '已繳金額', sortable: true, width: 90, halign: "center", align: "right" }
+            ]],
+            onSelect: function (rowIndex, row) {
+                initf210FORM(row);
+                initf210FORM2(row);
+            }
+        });
+    }
+
+    function f210DG3init() {
+        var obj1 = {};
+        obj1.TAGID = $('#f210CONTRAH_TAGID').val();
+
+        $('#f210DG3').datagrid({
+            url: '@Url.Action("getDG3", "Frm210")',
+            queryParams: obj1,
+            width: '600',
+            height: '180',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: false,
+            columns: [[
+                { field: 'FEEYM', title: '費用月份', sortable: true, width: 90, halign: "center", align: "center" },
+                { field: 'FEENM', title: '收費項目', sortable: true, width: 150, halign: "center", align: "left" },
+                { field: 'FEEAMT', title: '費用金額', sortable: true, width: 90, halign: "center", align: "right" },
+                { field: 'PAYAMT', title: '未繳金額', sortable: true, width: 90, halign: "center", align: "right" },
+                { field: 'CHK', title: '選取', checkbox: true, sortable: true, width: 90, halign: "center", align: "right" }
+            ]],
+            onCheck: function (index, row) {
+                doSum();
+            },
+            onUncheck: function (index, row) {
+                doSum();
+            },
+            onUncheckAll: function (rows) {
+                doSum();
+            },
+            onCheckAll: function (rows) {
+                doSum();
+            }
+
+        });
+    }
+
+
+    //房屋合約
+    function initCONTRAH() {
+        var value = $('#f210HOUSE').combogrid('getValue');
+        var g = $('#f210HOUSE').combogrid('grid');	
+        var r = g.datagrid('getSelected');	
+        
+        
+        if (value != null) {
+            var obj = {};
+            obj.CNO = $.trim(value);
+            $.ajax({
+                url: '@Url.Action("getCONTRAH", "Frm201")',
+                type: "post",
+                data: obj,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    if (data.length > 0) {
+                        
+                        $('#f210CONTRAH_TAGID').val($.trim(r.TAGID));
+                        var obj1 = {};
+                        obj1.TAGID = $.trim(r.TAGID);
+                        obj1.CNO = $.trim(value);
+                        //姓名列表
+                        $('#f210MAN').combobox({
+                            url: '@Url.Action("getOWNER2MORE", "Frm201c")',
+                            valueField: 'CNM',
+                            textField: 'CNM',
+                            editable: false,
+                            onBeforeLoad: function (param) {
+                                param.TAGID = obj1.TAGID;
+                                param.CNO = obj1.CNO;
+                            }
+                        });
+                        f210DG1init();
+                        f210DG2init();
+                        f210DG3init();
+                    }
+                }
+            });
+        }
+    }
+
+    function initf210FORM(row) {
+        //  $('#f210MAN').combobox('setText', $.trim(row.MAN));
+        //  $('#f210HOUSE').combogrid('setValue', $.trim(row.RMNO));
+        $('#f210FEETP').val($.trim(row.FEETP));
+        $('#f210OTHERN').val($.trim(row.FEENM));
+        $('#f210FEEYM').val($.trim(row.FEEYM));
+        $('#f210FEEAMT').val($.trim(row.FEEAMT));
+        $('#f210PAYAMT').val($.trim(row.PAYAMT));
+        $('#f210TAGID').val(row.TAGID);
+        $('#f210NOTES').val(row.NOTES);
+        $('#f210CNO').val(row.CNO);
+        $('#f210LOGUSR').combogrid('setText', $.trim(row.LOGUSR));
+    }
+
+    function initf210FORM2(row) {
+        $('#f210MAN').combobox('setText', $.trim(row.MAN));
+        $('#f210HOUSE').combogrid('setValue', $.trim(row.RMNO));
+
+    }
+
+    function doSum() {
+        var sum=0;
+        var row = $('#f210DG3').datagrid('getChecked');
+        $.each(row, function (index, value) {
+            sum = sum +  Number($.trim(row[index].PAYAMT));            
+        });
+        $('#txtSum').html(sum);
+
+        if (Number($('#txtSum').text()) > Number($('#f210PAYAMT').val())) {
+            $.messager.alert('系統訊息', '選取金額大於繳費金額!', 'warning');
+        }
+
+    }
+
+    function doAdd() {
+
+
+        if (doCheck()) {
+            $.messager.confirm('執行確認', "確定要新增資料?", function (r) {
+                if (r) {
+                    var obj = getObj();
+                    obj.TAGID = null;
+                    $.ajax({
+                        url: '@Url.Action("doAdd", "Frm210")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f210DG1').datagrid('reload');
+                                $('#f210DG2').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已新增!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+
+    function doSave() {
+
+        if (doCheck()) {
+            $.messager.confirm('執行確認', "確定要儲存資料?", function (r) {
+                if (r) {
+                    var obj = getObj();
+                    obj.TAGID = $('#f210TAGID').val();
+                    $.ajax({
+                        url: '@Url.Action("doSave", "Frm210")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f210DG1').datagrid('reload');
+                                $('#f210DG2').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function doSave2() {
+        if(doCheck2()) {
+            $.messager.confirm('執行確認', "繳費金額=" + $('#f210PAYAMT').val() + ",沖帳金額=" + $('#txtSum').text() + " ,是否繼續執行?", function (r) {
+                if (r) {
+                    var obj = getObj();                    
+                    var rows = $('#f210DG3').datagrid('getRows');
+                    obj.LIST = rows;
+                    $.ajax({
+                        url: '@Url.Action("doSave2", "Frm210")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f210DG1').datagrid('reload');
+                                $('#f210DG2').datagrid('reload');
+                                $('#f210DG3').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                            }
+                        },beforeSend: function (xhr, settings) {
+                            settings.data =
+                               settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+
+    function getObj() {
+        var obj = {};
+        obj.FEEAMT = $('#f210FEEAMT').val();
+        obj.RMNO = $('#f210HOUSE').combogrid('getValue');
+        obj.FEETP = $('#f210FEETP').val();
+        obj.FEEYM = $('#f210FEEYM').val();
+        obj.MAN = $('#f210MAN').combobox('getText');
+        obj.NOTES = $('#f210NOTES').val();
+        obj.LOGUSR = $('#f210LOGUSR').combobox('getText');
+        obj.OTHERN = $('#f210OTHERN').val();
+        obj.PAYAMT = $('#f210PAYAMT').val();
+        obj.RMTAG = $('#f210CONTRAH_TAGID').val();
+        obj.FEETAG = $('#f210TAGID').val();
+        obj.CNO = $('#f210CNO').val();
+        return obj;
+    }
+
+
+    function doClear() {
+        $('#f210TAGID').val('');
+        $('#f210MAN').combobox('setValue', '');
+        $('#f210HOUSE').combogrid('setValue', '');
+        $('#f210NOTES').val('');
+        $('#f210FEETP').val('');
+        $('#f210OTHERN').val('');
+        $('#f210FEEYM').val('');
+        $('#f210FEEAMT').val('');
+        $('#f210PAYAMT').val('');
+        $('#f210TAGID').val('');
+        $('#f210CNO').val('');
+    }
+
+    function doCheck() {
+        var pass = false;
+        if ($('#f210HOUSE').combogrid('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取住戶資料!', 'warning');
+        } else if ($('#f210OTHERN').val() == "") {
+            $.messager.alert('系統訊息', '無繳費項目!', 'warning');
+        } else if ($('#f210FEEAMT').val() == "") {
+            $.messager.alert('系統訊息', '費用金額不可為空!', 'warning');
+        } else if ($('#f210PAYAMT').val() == "") {
+            $.messager.alert('系統訊息', '繳費金額不可為空!', 'warning');
+        } else {
+            pass = true;
+        }
+        return pass;
+    }
+
+    function doCheck2() {
+        var pass = false;
+        if ($('#f210HOUSE').combogrid('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取住戶資料!', 'warning');
+        } else if ($('#f210PAYAMT').val() == "") {
+            $.messager.alert('系統訊息', '繳費金額不可為空!', 'warning');
+        } else if (Number($('#txtSum').text()) > Number($('#f210PAYAMT').val())) {
+            $.messager.alert('系統訊息', '選取金額大於繳費金額!', 'warning');
+        } else {
+            pass = true;
+        }
+        return pass;
+    }
+
+
+
+    //刪除
+    function doRemove() {
+        var row = $('#f210DG2').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('執行確認', '選取房號:'+ row.RMNO +' 抱怨事項確定要刪除?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.TAGID = $.trim(row.TAGID);
+                    $.ajax({
+                        url: '@Url.Action("doRemove", "Frm210")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f210DG2').datagrid('reload');
+                                doClear();
+                                $.messager.alert('系統訊息', '房號:' + row.RMNO + '資料已刪除!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+        }
+    }
+
+
+    function doCopy() {
+        $('#f210PAYAMT').val($('#f210FEEAMT').val());
+    }
+
+
+</script>
+<h2>Frm210 解約戶沖帳作業</h2>
+
+<a id="btnCAdd" href="#" class="easyui-linkbutton" data-options="iconCls:'add-icon'" onclick="doAdd()">新增</a>
+<a id="btnCSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSave()">存檔</a>
+<a id="btnRemove" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="doRemove()">刪除</a>
+<a id="btnCSave2" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSave2()">批次沖帳存檔</a>
+<input type="hidden" id="f210TAGID" name="f210TAGID" />
+<input type="hidden" id="f210CONTRAH_TAGID" name="f210CONTRAH_TAGID" />
+<input type="hidden" id="f210FEETP" name="f210FEETP" />
+<input type="hidden" id="f210CNO" name="f210CNO" />
+<table width="1024" border="1">
+    <tr>
+        <td valign="top">
+            <table width="600" border="0">
+                <tr>
+                    <td width="180"><div align="right">房屋編號</div></td>
+                    <td width="420">
+                        <input type="text" name="f210HOUSE" id="f210HOUSE" style="width:80px" data-options="required:true" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">住戶姓名</div></td>
+                    <td>
+                        <input type="text" id="f210MAN" name="f210MAN" class="easyui-combobox" style="width:250px;height:28px"  />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">繳費項目</div></td>
+                    <td>
+                        <input type="text" name="f210OTHERN" id="f210OTHERN" style="width:200px" readonly />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">費用月份</div></td>
+                    <td><input type="text" name="f210FEEYM" id="f210FEEYM" style="width:120px" readonly /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">費用金額</div></td>
+                    <td><input type="text" name="f210FEEAMT" id="f210FEEAMT" style="width:120px" readonly  /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">繳費金額</div></td>
+                    <td><input type="text" name="f210PAYAMT" id="f210PAYAMT" style="width:120px"  value="0"/>
+                        <a id="btncopy" href="#" class="easyui-linkbutton"  onclick="doCopy()">同上</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top"><div align="right">繳費說明</div></td>
+                    <td valign="top">
+                        <label>
+                            <textarea id="f210NOTES" name="f210NOTES" cols="40" rows="4" class="easyui-validatebox" ></textarea>
+                        </label>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><div align="right">記錄人員</div></td>
+                    <td><input type="text" id="f210LOGUSR" name="f210LOGUSR" style="width:180px;height:28px" /></td>
+                </tr>
+            </table>
+        </td>
+        <td>
+            <div id="ttf210" class="easyui-tabs" style="height:700px;width:700px">
+                <div title="未繳明細" style="padding:10px" data-options="iconCls:'Calendar-icon',fit:true">
+
+                    <table id="f210DG1" data-options="fit:true"></table>
+                </div>
+                <div title="已繳明細" style="padding:10px" data-options="iconCls:'Calendar-icon'">
+                    <table id="f210DG2" data-options="fit:true"></table>
+                </div>
+                <div title="批次沖帳" style="padding:10px" data-options="iconCls:'Calendar-icon'">
+                    選取總金額 <span id="txtSum"></span>
+                    <table id="f210DG3" data-options="fit:true"></table>                   
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+

@@ -1,0 +1,713 @@
+﻿@{
+    ViewBag.Title = "Frm203 櫃檯收支作業";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+
+
+        $('#ttf203').tabs({
+            onSelect: function (title, index) {
+                switch (index) {
+                    case 0:
+
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                }
+            }
+        });
+
+        $("#f203DT3").datebox({
+            onSelect: function (date) {
+                f203DG1init();
+                initFormSum();
+            }
+        });
+
+
+        //房屋編號下拉選單
+        $('#f203HOUSE').combogrid({
+            panelWidth: 200,
+            idField: 'CNO',
+            textField: 'CNO',
+            mode: 'remote',
+            method: 'get',
+            fitColumns: true,
+            url: '@Url.Action("Grid", "Frm107")',
+            columns: [[
+                { field: 'CNO', title: '房屋編號', width: 60 },
+                { field: 'DOOR', title: '門號', width: 60 },
+                { field: 'FLOR', title: '樓層', width: 60 }
+            ]],
+            onSelect: function (index, row) {
+                initCONTRAH();
+            }
+        });
+
+
+        $('#qf203HOUSE').combogrid({
+            panelWidth: 200,
+            idField: 'CNO',
+            textField: 'CNO',
+            mode: 'remote',
+            method: 'get',
+            fitColumns: true,
+            url: '@Url.Action("Grid", "Frm107")',
+            columns: [[
+                { field: 'CNO', title: '房屋編號', width: 60 },
+                { field: 'DOOR', title: '門號', width: 60 },
+                { field: 'FLOR', title: '樓層', width: 60 }
+            ]],
+            onSelect: function (index, row) {
+                initCONTRAH();
+            }
+        });
+
+
+
+        //人員列表
+        $('#f203LOGUSR').combobox({
+            url: '@Url.Action("getLOGUSR", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM'
+            //editable: false
+        });
+
+
+        //收入種類列表
+        $('#f203INTP').combobox({
+            url: '@Url.Action("getINTP", "Frm203")',
+            valueField: 'CNO',
+            textField: 'CNM',
+            editable: false
+        });
+
+        $('#qf203FIXTP').combobox({
+            url: '@Url.Action("getINTP", "Frm203")',
+            valueField: 'CNO',
+            textField: 'CNM',
+            editable: false
+        });
+
+
+
+
+        $('#dlg1').dialog({
+            title: '請輸入報表條件',
+            width: 400,
+            height: 150,
+            closed: true,
+            cache: false,
+            iconCls: 'pdf-icon',
+            resizable: true,
+            modal: true,
+            buttons: [
+         {
+             text: '預覽列印', iconCls: 'icon-print',
+             handler: function () {
+                 openReport203allDialog();
+             }
+         },
+         {
+             text: '關閉', iconCls: 'icon-cancel',
+             handler: function () {
+                 $('#dlg1').dialog('close');
+             }
+         }]
+        });
+
+
+
+        $('#dlg2').dialog({
+            title: '請輸入報表條件',
+            width: 400,
+            height: 200,
+            closed: true,
+            cache: false,
+            iconCls: 'pdf-icon',
+            resizable: true,
+            modal: true,
+            buttons: [
+         {
+             text: '預覽列印', iconCls: 'icon-print',
+             handler: function () {
+                 openReport203TypeDialog();
+             }
+         },
+         {
+             text: '關閉', iconCls: 'icon-cancel',
+             handler: function () {
+                 $('#dlg2').dialog('close');
+             }
+         }]
+        });
+
+
+    });   //ready end
+
+    $(window).load(function () {
+        var dt = new Date();
+        //nowDate.setDate(edtDate.getDate());
+        var nowDate = DateTimeUtil.convertDateToISOString(dt);
+
+        $('#f203DT3').datebox('setValue', nowDate);
+        //$('#NOWDT').datebox('setValue', nowDate);
+        $('#dlgDT1').datebox('setValue', nowDate);
+        $('#dlgSDT').datebox('setValue', nowDate);
+        $('#dlgEDT').datebox('setValue', nowDate);
+        f203DG1init();
+        initFormSum();
+        f203DG3init();
+    });
+
+    function f203DG1init() {
+        var obj1 = {};
+        obj1.DT = $('#f203DT3').datebox('getValue');
+        $('#f203DG1').datagrid({
+            url: '@Url.Action("getDG1", "Frm203")',
+            queryParams: obj1,
+            width: '900',
+            height: '450',
+            rownumbers: true,
+            nowrap: false,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                {
+                    field: 'INOUT', title: '收支', sortable: true, width: 60, halign: "center", align: "center", sortable: true,
+                    formatter: function (value, row, index) {
+                        if (row.INOUT == "1") {
+                            value = "收入";
+                        } else {
+                            value = "支出";
+                        }
+                        return value;
+                    }
+                },
+                {
+                    field: 'AMTTP', title: '款項', sortable: true, width: 60, halign: "center", align: "center", sortable: true,
+                    formatter: function (value, row, index) {
+                        if (row.AMTTP == "1") {
+                            value = "現金";
+                        } else {
+                            value = "支票";
+                        }
+                        return value;
+                    }
+                },
+                { field: 'AMT', title: '金額', sortable: true, width: 60, halign: "center", align: "right", sortable: true },
+                { field: 'CHKNO', title: '支票號碼', sortable: true, width: 100, halign: "center", align: "center", sortable: true },
+                { field: 'RMNO', title: '房號', sortable: true, width: 60, halign: "center", align: "center", sortable: true },
+                { field: 'MAN', title: '繳款人', sortable: true, width: 130, halign: "center", align: "left", sortable: true },
+                { field: 'INTP', title: '收入種類', sortable: true, width: 80, halign: "center", align: "left", sortable: true },
+                { field: 'NOTES', title: '備註事項', sortable: true, width: 200, halign: "center", align: "left", sortable: true },
+                { field: 'LOGUSR', title: '點收人', sortable: true, width: 80, halign: "center", align: "left", sortable: true },
+            ]],
+            onSelect: function (rowIndex, row) {
+                initf203FORM(row);
+            }
+        });
+    }
+
+
+    function f203DG3init() {
+
+        $('#f203DG3').datagrid({
+            url: '@Url.Action("getDG3", "Frm203")',
+            width: '1000',
+            height: '400',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: true,
+            singleSelect: true,
+            sortName: 'LOGDT',
+            sortOrder: 'desc',
+            showPageList: true,
+            showFooter:true,
+            pagePosition: 'bottom',
+            pagination: true,
+            pageSize: 20,
+            pageList: [20, 50, 100,500,1000],
+            columns: [[
+                {
+                    field: 'INOUT', title: '收支方式', sortable: true, width: 60, halign: "center", align: "center", sortable: true,
+                    formatter: function (value, row, index) {
+                        if (row.INOUT == "1") {
+                            value = "收入";
+                        } else if (row.INOUT == "2") {
+                            value = "支出";
+                        }
+                        return value;
+                    }
+                },
+                { field: 'LOGDT', title: '收支日期', sortable: true, width: 90, halign: "center", align: "center", sortable: true },
+                { field: 'RMNO', title: '房號', sortable: true, width: 60, halign: "center", align: "center", sortable: true },
+                { field: 'INTP', title: '費用類別', sortable: true, width: 90, halign: "center", align: "center", sortable: true },
+                { field: 'CHKNO', title: '支票號碼', sortable: true, width: 150, halign: "center", align: "center", sortable: true },
+                { field: 'AMT', title: '費用', sortable: true, width: 150, halign: "center", align: "right", sortable: true },
+                { field: 'NOTES', title: '備註說明', sortable: true, width: 300, halign: "center", align: "left", sortable: true }
+            ]],
+            onSelect: function (rowIndex, row) {
+
+            }
+        });
+    }
+
+
+
+    function initFormSum() {
+        var dt = new Date();
+        var nowDate = DateTimeUtil.convertDateToISOString(dt);
+        var obj = getObj();
+        //obj.DT = nowDate;
+        obj.DT = $('#f203DT3').datebox('getValue');
+        $.ajax({
+            url: '@Url.Action("getFormSum", "Frm203")',
+            type: "post",
+            data: obj,
+            dataType: "json",
+            success: function (data, textStatus, jqXHR) {
+
+                if (data.status != '0') {
+                    $('#txSUM1').val(data.TOT_AMT1);
+                    $('#txCASH1').val(data.CASH_AMT1);
+                    $('#txCHK1').val(data.CHK_AMT1);
+                    $('#txCHKKCNT1').val(data.CHK_CNT1);
+                    $('#txSUM2').val(data.TOT_AMT2);
+                    $('#txCASH2').val(data.CASH_AMT2);
+                    $('#txCHK2').val(data.CHK_AMT2);
+                    $('#txCHKKCNT2').val(data.CHK_CNT2);
+                    $('#txLFAMT').val(data.LFAMT);
+
+                }
+            }
+        });
+    }
+
+
+    //房屋合約
+    function initCONTRAH() {
+        var value = $('#f203HOUSE').combogrid('getValue');
+        if (value != null) {
+            var obj = {};
+            obj.CNO = $.trim(value);
+            $.ajax({
+                url: '@Url.Action("getCONTRAH", "Frm201")',
+                type: "post",
+                data: obj,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    if (data.length > 0) {
+                        $('#f203CONTRAH_TAGID').val($.trim(data[0].TAGID));
+                        var obj1 = {};
+                        obj1.TAGID = $.trim(data[0].TAGID);
+                        //姓名列表
+                        $('#f203MAN').combobox({
+                            url: '@Url.Action("getOWNER2", "Frm201c")',
+                            valueField: 'CNM',
+                            textField: 'CNM',
+                            editable: false,
+                            required: true,
+                            onBeforeLoad: function (param) {
+                                param.TAGID = obj1.TAGID;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    function initf203FORM(row) {
+
+        $('#f203MAN').combobox('setText', $.trim(row.MAN));
+        $('#f203HOUSE').combogrid('setValue', $.trim(row.RMNO));
+        $('#f203NOTES').val($.trim(row.NOTES));
+        $('#f203LOGUSR').combobox('setText', $.trim(row.LOGUSR));
+        $('#f203TAGID').val(row.TAGID);
+
+        if ($.trim(row.INOUT) == "1") {
+            $('input[name=f203INOUT][value=1]').prop("checked", true);
+        } else if ($.trim(row.INOUT) == "2") {
+            $('input[name=f203INOUT][value=2]').prop("checked", true);
+        }
+
+        if ($.trim(row.AMTTP) == "1") {
+            $('input[name=f203AMTTP][value=1]').prop("checked", true);
+        } else if ($.trim(row.AMTTP) == "2") {
+            $('input[name=f203AMTTP][value=2]').prop("checked", true);
+        }
+
+
+
+        if ($.trim(row.PAYTP) == "1") {
+            $('input[name=f203PAYTP][value=1]').prop("checked", true);
+        } else if ($.trim(row.PAYTP) == "2") {
+            $('input[name=f203PAYTP][value=2]').prop("checked", true);
+        } else if ($.trim(row.PAYTP) == "3") {
+            $('input[name=f203PAYTP][value=3]').prop("checked", true);
+        }
+
+        $('#f203AMT').val(row.AMT);
+        $('#f203AMT').validatebox('validate');
+        $('#f203CHKNO').val(row.CHKNO);
+        $('#f203INTP').combobox('setValue', $.trim(row.INTP));
+    }
+
+    function doAdd() {
+        if (doCheck()) {
+            var obj = getObj();
+            obj.TAGID = null;
+            $.ajax({
+                url: '@Url.Action("doAdd", "Frm203")',
+                type: "post",
+                data: obj,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    if (data.status != '0') {
+                        $('#f203DG1').datagrid('reload');
+                        initFormSum();
+                        $.messager.alert('系統訊息', '資料已新增!', 'info');
+                    }
+                }
+            });
+        }
+    }
+
+
+
+    function getObj() {
+        var obj = {};
+        obj.MAN = $('#f203MAN').combobox('getText');
+        obj.RMNO = $('#f203HOUSE').combogrid('getValue');
+        obj.INTP = $('#f203INTP').combobox('getValue');
+        obj.NOTES = $('#f203NOTES').val();
+        obj.LOGUSR = $('#f203LOGUSR').combobox('getText');
+        obj.INOUT = $("input[name='f203INOUT']:checked").val();
+        obj.AMTTP = $("input[name='f203AMTTP']:checked").val();
+        obj.PAYTP = $("input[name='f203PAYTP']:checked").val();
+        obj.AMT = $('#f203AMT').val();
+        obj.CHKNO = $('#f203CHKNO').val();
+        return obj;
+    }
+
+
+    function doClear() {
+        $('#f203MAN').combobox('setValue', '');
+        $('#f203HOUSE').combogrid('setValue', '');
+        $('#f203NOTES').val('');
+        $('#f203LOGUSR').combobox('setValue', '');
+        $('#f203TAGID').val('');
+        $('#f203AMT').val('');
+        $('#f203CHKNO').val('');
+        $('#f203INTP').combobox('setValue', '');
+    }
+
+
+    //作廢
+    function doRemove() {
+        var row = $('#f203DG1').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('執行確認', '選取房號:' + row.RMNO + ' 確定要作廢?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.TAGID = $.trim(row.TAGID);
+                    $.ajax({
+                        url: '@Url.Action("doRemove", "Frm203")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f203DG1').datagrid('reload');
+                                initFormSum();
+                                doClear();
+                                $.messager.alert('系統訊息', '房號:' + row.RMNO + ',收支作業已作廢!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+        }
+    }
+
+    function openReport203allDialog() {
+
+        var DT = $('#dlgDT1').datebox('getValue');
+        var x = document.getElementById("frameAttachment");
+        var y = (x.contentWindow || x.contentDocument);
+        if (y.document) y = y.document;
+        y.body.style.backgroundColor = "white";
+        y.body.innerHTML = "讀取中...請稍候!";
+        $('#win').window('setTitle', '報表預覽');
+        //開啟PDF
+        $('#frameAttachment').attr('src', "@Url.Action("doRunReportFrm203all", "frm203")" + '?DT=' + DT);
+        $('#win').window('open');
+        $('#win').window('refresh');
+    }
+
+    function openReport203TypeDialog() {
+        var SDT = $('#dlgSDT').datebox('getValue');
+        var EDT = $('#dlgEDT').datebox('getValue');
+        var x = document.getElementById("frameAttachment");
+        var y = (x.contentWindow || x.contentDocument);
+        if (y.document) y = y.document;
+        y.body.style.backgroundColor = "white";
+        y.body.innerHTML = "讀取中...請稍候!";
+        $('#win').window('setTitle', '報表預覽');
+        //開啟PDF
+        $('#frameAttachment').attr('src', "@Url.Action("doRunReportFrm203type", "frm203")" + '?SDT=' + SDT + '&EDT=' + EDT);
+        $('#win').window('open');
+        $('#win').window('refresh');
+    }
+
+
+    function openDialog1() {
+        $('#dlg1').dialog('open');
+    }
+
+    function openDialog2() {
+        $('#dlg2').dialog('open');
+    }
+
+
+    function doCheck() {
+        var b = false;
+        if ($('#f203HOUSE').combogrid('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取房屋編號!', 'warning');
+        } else if ($('#f203AMT').validatebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入金額!', 'warning');
+        } else if ($('#f203MAN').combobox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入繳款人!', 'warning');
+        } else {
+            b = true;
+        }
+        return b;
+    }
+
+
+
+    function doQuery() {
+        var obj = {};
+        obj.FIXAREA = $("input[name='qf203FIXAREA']:checked").val();
+        
+        obj.FIXTP = $('#qf203FIXTP').combobox('getText');
+        obj.SDT = $('#qf203SDT').datebox('getValue');
+       obj.EDT = $('#qf203EDT').datebox('getValue');
+        obj.FIXITEM = $('#qf203FIXITEM').val();
+        obj.RMNO = $('#qf203HOUSE').combobox('getValue');
+        obj.END = $("input[name='qf203END']:checked").val();
+
+        
+        $('#f203DG3').datagrid('reload', obj);
+    }
+
+
+    function doExport() {
+        var obj = {};
+        obj.FIXAREA = $("input[name='qf203FIXAREA']:checked").val();
+        obj.FIXTP = $('#qf203FIXTP').combobox('getText');
+        obj.SDT = $('#qf203SDT').datebox('getValue');
+        obj.EDT = $('#qf203EDT').datebox('getValue');
+        obj.FIXITEM = $('#qf203FIXITEM').val();
+        obj.RMNO = $('#qf203HOUSE').combobox('getValue');
+        obj.END = $("input[name='qf203END']:checked").val();
+        window.location = "@Url.Action("doExport", "frm203")" + '?FIXAREA=' + obj.FIXAREA + '&FIXTP=' + obj.FIXTP + '&SDT=' + obj.SDT + '&EDT=' + obj.EDT + '&FIXITEM=' + obj.FIXITEM + '&RMNO=' + obj.RMNO + '&END=' + obj.END;
+    }
+
+</script>
+<h2>Frm203 櫃檯收支作業</h2>
+  <!--  今天日期 <input type="text" id="NOWDT" name="NOWDT" class="easyui-datebox" style="width:160px;height:28px" data-options="disabled:true" /><br /><br /> -->
+    <input type="hidden" id="f203TAGID" name="f203TAGID" />
+    <table width="800" border="1">
+        <tr>
+            <td><div align="right">總收入</div></td>
+            <td>
+                <label>
+                    <input type="text" name="txSUM1" id="txSUM1" style="width:80px" readonly />
+                </label>
+            </td>
+            <td><div align="right">現金</div></td>
+            <td><input type="text" name="txCASH1" id="txCASH1" style="width:80px" readonly /></td>
+            <td><div align="right">支票</div></td>
+            <td><input type="text" name="txCHK1" id="txCHK1" style="width:80px" readonly /></td>
+            <td><div align="right">/張數</div></td>
+            <td><input type="text" name="txCHKKCNT1" id="txCHKKCNT1" style="width:80px" readonly /></td>
+            <td colspan="2">&nbsp;</td>
+        </tr>
+        <tr>
+            <td><div align="right">總支出</div></td>
+            <td><input type="text" name="txSUM2" id="txSUM2" style="width:80px" readonly /></td>
+            <td><div align="right">現金</div></td>
+            <td><input type="text" name="txCASH2" id="txCASH2" style="width:80px" readonly /></td>
+            <td><div align="right">支票</div></td>
+            <td><input type="text" name="txCHK2" id="txCHK2" style="width:80px" readonly /></td>
+            <td><div align="right">/張數</div></td>
+            <td><input type="text" name="txCHKKCNT2" id="txCHKKCNT2" style="width:80px" readonly /></td>
+            <td><div align="right">餘額</div></td>
+            <td><input type="text" name="txLFAMT" id="txLFAMT" style="width:80px" readonly /></td>
+        </tr>
+    </table>
+    <div id="ttf203" class="easyui-tabs" style="height:600px">
+        <div title="收支作業" style="padding:10px" data-options="iconCls:'money-plus-icon',fit:true">
+            <a id="btnCAdd" href="#" class="easyui-linkbutton" data-options="iconCls:'add-icon'" onclick="doAdd()">新增</a>
+            <a id="btnRemove" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doRemove()">作廢</a>
+            <a id="btnClear" href="#" class="easyui-linkbutton" data-options="iconCls:'broom-icon'" onclick="doClear()">清空</a>
+            <a id="btnPrint1" href="#" class="easyui-linkbutton" data-options="iconCls:'report-icon'" onclick="openDialog1()">明細列印</a>
+            <a id="btnPrint2" href="#" class="easyui-linkbutton" data-options="iconCls:'report-icon'" onclick="openDialog2()">分類列印</a>
+            <table width="800" border="1">
+                <tr>
+                    <td><div align="right">收支別</div></td>
+                    <td>
+                        <input name="f203INOUT" id="f203INOUT" type="radio" value="1" checked />
+
+                        收入
+                        <input name="f203INOUT" id="f203INOUT" type="radio" value="2" />
+                        支出
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">款項</div></td>
+                    <td>
+                        <input name="f203AMTTP" id="f203AMTTP" type="radio" value="1" checked />
+                        現金
+                        <input name="f203AMTTP" id="f203AMTTP" type="radio" value="2" />
+                        支票
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">金額</div></td>
+                    <td>
+                        <input type="text" name="f203AMT" id="f203AMT" style="width:80px" class="easyui-validatebox" data-options="required:true" />
+                        &nbsp;&nbsp;&nbsp;
+                        繳款方式
+                        <input name="f203PAYTP" id="f203PAYTP" type="radio" value="1" />
+                        郵寄
+                        <input name="f203PAYTP" id="f203PAYTP" type="radio" value="2" />
+                        快遞
+                        <input name="f203PAYTP" id="f203PAYTP" type="radio" value="3" checked />
+                        現場
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">支票號碼</div></td>
+                    <td><input type="text" name="f203HCHKNO" id="f203CHKNO" style="width:120px" data-options="required:true" /></td>
+                </tr>
+                <tr>
+                    <td width="136"><div align="right">房屋編號</div></td>
+                    <td width="648">
+                        <input type="text" name="f203HOUSE" id="f203HOUSE" style="width:80px" data-options="required:true" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">繳款人</div></td>
+                    <td>
+                        <input type="text" id="f203MAN" name="f203MAN" class="easyui-combobox" style="width:250px;height:28px" data-options="required:true" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">收入種類</div></td>
+                    <td>
+                        <input type="text" id="f203INTP" name="f203INTP" style="width:180px;height:28px" />
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top"><div align="right">備註事項</div></td>
+                    <td valign="top">
+                        <label>
+                            <textarea id="f203NOTES" name="f203NOTES" cols="50" rows="10"></textarea>
+                        </label>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><div align="right">點收人員</div></td>
+                    <td>
+                        <input type="text" id="f203LOGUSR" name="f203LOGUSR" style="width:180px;height:28px" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div title="本日明細" style="padding:10px" data-options="iconCls:'table-money-icon'">
+            <p>
+                作業日期
+                <input type="text" id="f203DT3" name="f203DT3" class="easyui-datebox" style="width:160px;height:28px" data-options="prompt:'YYYY-MM-DD',validType:['date']" />
+            </p>
+            <table id="f203DG1" data-options="fit:false"></table>
+
+        </div>
+        <div title="收支查詢" style="padding:10px" data-options="iconCls:'table-money-icon'">
+            <a id="btnQuery" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery()">查詢</a>
+            <a id="btnExport" href="#" class="easyui-linkbutton" data-options="iconCls:'excel-icon'" onclick="doExport()">匯出Excel</a>
+            <table width="800" border="1">
+                <tr>
+                    <td><div align="right">收支方式</div></td>
+                    <td>
+                        <input name="qf203FIXAREA" id="qf203FIXAREA" type="radio" value="1"  />
+                        現金
+                        <input name="qf203FIXAREA" id="qf203FIXAREA" type="radio" value="2"  />
+                        支票
+                    </td>
+                    <td><div align="right">費用類別</div></td>
+                    <td><input type="text" id="qf203FIXTP" name="qf203FIXTP" class="easyui-combobox" style="width:250px;height:28px" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">收支區間</div></td>
+                    <td>
+                        起
+                        <input type="text" id="qf203SDT" name="qf203SDT" class="easyui-datebox" style="width:160px;height:28px" data-options="prompt:'YYYY-MM-DD'" /><br />
+                        迄
+                        <input type="text" id="qf203EDT" name="qf203EDT" class="easyui-datebox" style="width:160px;height:28px" data-options="prompt:'YYYY-MM-DD'" />
+                    </td>
+                    <td><div align="right">支票號碼</div></td>
+                    <td><input type="text" id="qf203FIXITEM" name="qf203FIXITEM" style="width:250px;height:28px" /></td>
+                </tr>
+                <tr>
+                    <td width="96"><div align="right">房屋編號</div></td>
+                    <td width="281">
+                        <input type="text" name="qf203HOUSE" id="qf203HOUSE" style="width:80px" />
+                    </td>
+                    <td width="79"><div align="right">收支類別</div></td>
+                    <td width="316">
+                        <input name="qf203END" id="qf203END" type="radio" value="1" checked/>
+                        收入
+                        <input name="qf203END" id="qf203END" type="radio" value="2" />
+                        支出
+                        <input name="qf203END" id="qf203END" type="radio" value="3" />
+                        全部
+                    </td>
+                </tr>
+            </table>
+            <table id="f203DG3"></table>
+
+        </div>
+    </div>
+    <div id="win" class="easyui-window" style="width:800px;height:600px"
+         data-options="iconCls:'pdf-icon',modal:true,closed:true,shadow:true,cache: false,minimizable:false">
+        <iframe id="frameAttachment" name="frameAttachment" frameborder="0" style="display:block; width: 100%; height: 100%; vertical-align: top; border: 0px"></iframe>
+    </div>
+    <div id="dlg1"  style="padding:10px;" >
+    列印日期 <input type="text" id="dlgDT1" name="dlgDT1" class="easyui-datebox" style="width:160px;height:28px" />
+</div>
+    <div id="dlg2"  style="padding:10px;" >
+    列印日期 <br /><br />起 <input type="text" id="dlgSDT" name="dlgSDT" class="easyui-datebox" style="width:160px;height:28px" /><br /><br />
+    迄 <input type="text" id="dlgEDT" name="dlgEDT" class="easyui-datebox" style="width:160px;height:28px" />
+</div>

@@ -1,0 +1,350 @@
+﻿@{
+    ViewBag.Title = "Frm304 住戶資料查詢";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        Initialize_DataGrid();
+
+        $('#f201Dialog').dialog({
+            title: '查詢資料',
+            width: 1024,
+            height: 768,
+            closed: true,
+            cache: false,
+            resizable: true,
+            modal: true,
+            buttons: [
+         {
+             text: '關閉', iconCls: 'icon-cancel',
+             handler: function () {
+                 $('#f201Dialog').dialog('close');
+             }
+         }]
+        });
+    });
+
+    function Initialize_DataGrid() {
+
+        $('#qDataGrid').datagrid({
+            title: '住戶資料',
+            url: '@Url.Action("Grid", "Frm304")',
+            queryParams: getObj201(),
+            width: '800',
+            height: '450',
+            rownumbers: true,
+            nowrap: true,
+            striped: true,
+            idField: 'MAN',
+            showHeader: true,
+            fitColumns: true,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                {
+                    field: 'MAN',
+                    title: '姓名',
+                    sortable: true,
+                    width: 50,
+                    halign: "center",
+                    align: "center"
+                },
+                {
+                    field: 'SEX',
+                    title: '性別',
+                    sortable: true,
+                    width: 50,
+                    halign: "center",
+                    align: "left"
+                },
+                {
+                    field: 'TEL',
+                    title: '電話',
+                    sortable: true,
+                    width: 150,
+                    halign: "center",
+                    align: "left"
+                }
+            ]]
+        });
+
+    }
+
+
+
+
+
+    function doClear() {
+        $('#qNAME').val('');
+        $('#qRMNO').val('');
+        $('#qBROKER').val('');
+        $('#PARKNO').val('');
+        $('#qCARNO').val('');
+        $('#qTEL').val('');
+        $('#qDEALER').val('');
+        $('#qDRIVER').val('');
+        $('#qDT1').datebox('setValue', '');
+        $('#qDT2').datebox('setValue', '');
+    }
+
+    function getObj201(mode) {
+        var obj = {};
+        obj.NAME = $.trim($('#qNAME').val());
+        obj.RMNO = $.trim($('#qRMNO').val());
+
+        obj.BROKER = $.trim($('#qBROKER').val());
+        obj.PARKNO = $.trim($('#qPARKNO').val());
+        obj.CARNO = $.trim($('#qCARNO').val());
+        obj.TEL = $.trim($('#qTEL').val());
+        obj.DEALER = $.trim($('#qDEALER').val());
+        obj.DRIVER = $.trim($('#qDRIVER').val());
+
+        //   obj.DT1 = $('#DT1').datebox('getValue');
+        //   obj.DT2 = $('#DT2').datebox('getValue');
+
+        obj.QTYPE = $("input[name='qQTYPE']:checked").val();
+        obj.SEX = $("input[name='qSEX']:checked").val();
+        return obj;
+    }
+
+
+
+    function doQuery(str) {
+
+        var obj = getObj201();
+        obj.KIND = str;
+
+        if (str == "MAN") {
+            $('#qDataGrid').datagrid({
+                url: '@Url.Action("Grid", "Frm304")',
+                queryParams: obj,
+                columns: [[
+                    { field: 'RMNO', title: '房號', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'CNHNO', title: '租約編號', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'MAN', title: '姓名', sortable: true, width: 150, halign: "center", align: "left" },
+                    { field: 'SEX', title: '性別', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'CIDT', title: '進住日', sortable: true, width: 100, halign: "center", align: "center" },
+                    { field: 'EMAIL', title: 'EMAIL', sortable: true, width: 150, halign: "center", align: "left" },
+                    {
+                        field: 'LINK', title: '連結', sortable: true, width: 50, halign: "center", align: "center",
+                        formatter: function (value, row, iIndex) {
+                            return "<a href='#' onClick=\"openf201Dialog('" + row.RMNO + "','" + row.CNHNO + "')\"><img src='../Content/easyui/themes/icons/select-icon.png'/></a>";
+                        }
+                    }
+                ]]
+            });
+        } else if (str == "BROKER") {
+            $('#qDataGrid').datagrid({
+                url: '@Url.Action("Grid", "Frm304")',
+                queryParams: obj,
+                columns: [[
+                    { field: 'RMNO', title: '房號', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'CNHNO', title: '租約編號', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'MAN', title: '仲介商', sortable: true, width: 150, halign: "center", align: "left" },
+                    { field: 'CPID', title: '統編', sortable: true, width: 150, halign: "center", align: "left" },
+                    { field: 'TEL', title: '電話', sortable: true, width: 150, halign: "center", align: "left" },
+                    {
+                        field: 'LINK', title: '連結', sortable: true, width: 50, halign: "center", align: "center",
+                        formatter: function (value, row, iIndex) {
+                            return "<a href='#' onClick=\"openf201Dialog('" + row.RMNO + "','" + row.CNHNO + "')\"><img src='../Content/easyui/themes/icons/select-icon.png'/></a>";
+                        }
+                    }
+                ]]
+            });
+        } else if (str == "DEALER") {
+            $('#qDataGrid').datagrid({
+                url: '@Url.Action("Grid", "Frm304")',
+                queryParams: obj,
+                columns: [[
+                    { field: 'RMNO', title: '房號', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'CNHNO', title: '租約編號', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'MAN', title: '承租人', sortable: true, width: 150, halign: "center", align: "left" },
+                    { field: 'CPID', title: '統編', sortable: true, width: 150, halign: "center", align: "left" },
+                    { field: 'TEL', title: '電話', sortable: true, width: 150, halign: "center", align: "left" },
+                    {
+                        field: 'LINK', title: '連結', sortable: true, width: 50, halign: "center", align: "center",
+                        formatter: function (value, row, iIndex) {
+                            return "<a href='#' onClick=\"openf201Dialog('" + row.RMNO + "','" + row.CNHNO + "')\"><img src='../Content/easyui/themes/icons/select-icon.png'/></a>";
+                        }
+                    }
+                ]]
+            });
+        } else if (str == "TEL") {
+            $('#qDataGrid').datagrid({
+                url: '@Url.Action("Grid", "Frm304")',
+                queryParams: obj,
+                columns: [[
+                    { field: 'RMNO', title: '房號', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'CNHNO', title: '租約編號', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'TELTP', title: '分類', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'MAN', title: '姓名', sortable: true, width: 150, halign: "center", align: "left" },
+                    { field: 'TELNO', title: '電話', sortable: true, width: 150, halign: "center", align: "left" },
+                    {
+                        field: 'LINK', title: '連結', sortable: true, width: 50, halign: "center", align: "center",
+                        formatter: function (value, row, iIndex) {
+                            return "<a href='#' onClick=\"openf201Dialog('" + row.RMNO + "','" + row.CNHNO + "')\"><img src='../Content/easyui/themes/icons/select-icon.png'/></a>";
+                        }
+                    }
+                ]]
+            });
+        } else if (str == "CAR") {
+            $('#qDataGrid').datagrid({
+                url: '@Url.Action("Grid", "Frm304")',
+                queryParams: obj,
+                columns: [[
+                    { field: 'RMNO', title: '房號', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'CNHNO', title: '租約編號', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'CARNO', title: '車號', sortable: true, width: 100, halign: "center", align: "center" },
+                    { field: 'PARKNO', title: '車位', sortable: true, width: 100, halign: "center", align: "center" },
+                    { field: 'MAN', title: '司機', sortable: true, width: 150, halign: "center", align: "left" },
+                    {
+                        field: 'LINK', title: '連結', sortable: true, width: 50, halign: "center", align: "center",
+                        formatter: function (value, row, iIndex) {
+                            return "<a href='#' onClick=\"openf201Dialog('" + row.RMNO + "','" + row.CNHNO + "')\"><img src='../Content/easyui/themes/icons/select-icon.png'/></a>";
+                        }
+                    }
+                ]]
+            });
+        } else if (str == "RMNO") {
+            $('#qDataGrid').datagrid({
+                url: '@Url.Action("Grid", "Frm304")',
+                queryParams: obj,
+                columns: [[
+                    { field: 'RMNO', title: '房號', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'CNHNO', title: '租約編號', sortable: true, width: 50, halign: "center", align: "center" },
+                    { field: 'DEALERNM', title: '承租人', sortable: true, width: 200, halign: "center", align: "left" },
+                    { field: 'MAN', title: '連絡人', sortable: true, width: 100, halign: "center", align: "left" },
+                    { field: 'DT1', title: '承租日起日', sortable: true, width: 100, halign: "center", align: "left" },
+                    { field: 'DT2', title: '承租日迄日', sortable: true, width: 100, halign: "center", align: "left" },
+                    {
+                        field: 'LINK', title: '連結', sortable: true, width: 50, halign: "center", align: "center",
+                        formatter: function (value, row, iIndex) {
+                            return "<a href='#' onClick=\"openf201Dialog('" + row.RMNO + "','"+row.CNHNO+"')\"><img src='../Content/easyui/themes/icons/select-icon.png'/></a>";
+                        }
+                    }
+                ]]
+            });
+        }
+    }
+
+
+    function openf201Dialog(rmno, cnhno) {
+
+        var q = $("input[name='qQTYPE']:checked").val();
+
+        $('#f201Dialog').dialog('open');
+        $('#f201Dialog').dialog('refresh', '@Url.Action("Frm201", "Frm304")' + '?RMNO=' + $.trim(rmno) + '&CNHNO=' + $.trim(cnhno) + '&CSTA=' + q);
+        
+    }
+</script>
+<h2>Frm304 住戶資料查詢</h2>
+<a id="btnReload" href="#" class="easyui-linkbutton" data-options="iconCls:'broom-icon'" onclick="doClear()">清空</a>
+<a id="btnReload" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery()">查詢</a>
+
+<table width="802" border="1" cellpadding="5" cellspacing="3">
+    <tr>
+        <td colspan="2">
+            查詢資料別:
+            <input id="qQTYPE" name="qQTYPE" type="radio" value="1" checked>
+            現在
+            <input id="qQTYPE" name="qQTYPE" type="radio" value="2">
+            歷史
+            <input id="qQTYPE" name="qQTYPE" type="radio" value="*">
+            全部
+        </td>
+    </tr>
+    <tr>
+        <td width="362" valign="top">
+            <table width="359" border="0" cellpadding="3" cellspacing="3" bgcolor="#FFCC99">
+                <tr>
+                    <td width="31">姓名</td>
+                    <td width="225">
+                        <label>
+                            <input id="qNAME" type="text" name="qNAME">
+                        </label>
+                    </td>
+                    <td width="73" rowspan="2"><a id="btnReload" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery('MAN')">查詢</a></td>
+                </tr>
+                <tr>
+                    <td>性別</td>
+                    <td>
+                        <input id="qSEX" name="qSEX" type="radio" value="1">
+                        男
+                        <input id="qSEX" name="qSEX" type="radio" value="2">
+                        女
+                        <input id="qSEX" name="qSEX" type="radio" value="3" checked>
+                        全部
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td width="413" valign="top">
+            <table width="427" border="0" cellpadding="3" cellspacing="3" bgcolor="#FFCC99">
+                <tr>
+                    <td width="75" height="32">承租人</td>
+                    <td width="230"><input type="text" name="qDEALER" id="qDEALER"></td>
+                    <td width="92"><a id="btnReload" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery('DEALER')">查詢</a></td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td valign="top">
+            <table width="362" border="0" cellpadding="3" cellspacing="3" bgcolor="#FFCC99">
+                <tr>
+                    <td width="30">電話</td>
+                    <td width="225"><input type="text" name="qTEL" id="qTEL"></td>
+                    <td width="77"><a id="btnReload" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery('TEL')">查詢</a></td>
+                </tr>
+            </table>
+        </td>
+        <td valign="top">
+            <table width="430" border="0" cellpadding="3" cellspacing="3" bgcolor="#FFCC99">
+                <tr>
+                    <td width="76">仲介商</td>
+                    <td width="229"><input id="qBROKER" type="text" name="qBROKER"></td>
+                    <td width="95"><a id="btnReload" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery('BROKER')">查詢</a></td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td valign="top">
+            <table width="361" border="0" cellpadding="3" cellspacing="3" bgcolor="#FFCC99">
+                <tr>
+                    <td>車位</td>
+                    <td><input type="text" name="qPARKNO" id="qPARKNO"></td>
+                    <td width="76" rowspan="3"><a id="btnReload" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery('CAR')">查詢</a></td>
+                </tr>
+                <tr>
+                    <td width="31">車號</td>
+                    <td width="224"><label></label>        <input type="text" name="qCARNO" id="qCARNO"></td>
+                </tr>
+                <tr>
+                    <td>司機</td>
+                    <td><input type="text" name="qDRIVER" id="qDRIVER"></td>
+                </tr>
+            </table>
+        </td>
+        <td valign="top">
+            <table width="427" border="0" cellpadding="3" cellspacing="3" bgcolor="#FFCC99">
+                <tr>
+                    <td width="77">房號</td>
+                    <td width="228"><input id="qRMNO" type="text" name="qRMNO"></td>
+                    <td width="92" rowspan="3"><a id="btnReload" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery('RMNO')">查詢</a></td>
+                </tr>
+                <tr>
+                    <td>承租日 起日</td>
+                    <td><input type="text" name="qDT1" id="qDT1" class="easyui-datebox" style="height:28px"></td>
+                </tr>
+                <tr>
+                    <td>承租日 迄日 </td>
+                    <td><input type="text" name="qDT2" id="qDT2" class="easyui-datebox" style="height:28px"></td>
+                </tr>
+            </table>
+        </td>
+
+    </tr>
+</table>
+<table id="qDataGrid"></table>
+<div id="f201Dialog"></div>

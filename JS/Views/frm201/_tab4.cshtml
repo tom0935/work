@@ -1,0 +1,94 @@
+﻿
+@if (@ViewBag.CNHNO == null)
+{
+    <a id="btn4Contract" href="#" class="easyui-linkbutton" data-options="iconCls:'table-money-icon'" onclick="showContractManagerDialog()">租金作業</a>
+}
+
+<a id="btn4club" href="#" class="easyui-linkbutton" data-options="iconCls:'female-icon'" onclick="showClubPersonDialog()">住戶入會資料</a>
+<table width="650" border="1">
+    <tr>
+        <td width="106">
+            俱樂部合約編號<input type="hidden" id="C_TAGID" name="C_TAGID" />
+        </td>
+        <td><input type="text" id="C_CNCNO" name="C_CNCNO" readonly  /></td>
+        <td colspan="2">
+            <input id="C_RNTP" name="C_RNTP" type="radio" value="1" />
+            附約
+            <input id="C_RNTP" name="C_RNTP" type="radio" value="2" />
+            另約
+        </td>
+    </tr>
+    <tr>
+        <td>承租人</td>
+        <td width="170">
+            <label>
+                <input id="C_RNTERTP" name="C_RNTERTP" type="radio" value="1" />
+                個人
+                <input id="C_RNTERTP" name="C_RNTERTP" type="radio" value="2" />
+                公司
+            </label>
+        </td>
+        <td>名稱</td>
+        <td width="228"><input type="text" id="C_DEALERNM" name="C_DEALERNM" /></td>
+    </tr>
+    <tr>
+        <td>起租日</td>
+        <td><input type="text" id="C_DT1" name="C_DT1" class="easyui-datebox"  style="width:160px;height:28px" data-options="prompt:'YYYY-MM-DD',required:true,validType:['date']" /></td>
+        <td>到期日</td>
+        <td><input type="text" id="C_DT2" name="C_DT2" class="easyui-datebox" style="width:160px;height:28px" data-options="prompt:'YYYY-MM-DD',required:true,validType:['date','isAfter[\'#C_DT1\']']" /></td>
+    </tr>
+
+    <tr>
+        <td>共計</td>
+        <td colspan="3">
+            <input type="text" id="C_YRS" name="C_YRS" class="easyui-validatebox" style="width:40px" readonly />
+            年
+            <input type="text" id="C_MNS" name="C_MNS" class="easyui-validatebox" style="width:40px" readonly />
+            月
+            <input type="text" id="C_DYS" name="C_DYS" class="easyui-validatebox" style="width:40px" readonly />
+            日<a id="btn1" href="#" class="easyui-linkbutton" onclick="chkYMD('C_')">計算天數</a>
+        </td>
+    </tr>
+    <tr>
+        <td>月租費</td>
+        <td><input type="text" id="C_RNFEE" name="C_RNFEE" /></td>
+        <td colspan="2">
+            
+                折數一
+                <input type="text" id="C_DSCON1" name="C_DSCON1" class="easyui-validatebox" style="width:40px" />
+                %            
+            折數二
+            <input type="text" id="C_DSCON2" name="C_DSCON2" class="easyui-validatebox" style="width:40px" />
+            %
+        </td>
+    </tr>
+    <tr>
+        <td>繳費期</td>
+        <td colspan="3">
+            <input id="C_RNFEETP" name="C_RNFEETP" type="radio" value="1" />
+            月繳
+            <input id="C_RNFEETP" name="C_RNFEETP" type="radio" value="2" />
+            季繳
+            <input id="C_RNFEETP" name="C_RNFEETP" type="radio" value="3" />
+            半年繳
+            <input id="C_RNFEETP" name="C_RNFEETP" type="radio" value="4" />
+            年繳
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4">
+            備註<br />
+            <textarea id="C_NOTES" name="C_NOTES" cols="50" rows="5"></textarea>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4">俱樂部合約列表</td>
+    </tr>
+    <tr>
+        <td height="140" colspan="4" valign="top">
+            <label>
+                <table id="CONTRAC_DG"></table>
+            </label>
+        </td>
+    </tr>
+</table>

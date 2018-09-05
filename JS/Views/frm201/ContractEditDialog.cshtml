@@ -1,0 +1,154 @@
+﻿@{
+    Layout = null;
+}
+<script>
+    var cpmgr;
+    $(document).ready(function () {
+        //異動類別
+        $('#UPDTP').combobox({
+            url: '@Url.Action("getUPDTP", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM',
+            editable: false ,
+            onSelect: function (record) {
+                if (record.CNO == "01" || record.CNO == "05") {
+                    $('#UPDTBL').hide();
+                } else {
+                    $('#UPDTBL').show();
+                    showForm(record.CNO);
+                    $('#editMsg').html(record.CNM);
+                }
+            }
+        });
+        
+        var  obj= {};
+        obj.CNO = $.trim($('#DEALNO').val());
+        
+        $.ajax({
+            url: '@Url.Action("getDealer", "Frm201h")',
+            data: obj,
+            type: "post",
+            dataType: "json",
+            success: function (data, textStatus, jqXHR) {
+                cpmgr = data;                
+            }
+        });
+
+        //人員列表
+        $('#UPDLOGUSR').combobox({
+            url: '@Url.Action("getLOGUSR", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM'
+            //editable: false
+        });
+
+
+    });   //ready end
+
+    function doSaveh() {
+        if (chk()) {
+            $.messager.confirm('執行確認', '您確定要進行資料異動?', function (r) {
+                if (r) {
+                    var cno = $('#UPDTP').combobox('getValue');
+                    var obj = {};
+                    obj.TYPE = cno;
+                    obj.TAGID = $.trim($('#CONTRAH_TAGID').val());
+                    obj.NOTES = $('#UPDNOTES').val();
+                    obj.LOGUSR = $('#UPDLOGUSR').combobox('getText');
+                    obj.CNO = $('#UPDTP').combobox('getValue');
+                    obj.UPDTP = $('#UPDTP').combobox('getText');
+                    obj.UPDDT = $('#UPDDT').datebox('getValue');
+                    obj.CNNO = $('#CNHNO').val();
+                    obj.DEALNO = $.trim($('#DEALNO').val());
+                    if (cno == "02" || cno == "03" || cno == "04") {
+                        obj.TX2 = $('#TX2').val();
+                        obj.TX1 = $('#TX1').val();
+                    }
+                    
+                    $.ajax({
+                        url: '@Url.Action("doSave", "Frm201h")',
+                        data: obj,
+                        type: "post",
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            $('#UPDNOTE_DG').datagrid('reload');
+                            $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function showForm(CNO) {
+        var tmp;
+        if (CNO == "02") {
+            tmp = $('#DEALERNM').val();
+        } else if (CNO == "03") {
+            tmp = cpmgr;
+        } else if (CNO == "04") {
+            tmp = $.trim($('#MLIVER').val());
+        }
+        $('#TX1').val(tmp);
+        $('#TX2').val(tmp);
+    }
+
+    function chk() {
+        var b=false;
+        if ($('#UPDTP').combobox('isValid') == false) {            
+            $.messager.alert('系統訊息', '尚未選取異動類別!', 'warning');
+        } else if ($('#UPDDT').datebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入異動日期!', 'warning');
+        } else {
+            b = true;
+        }
+        return b;
+    }
+
+</script>
+
+<a id="btnCCSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSaveh()">存檔</a>
+<table width="640" border="1" cellpadding="3" cellspacing="2">
+
+    <tr>
+        <td width="105"><div align="right">異動類別</div></td>
+        <td width="409">
+            <input type="text" id="UPDTP" name="UPDTP" style="width:160px;height:28px" data-options="required:true" />
+        </td>
+    </tr>
+    <tr>
+        <td><div align="right">異動日期</div></td>
+        <td><input type="text" id="UPDDT" name="UPDDT" class="easyui-datebox" style="width:160px;height:28px" data-options="required:true"></td>
+    </tr>
+    <tr>
+        <td height="93" valign="top"><div align="right">異動說明</div></td>
+        <td valign="top">
+            <label>
+                <textarea id="UPDNOTES" name="UPDNOTES" cols="40" rows="8"></textarea>
+            </label>
+        </td>
+    </tr>
+    <tr>
+        <td><div align="right">承辦人</div></td>
+        <td><input type="text" id="UPDLOGUSR" name="UPDLOGUSR" style="width:160px;height:28px"  /></td>
+    </tr>
+    <tr>
+        <td height="97" colspan="2">
+            <table id="UPDTBL" width="382" border="1" align="center" bgcolor="#FFE4CA" style="display:none">
+                <tr>
+                    <td width="107"><div align="right">異動內容</div></td>
+                    <td width="259"><div id="editMsg"></div></td>
+                </tr>
+                <tr>
+                    <td><div align="right">更改前</div></td>
+                    <td><input type="text" id="TX1" name="TX1" style="width:250px;height:22px" readonly /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">更改後</div></td>
+                    <td><input type="text" id="TX2" name="TX2" style="width:250px;height:22px" /></td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+

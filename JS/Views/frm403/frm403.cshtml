@@ -1,0 +1,485 @@
+﻿@{
+    ViewBag.Title = "Frm403 俱樂部消費作業";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+        f403DG1init();
+
+        //房屋編號下拉選單
+        $('#HOUSE').combogrid({
+            queryParams: '',
+            panelWidth: 200,
+            idField: 'CNO',
+            textField: 'CNO',
+            mode: 'remote',
+            method: 'get',
+            fitColumns: true,
+            url: '@Url.Action("Grid", "Frm107")',
+            columns: [[
+                { field: 'CNO', title: '房屋編號', width: 60 },
+                { field: 'DOOR', title: '門號', width: 60 },
+                { field: 'FLOR', title: '樓層', width: 60 }
+            ]],
+            onSelect: function (index, row) {
+                initCONTRAH();
+            }
+        });
+
+        //姓名
+        $('#MAN').combogrid({
+            queryParams: '',
+            panelWidth: 400,
+            idField: 'USER',
+            textField: 'USER',
+            mode: 'remote',
+            method: 'get',
+            fitColumns: true,
+            editable: true,
+            url: '@Url.Action("getCNM", "Frm201f")',
+            columns: [[
+                { field: 'TYPE', title: '角色', width: 50 },
+                { field: 'USER', title: '姓名', width: 350 }
+            ]]
+        });
+        //消費項目
+        $('#ITM').combobox({
+            url: '@Url.Action("getITM", "Frm403")',
+            valueField: 'CNM',
+            textField: 'CNM',
+            onSelect: function (row) {
+                $('#UPR').val(row.CNO);
+            }
+        });
+
+        //卡別
+        $('#TPNM').combobox({
+            url: '@Url.Action("getCARDTYPE", "Frm201f")',
+            valueField: 'CNM',
+            textField: 'CNM',
+            editable: false
+        });
+
+        //數量
+        $('#QTY').combobox({
+            onSelect: function (row) {
+        
+                var qty = parseInt(row.value);
+                var upr = parseInt($('#UPR').val());
+
+                $('#AMT').val(qty * upr);
+            }
+        });
+
+        //人員列表
+        $('#LOGUSR').combobox({
+            url: '@Url.Action("getLOGUSR", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM'
+        });
+
+
+
+
+
+    });   //ready end
+
+    $(window).load(function () {
+
+
+
+
+
+    });
+
+    //房屋合約
+    function initCONTRAH() {
+        var value = $('#HOUSE').combogrid('getValue');
+        if (value != null) {
+            var obj = {};
+            obj.CNO = $.trim(value);
+            $.ajax({
+                url: '@Url.Action("getCONTRAH", "Frm201")',
+                type: "post",
+                data: obj,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    var obj = {};
+                    obj.TAGID = $.trim(data[0].TAGID);
+                    $('#CONTRAH_TAGID').val($.trim(data[0].TAGID));
+
+                    var g = $('#MAN').combogrid('grid');
+                    g.datagrid('reload', obj);
+                    $('#MAN').combogrid('setValue', '');
+                }
+            });
+        }
+    }
+
+    function f403DG1init() {
+        var obj = {};
+        obj.q = "";
+        $('#f403DG1').datagrid({
+            url: '@Url.Action("getDG1", "Frm403")',
+            width: '800',
+            height: '500',
+            queryParams: obj,
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                { field: 'DT', title: '消費日', sortable: true, width: 100, halign: "center", align: "center", sortable: true },
+                { field: 'ITM', title: '消費項目', sortable: true, width: 150, halign: "center", align: "left", sortable: true },
+                { field: 'UPR', title: '單價', sortable: true, width: 60, halign: "center", align: "right", sortable: true },
+                { field: 'QTY', title: '數量', sortable: true, width: 50, halign: "center", align: "center", sortable: true },
+                { field: 'AMT', title: '金額', sortable: true, width: 60, halign: "center", align: "right", sortable: true },
+                { field: 'NOTES', title: '備註', sortable: true, width: 200, halign: "center", align: "left", sortable: true },
+                { field: 'TPNM', title: '卡別', sortable: true, width: 80, halign: "center", align: "center", sortable: true }
+            ]],
+            onSelect: function (rowIndex, row) {
+                initf403FORM(row);
+            }
+        });
+    }
+
+
+
+
+
+
+    function initf403FORM(row) {
+        $('#DT').datebox('setValue', $.trim(row.DT));
+        $('#ITM').combobox('setValue', $.trim(row.ITM));
+        $('#TPNM').combobox('setValue', $.trim(row.TPNM));        
+        $('#HOUSE').combogrid('setValue', $.trim(row.RMNO));
+        $('#MAN').combobox('setText', $.trim(row.MAN));
+        $('#UPR').val(row.UPR);
+        $('#QTY').combobox('setValue', $.trim(row.QTY));
+        $('#AMT').val(row.AMT);
+        $('#PAYAMT').val(row.PAYAMT);
+        $('#NOTES').val(row.NOTES);
+        $('#ADULT').combobox('setValue', $.trim(row.ADULT));
+        $('#CHILD').combobox('setValue', $.trim(row.CHILD));
+        
+        $('#LOGUSR').combobox('setText', $.trim(row.LOGUSR));
+        $('#f403TAGID').val(row.TAGID);
+
+    }
+
+    function doAdd() {
+        if (doCheck()) {
+            $.messager.confirm('執行確認', "確認要新增資料?", function (r) {
+                if (r) {
+                    var obj = getObj();
+                    obj.TAGID = null;
+                    $.ajax({
+                        url: '@Url.Action("doAdd", "Frm403")',
+                        type: "post",
+                        data: getObj(),
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f403DG1').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已新增!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+
+
+
+
+    function doSave() {
+        if (doCheck()) {
+            $.messager.confirm('執行確認', "確認儲存?", function (r) {
+                if (r) {
+                    var obj = getObj();
+
+                    $.ajax({
+                        url: '@Url.Action("doSave", "Frm403")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f403DG1').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function getObj() {
+        var obj = {};
+        obj.DT = $('#DT').datebox('getValue');
+        obj.ITM = $.trim($('#ITM').combobox('getValue'));
+        obj.TPNM = $.trim($('#TPNM').combobox('getValue'));
+        obj.RMNO = $.trim($('#HOUSE').combogrid('getValue'));
+        obj.MAN = $('#MAN').combobox('getText');
+        obj.UPR = $.trim($('#UPR').val());
+        obj.QTY = $.trim($('#QTY').combobox('getValue'));
+        obj.AMT = $.trim($('#AMT').val());
+        obj.PAYAMT = $.trim($('#PAYAMT').val());
+        obj.NOTES = $.trim($('#NOTES').val());
+        obj.ADULT = $.trim($('#ADULT').combobox('getValue'));
+        obj.CHILD = $.trim($('#CHILD').combobox('getValue'));
+        obj.LOGUSR = $.trim($('#LOGUSR').combobox('getText'));
+        obj.RMTAG = $.trim($('#CONTRAH_TAGID').val());
+        obj.TAGID = $.trim($('#f403TAGID').val());
+        return obj;
+    }
+
+
+    function doClear() {
+        $('#DT').datebox('setValue', '');
+        $('#ITM').combobox('setValue', '');
+        $('#TPNM').combobox('setValue', '');        
+        $('#HOUSE').combogrid('setValue', '');
+        $('#MAN').combobox('setText', '');
+        $('#MAN').combobox('setValue', '');
+        
+        $('#UPR').val('');
+        $('#QTY').combobox('setValue', '0');
+        $('#AMT').val('');
+        $('#PAYAMT').val('');
+        $('#NOTES').val('');
+        
+        $('#ADULT').combobox('setValue', '0');
+        $('#CHILD').combobox('setValue', '0');
+        $('#LOGUSR').combobox('setValue', '');
+        $('#CONTRAH_TAGID').val('');
+        $('#f403TAGID').val('');
+
+    }
+
+
+    //作廢
+    function doRemove() {
+        var row = $('#f403DG1').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('執行確認', '確定要刪除資料?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.TAGID = $.trim(row.TAGID);
+                    $.ajax({
+                        url: '@Url.Action("doRemove", "Frm403")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f403DG1').datagrid('reload');
+                                doClear();
+                                $.messager.alert('系統訊息', '選取資料已刪除!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+        }
+    }
+
+
+    function doCheck() {
+        var pass = false;
+        if ($('#DT').datebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入開課日期!', 'warning');
+        } else if ($('#ITM').combobox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入學員姓名!', 'warning');
+        }else if ($('#PAYAMT').val() < $('#PAYAMT').val()) {
+            if($('#HOUSE').combogrid('getValue')==""){
+                $.messager.alert('系統訊息', '付款金額不足,掛房帳必須入房號!', 'warning');
+            }
+        }else if ($('#PAYAMT').val() > $('#PAYAMT').val()) {
+            $.messager.alert('系統訊息', '付款金額大於消費金額!', 'warning');
+        } else if ($('#QTY').combobox('getValue') == 0) {
+            $.messager.alert('系統訊息', '數量不可為0!', 'warning');
+        } else {
+            pass = true;
+        }
+        return pass;
+    }
+
+
+    function doCopy() {
+        $('#PAYAMT').val($('#AMT').val());
+    }
+
+    function doQuery(param) {
+        var obj = {};
+        obj.q = param;
+        obj.FEEYM = $('#FEEYM').val();
+        $('#f403DG1').datagrid('reload',obj);
+    }
+
+
+</script>
+<h2>Frm403 俱樂部消費作業</h2>
+<a id="btnClear" href="#" class="easyui-linkbutton" data-options="iconCls:'broom-icon'" onclick="doClear()">清空</a>
+<a id="btnCAdd" href="#" class="easyui-linkbutton" data-options="iconCls:'add-icon'" onclick="doAdd()">新增</a>
+<a id="btnCSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSave()">存檔</a>
+<a id="btnRemove" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="doRemove()">刪除</a>
+<br />
+<br />
+<input type="hidden" id="f403TAGID" name="f403TAGID" />
+<input type="hidden" id="f403CONTRAH_TAGID" name="f403CONTRAH_TAGID" />
+<table width="1024" height="500" border="1">
+    <tr>
+        <td width="490" valign="top">
+            <table width="490" border="0">
+                <tr>
+                    <td width="105"><div align="right">消費日期</div></td>
+                    <td width="375"><input type="text" name="DT" id="DT" class="easyui-datebox" data-options="required:true,prompt:'YYYY-MM-DD',validType:['date']"  style="width:150px;height:28px" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">消費項目</div></td>
+                    <td>
+                        <input type="text" id="ITM" name="ITM" style="width:150px;height:28px" data-options="editable:false,required:true" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">卡別</div></td>
+                    <td><input type="text" id="TPNM" name="TPNM" style="width:150px;height:28px" data-options="editable:false" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">房號</div></td>
+                    <td><input type="text" id="HOUSE" name="HOUSE"  style="width:100px;height:28px" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">住戶姓名</div></td>
+                    <td><input type="text" id="MAN" name="MAN" data-options="editable:false" style="width:250px;height:28px" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">單價</div></td>
+                    <td><input type="text" id="UPR" name="UPR" style="width:100px" value="0" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">數量</div></td>
+                    <td>
+                        <select id="QTY" class="easyui-combobox" name="QTY" data-options="editable:false" style="width:60px;height:28px">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">消費小計</div></td>
+                    <td><input type="text" id="AMT" name="AMT" style="width:100px" value="0" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">付款金額</div></td>
+                    <td><input type="text" id="PAYAMT" name="PAYAMT" style="width:100px" value="0" /><a id="btncopy" href="#" class="easyui-linkbutton" onclick="doCopy()">同上</a></td>
+                </tr>
+                <tr>
+                    <td height="95" valign="top"><div align="right">備註說明</div></td>
+                    <td valign="top">
+                        <label>
+                            <textarea name="NOTES" id="NOTES" rows="5" style="width:300px;height:70px"></textarea>
+                        </label>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><div align="right">消費人數</div></td>
+                    <td valign="middle">
+                        大
+                        <select id="ADULT" class="easyui-combobox" name="ADULT" data-options="editable:false" style="width:60px;height:28px">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                        </select>
+                        小
+                        <select id="CHILD" class="easyui-combobox" name="CHILD" data-options="editable:false" style="width:60px;height:28px">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                        </select>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><div align="right">承辦人</div></td>
+                    <td><input type="text" id="LOGUSR" name="LOGUSR" style="width:180px;height:28px" /></td>
+                </tr>
+            </table>
+        </td>
+        <td width="518" valign="top">
+            月份查詢<input type="text" id="FEEYM" name="FEEYM" class="easyui-textbox" style="width:100px;height:28px" data-options="prompt:'YYYYMM'" /><a id="btnCqy1" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery('1')">查詢</a>
+            <a id="btnCqy2" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery('2')">未收查詢</a>
+            <table id="f403DG1"></table>
+        </td>
+    </tr>
+</table>

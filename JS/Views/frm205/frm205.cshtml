@@ -1,0 +1,679 @@
+﻿@{
+    ViewBag.Title = "Frm205 工程修繕作業";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+
+
+        $('#ttf205').tabs({
+            onSelect: function (title, index) {
+                switch (index) {
+                    case 0:
+
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                }
+            }
+        });
+
+        $("#f205DT3").datebox({
+            onSelect: function (date) {
+                f205DG1init();
+            }
+        });
+        $("#f205DT4").datebox({
+            onSelect: function (date) {
+                f205DG2init();
+            }
+        });
+
+
+        //房屋編號下拉選單
+        $('#f205HOUSE').combogrid({
+            panelWidth: 200,
+            idField: 'CNO',
+            textField: 'CNO',
+            mode: 'remote',
+            method: 'get',
+            fitColumns: true,
+            url: '@Url.Action("Grid", "Frm107")',
+            columns: [[
+                { field: 'CNO', title: '房屋編號', width: 60 },
+                { field: 'DOOR', title: '門號', width: 60 },
+                { field: 'FLOR', title: '樓層', width: 60 }
+            ]],
+            onSelect: function (index, row) {
+                initCONTRAH();
+            }
+        });
+
+        //房屋編號下拉選單
+        $('#qf205HOUSE').combogrid({
+            panelWidth: 200,
+            idField: 'CNO',
+            textField: 'CNO',
+            mode: 'remote',
+            method: 'get',
+            fitColumns: true,
+            url: '@Url.Action("Grid", "Frm107")',
+            columns: [[
+                { field: 'CNO', title: '房屋編號', width: 60 },
+                { field: 'DOOR', title: '門號', width: 60 },
+                { field: 'FLOR', title: '樓層', width: 60 }
+            ]],
+            onSelect: function (index, row) {
+                initCONTRAH();
+            }
+        });
+
+
+
+
+
+        //人員列表
+        $('#f205LOGUSR').combobox({
+            url: '@Url.Action("getLOGUSR", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM'
+            //editable: false
+        });
+
+
+
+
+
+
+
+
+    });   //ready end
+
+    $(window).load(function () {
+        var dt = new Date();
+        //nowDate.setDate(edtDate.getDate());
+        var nowDate = DateTimeUtil.convertDateToISOString(dt);
+        $('#f205DT1').datebox('setValue', nowDate);
+        $('#f205DT2').datebox('setValue', nowDate);
+        $('#f205DT3').datebox('setValue', nowDate);
+        $('#f205DT4').datebox('setValue', nowDate);
+        $('#NOWDT').datebox('setValue', nowDate);
+
+        f205DG1init();
+        f205DG2init();
+        f205DG3init();
+
+
+    });
+
+    function f205DG1init() {
+
+        $('#f205DG1').datagrid({
+            url: '@Url.Action("getDG1", "Frm205")',
+            width: '1000',
+            height: '450',
+            rownumbers: true,
+            nowrap: true,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: true,
+            singleSelect: true,
+            sortName: 'FIXDT',
+            sortOrder: 'desc',
+            showPageList: true,
+            pagePosition: 'bottom',
+            pagination: true,
+            pageSize: 20,
+            pageList: [20, 50, 100],
+            columns: [[
+                {
+                    field: 'FIXAREA', title: '區域', sortable: true, width: 60, halign: "center", align: "center", sortable: true,
+                    formatter: function (value, row, iIndex) {
+                        if (value == "1") {
+                            value = "1 住宅區";
+                        } else if (value == "2") {
+                            value = "2 公共區";
+                        } else if (value == "3") {
+                            value = "3 俱樂部";
+                        }
+                        return value;
+                    }
+                },
+                { field: 'FIXDT', title: '修繕日期', sortable: true, width: 90, halign: "center", align: "center", sortable: true },
+                { field: 'RMNO', title: '房號', sortable: true, width: 60, halign: "center", align: "center", sortable: true },
+                { field: 'FIXTP', title: '修繕別', sortable: true, width: 90, halign: "center", align: "center", sortable: true },
+                { field: 'FIXITEM', title: '修繕項目', sortable: true, width: 150, halign: "center", align: "center", sortable: true },
+                { field: 'FIXAMT', title: '修繕費用', sortable: true, width: 70, halign: "center", align: "right", sortable: true },
+                { field: 'NOTES', title: '備註說明', sortable: true, width: 380, halign: "center", align: "left", sortable: true }
+            ]],
+            onSelect: function (rowIndex, row) {
+                initf205FORM(row);
+            }
+        });
+    }
+
+    function f205DG2init() {
+
+        $('#f205DG2').datagrid({
+            url: '@Url.Action("getDG2", "Frm205")',
+            width: '1000',
+            height: '500',
+            rownumbers: true,
+            nowrap: true,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: true,
+            singleSelect: true,
+            sortName: 'FIXDT',
+            sortOrder: 'desc',
+            showPageList: true,
+            pagePosition: 'bottom',
+            pagination: true,
+            pageSize: 20,
+            pageList: [20, 50, 100],
+            columns: [[
+                {
+                    field: 'FIXAREA', title: '區域', sortable: true, width: 60, halign: "center", align: "center", sortable: true,
+                    formatter: function (value, row, iIndex) {
+                        if (value == "1") {
+                            value = "1 住宅區";
+                        } else if (value == "2") {
+                            value = "2 公共區";
+                        } else if (value == "3") {
+                            value = "3 俱樂部";
+                        }
+                        return value;
+                    }
+                },
+                { field: 'FIXDT', title: '修繕日期', sortable: true, width: 90, halign: "center", align: "center", sortable: true },
+                { field: 'RMNO', title: '房號', sortable: true, width: 60, halign: "center", align: "center", sortable: true },
+                { field: 'FIXTP', title: '修繕別', sortable: true, width: 90, halign: "center", align: "center", sortable: true },
+                { field: 'FIXITEM', title: '修繕項目', sortable: true, width: 150, halign: "center", align: "center", sortable: true },
+                { field: 'FIXAMT', title: '修繕費用', sortable: true, width: 70, halign: "center", align: "right", sortable: true },
+                { field: 'NOTES', title: '備註說明', sortable: true, width: 380, halign: "center", align: "left", sortable: true }
+            ]],
+            onSelect: function (rowIndex, row) {
+                $('#f205EDIT2').val("結案日期:" + row.FIXDT + "\n結案說明:" + row.ENDNOTE);
+            }
+        });
+    }
+
+    function f205DG3init() {
+
+        $('#f205DG3').datagrid({
+            url: '@Url.Action("getDG3", "Frm205")',
+            width: '1000',
+            height: '400',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: true,
+            singleSelect: true,
+            sortName: 'FIXDT',
+            sortOrder: 'desc',
+            showPageList: true,
+            pagePosition: 'bottom',
+            pagination: true,
+            pageSize: 20,
+            pageList: [20, 50, 100],
+            columns: [[
+                { field: 'FIXAREA', title: '區域', sortable: true, width: 60, halign: "center", align: "center", sortable: true },
+                { field: 'FIXDT', title: '修繕日期', sortable: true, width: 90, halign: "center", align: "center", sortable: true },
+                { field: 'RMNO', title: '房號', sortable: true, width: 60, halign: "center", align: "center", sortable: true },
+                { field: 'FIXTP', title: '修繕別', sortable: true, width: 90, halign: "center", align: "center", sortable: true },
+                { field: 'FIXITEM', title: '修繕項目', sortable: true, width: 150, halign: "center", align: "center", sortable: true },
+                { field: 'FIXAMT', title: '修繕費用', sortable: true, width: 150, halign: "center", align: "left", sortable: true },
+                { field: 'NOTES', title: '備註說明', sortable: true, width: 300, halign: "center", align: "left", sortable: true }
+            ]],
+            onSelect: function (rowIndex, row) {
+
+            }
+        });
+    }
+
+    //房屋合約
+    function initCONTRAH() {
+        var value = $('#f205HOUSE').combogrid('getValue');
+        if (value != null) {
+            var obj = {};
+            obj.CNO = $.trim(value);
+            $.ajax({
+                url: '@Url.Action("getCONTRAH", "Frm201")',
+                type: "post",
+                data: obj,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    if (data.length > 0) {
+                        $('#f205CONTRAH_TAGID').val($.trim(data[0].TAGID));
+                        var obj1 = {};
+                        obj1.TAGID = $.trim(data[0].TAGID);
+                        //姓名列表
+                        $('#f205NAME').combobox({
+                            url: '@Url.Action("getOWNER2", "Frm201c")',
+                            valueField: 'CNM',
+                            textField: 'CNM',
+                            editable: false,
+                            required: true,
+                            onBeforeLoad: function (param) {
+                                param.TAGID = obj1.TAGID;
+                            },
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    function initf205FORM(row) {
+
+
+        if ($.trim(row.FIXAREA) == "1") {
+            $('input[name=f205FIXAREA][value=1]').prop("checked", true);
+            //  initFix205(1);
+        } else if ($.trim(row.FIXAREA) == "2") {
+            $('input[name=f205FIXAREA][value=2]').prop("checked", true);
+            //  initFix205(2);
+        } else if ($.trim(row.FIXAREA) == "3") {
+            $('input[name=f205FIXAREA][value=3]').prop("checked", true);
+            //  initFix205(3);
+        }
+        $('#f205FIXDT').datebox('setValue', row.FIXDT);
+        $('#f205HOUSE').combogrid('setValue', $.trim(row.RMNO));
+
+        $('#f205FIXTP').combobox('setText', $.trim(row.FIXTP));
+        $('#f205FIXITEM').combobox('setText', $.trim(row.FIXITEM));
+        $('#f205FIXAMT').val($.trim(row.FIXAMT));
+        $('#f205NOTES').val($.trim(row.NOTES));
+
+        $('#f205LOGUSR').combobox('setText', $.trim(row.LOGUSR));
+        $('#f205TAGID').val(row.TAGID);
+
+        $('#f205EDIT1').html('請修項目:' + $.trim(row.FIXTP) + '<br>備註說明:' + $.trim(row.NOTES));
+    }
+
+    function doAdd() {
+        if (doCheck()) {
+            var obj = getObj();
+            obj.TAGID = null;
+            $.ajax({
+                url: '@Url.Action("doAdd", "Frm205")',
+                type: "post",
+                data: obj,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    if (data.status != '0') {
+                        $('#f205DG1').datagrid('reload');
+                        $.messager.alert('系統訊息', '資料已新增!', 'info');
+                    }
+                }
+            });
+        }
+    }
+
+    function doSave() {
+        if (doCheck()) {
+            var obj = getObj();
+            obj.TAGID = $('#f205TAGID').val();
+
+            $.ajax({
+                url: '@Url.Action("doSave", "Frm205")',
+                type: "post",
+                data: obj,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    if (data.status != '0') {
+                        $('#f205DG1').datagrid('reload');
+                        $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                    }
+                }
+            });
+        }
+    }
+
+    function getObj() {
+        var obj = {};
+        obj.FIXAREA = $("input[name='f205FIXAREA']:checked").val();
+        obj.FIXDT = $('#f205FIXDT').datebox('getValue');
+        obj.RMNO = $('#f205HOUSE').combogrid('getValue');
+        obj.FIXTP = $('#f205FIXTP').combobox('getText');
+        obj.FIXITEM = $('#f205FIXITEM').combobox('getText');
+        obj.FIXAMT = $('#f205FIXAMT').val();
+        obj.NOTES = $('#f205NOTES').val();
+        obj.LOGUSR = $('#f205LOGUSR').combobox('getText');
+        return obj;
+    }
+
+
+    function doClear() {
+        $('#f205FIXDT').datebox('setValue', '');
+        $('#f205HOUSE').combogrid('setValue', '');
+
+        $('#f205FIXTP').combobox('setValue', '');
+        $('#f205FIXITEM').combobox('setValue', '');
+        $('#f205FIXAMT').val('0');
+        $('#f205NOTES').val('');
+
+        $('#f205LOGUSR').combobox('setText', '');
+        $('#f205TAGID').val('');
+    }
+
+    //完成
+    function doSuccess() {
+
+        var row = $('#f205DG1').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('執行確認', ' 你確定要結案?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.TAGID = $.trim(row.TAGID);
+                    obj.ENDNOTE = $('#f205ENDNOTE').val();
+                    $.ajax({
+                        url: '@Url.Action("doSuccess", "Frm205")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f205DG1').datagrid('reload');
+                                $('#f205DG2').datagrid('reload');
+                                $.messager.alert('系統訊息', "資料儲存完成!", 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+        }
+    }
+
+    //作廢
+    function doRemove() {
+        var row = $('#f205DG1').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('執行確認', '確定要作廢?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.TAGID = $.trim(row.TAGID);
+                    $.ajax({
+                        url: '@Url.Action("doRemove", "Frm205")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f205DG1').datagrid('reload');
+                                doClear();
+                                $.messager.alert('系統訊息', '選取資料已作廢!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+        }
+    }
+
+    function initFix205(code) {
+        if (code == 1) {
+            $('#fixAreaName').text('修繕別');
+        } else {
+            $('#fixAreaName').text('修繕地點');
+        }
+
+
+        $('#f205FIXTP').combobox({
+            url: '@Url.Action("getFIX205", "Frm205")',
+            valueField: 'CNO',
+            textField: 'CNM',
+            editable: false,
+            onBeforeLoad: function (param) {
+                param.CODE = code;
+            },
+            onSelect: function (record) {
+                $('#f205FIXITEM').combobox({
+                    url: '@Url.Action("getFIX205ITEM", "Frm205")',
+                    valueField: 'CNO',
+                    textField: 'CNM',
+                    editable: false,
+                    onBeforeLoad: function (param) {
+                        param.CODE = record.CNO;
+                    }
+                });
+            }
+        });
+    }
+
+    function qinitFix205(code) {
+
+        $('#qf205FIXTP').combobox({
+            url: '@Url.Action("getFIX205", "Frm205")',
+            valueField: 'CNO',
+            textField: 'CNM',
+            editable: false,
+            onBeforeLoad: function (param) {
+                param.CODE = code;
+            },
+            onSelect: function (record) {
+                $('#qf205FIXITEM').combobox({
+                    url: '@Url.Action("getFIX205ITEM", "Frm205")',
+                    valueField: 'CNO',
+                    textField: 'CNM',
+                    editable: false,
+                    onBeforeLoad: function (param) {
+                        param.CODE = record.CNO;
+                    }
+                });
+            }
+        });
+    }
+
+    function doQuery() {
+        var obj = {};
+        obj.FIXAREA = $("input[name='qf205FIXAREA']:checked").val();
+        obj.FIXTP = $('#qf205FIXTP').combobox('getText');
+        obj.SDT = $('#qf205SDT').datebox('getValue');
+        obj.EDT = $('#qf205EDT').datebox('getValue');
+        obj.FIXITEM = $('#qf205FIXITEM').combobox('getText');
+        obj.RMNO = $('#qf205HOUSE').combobox('getValue');
+        obj.END = $("input[name='qf205END']:checked").val();
+        $('#f205DG3').datagrid('reload', obj);
+    }
+
+    function doExport() {
+        var obj = {};
+        obj.FIXAREA = $("input[name='qf205FIXAREA']:checked").val();
+        obj.FIXTP = $('#qf205FIXTP').combobox('getText');
+        obj.SDT = $('#qf205SDT').datebox('getValue');
+        obj.EDT = $('#qf205EDT').datebox('getValue');
+        obj.FIXITEM = $('#qf205FIXITEM').combobox('getText');
+        obj.RMNO = $('#qf205HOUSE').combobox('getValue');
+        obj.END = $("input[name='qf205END']:checked").val();
+        window.location = "@Url.Action("doExport", "frm205")" + '?FIXAREA=' + obj.FIXAREA + '&FIXTP=' + obj.FIXTP + '&SDT=' + obj.SDT + '&EDT=' + obj.EDT + '&FIXITEM=' + obj.FIXITEM + '&RMNO=' + obj.RMNO + '&END=' + obj.END;
+    }
+
+    /*
+    $.ajax({
+        type: 'post',
+        url: project.ActionUrls.HasData,
+        dataType: 'json',
+        cache: false,
+        async: false,
+        success: function (data) {
+            if (data.Msg) {
+                current.HasData = data.Msg;
+                if (current.HasData == 'False') {
+                    project.AlertErrorMessage("錯誤", "尚未建立任何資料, 無法匯出資料.");
+                }
+                else {
+                    window.location = project.ActionUrls.ExportData;
+                }
+            }
+        },
+        error: function (xhr, textStatus, errorThrown) {
+            $("#UploadForm").resetForm();
+            project.AlertErrorMessage("錯誤", "資料匯出錯誤");
+        }
+    });
+    */
+    function doCheck() {
+        var b = false;
+        if ($('#f205HOUSE').combogrid('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取房屋編號!', 'warning');
+        } else if ($('#f205FIXTP').combobox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取修繕別!', 'warning');
+        } else if ($('#f205FIXITEM').combobox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取修繕項目!', 'warning');
+        } else if ($('#f205FIXAMT').val()=='') {
+            $.messager.alert('系統訊息', '尚未輸入費用金額!', 'warning');
+        } else {
+            b = true;
+        }
+
+        return b;
+    }
+
+
+
+</script>
+<h2>Frm205 工程修繕作業</h2>
+今天日期 <input type="text" id="NOWDT" name="NOWDT" class="easyui-datebox" style="width:160px;height:28px" data-options="disabled:true" /><br /><br />
+
+<input type="hidden" id="f205TAGID" name="f205TAGID" />
+<div id="ttf205" class="easyui-tabs"  style="height:650px;width:1024px">
+    <div title="報修作業" style="padding:10px" data-options="iconCls:'Calendar-icon',fit:true">
+        <a id="btnCAdd" href="#" class="easyui-linkbutton" data-options="iconCls:'add-icon'" onclick="doAdd()">新增</a>
+        <a id="btnCSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSave()">修改 </a>
+        <a id="btnClear" href="#" class="easyui-linkbutton" data-options="iconCls:'note-delete-icon'" onclick="doRemove()">作廢</a>
+        <table width="800" border="1">
+            <tr>
+                <td><div  align="right">修繕區域</div></td>
+                <td>
+                    <input name="f205FIXAREA" id="f205FIXAREA" type="radio" value="1" onclick="initFix205(1)" />
+                    住宅區
+                    <input name="f205FIXAREA" id="f205FIXAREA" type="radio" value="2" onclick="initFix205(2)" />
+                    公共區
+                    <input name="f205FIXAREA" id="f205FIXAREA" type="radio" value="3" onclick="initFix205(3)" />
+                    俱樂部
+                </td>
+            </tr>
+            <tr>
+                <td><div align="right">修繕日期</div></td>
+                <td><input type="text" id="f205FIXDT" name="f205FIXDT" class="easyui-datebox" style="width:160px;height:28px" data-options="prompt:'YYYY-MM-DD',validType:['date']" /></td>
+            </tr>
+            <tr>
+                <td width="136"><div align="right">房屋編號</div></td>
+                <td width="648">
+                    <input type="text" name="f205HOUSE" id="f205HOUSE" style="width:80px" data-options="required:true" />
+                </td>
+            </tr>
+            <tr>
+                <td><div id="fixAreaName" align="right">修繕別</div></td>
+                <td>
+                    <input type="text" id="f205FIXTP" name="f205FIXTP" class="easyui-combobox" style="width:250px;height:28px" data-options="required:true" />
+                </td>
+            </tr>
+            <tr>
+                <td><div align="right">修繕項目</div></td>
+                <td>
+                    <input type="text" id="f205FIXITEM" name="f205FIXITEM" class="easyui-combobox" style="width:250px;height:28px" data-options="required:true" />
+                </td>
+            </tr>
+            <tr>
+                <td><div align="right">費用金額</div></td>
+                <td><input type="text" name="f205FIXAMT" id="f205FIXAMT" style="width:80px" data-options="required:true" value="0" /></td>
+            </tr>
+            <tr>
+                <td valign="top"><div align="right">備註說明</div></td>
+                <td valign="top">
+                    <label>
+                        <textarea id="f205NOTES" name="f205NOTES" cols="50" rows="10" ></textarea>
+                    </label>
+                </td>
+            </tr>
+
+            <tr>
+                <td><div align="right">記錄人員</div></td>
+                <td>
+                    <input type="text" id="f205LOGUSR" name="f205LOGUSR" style="width:180px;height:28px" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div title="待修案件" style="padding:10px" data-options="iconCls:'Calendar-icon'">
+        <a id="btnCok" href="#" class="easyui-linkbutton" data-options="iconCls:'accept-icon'" onclick="doSuccess()">結案</a> 
+        <a id="btnClear1" href="#" class="easyui-linkbutton" data-options="iconCls:'note-delete-icon'" onclick="doRemove()">作廢</a>
+            <br />結案說明<br />
+            <textarea id="f205ENDNOTE" name="f205ENDNOTE" cols="50" rows="2"></textarea>                    
+        <table id="f205DG1" ></table>
+        <div id="f205EDIT1" ></div>   
+    </div>
+    <div title="結案記錄" style="padding:10px" data-options="iconCls:'Calendar-icon'">
+        <textarea id="f205EDIT2" name="f205EDIT2" cols="50" rows="3"></textarea>   
+        <table id="f205DG2"></table>
+    </div>
+    <div title="案件查詢" style="padding:10px" data-options="iconCls:'Calendar-icon'">
+        <a id="btnQuery" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery()">查詢</a> 
+        <a id="btnExport" href="#" class="easyui-linkbutton" data-options="iconCls:'excel-icon'" onclick="doExport()">匯出Excel</a> 
+        <table width="800" border="1">
+            <tr>
+                <td><div align="right">修繕區域</div></td>
+                <td>
+                    <input name="qf205FIXAREA" id="qf205FIXAREA" type="radio" value="1" onclick="qinitFix205(1)" />
+                    住宅區
+                    <input name="qf205FIXAREA" id="qf205FIXAREA" type="radio" value="2" onclick="qinitFix205(2)" />
+                    公共區
+                    <input name="qf205FIXAREA" id="qf205FIXAREA" type="radio" value="3" onclick="qinitFix205(3)" />
+                    俱樂部
+                </td>
+                <td><div align="right">修繕別</div></td>
+                <td><input type="text" id="qf205FIXTP" name="qf205FIXTP" class="easyui-combobox" style="width:250px;height:28px"  /></td>
+            </tr>
+            <tr>
+                <td><div align="right">修繕區間</div></td>
+                <td>
+                    起
+                    <input type="text" id="qf205SDT" name="qf205SDT" class="easyui-datebox" style="width:160px;height:28px" data-options="prompt:'YYYY-MM-DD'" /><br />
+                    迄
+                    <input type="text" id="qf205EDT" name="qf205EDT" class="easyui-datebox" style="width:160px;height:28px" data-options="prompt:'YYYY-MM-DD'" />
+                </td>
+                <td><div align="right">修繕項目</div></td>
+                <td><input type="text" id="qf205FIXITEM" name="qf205FIXITEM" class="easyui-combobox" style="width:250px;height:28px"  /></td>
+            </tr>
+            <tr>
+                <td width="96"><div align="right">房屋編號</div></td>
+                <td width="281">
+                    <input type="text" name="qf205HOUSE" id="qf205HOUSE" style="width:80px"  />
+                </td>
+                <td width="79"><div align="right">案件別</div></td>
+                <td width="316">
+                    <input name="qf205END" id="qf205END" type="radio" value="1" />
+                    報修中
+                    <input name="qf205END" id="qf205END" type="radio" value="2" />
+                    已結案
+                    <input name="qf205END" id="qf205END" type="radio" value="3" />
+                    全部
+                </td>
+            </tr>
+        </table>
+        <table id="f205DG3" ></table>
+
+    </div>
+</div>
+
+
+

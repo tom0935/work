@@ -1,0 +1,408 @@
+﻿@{
+    ViewBag.Title = "Frm207 住戶雜費作業";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+
+
+        $('#ttf207').tabs({
+            onSelect: function (title, index) {
+                switch (index) {
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                }
+            }
+        });
+
+        $("#f207DT1").datebox({
+            onSelect: function (date) {
+                //  f207DG1init();
+            }
+        });
+
+
+        //房屋編號下拉選單
+        $('#f207HOUSE').combogrid({
+            panelWidth: 200,
+            idField: 'CNO',
+            textField: 'CNO',
+            mode: 'remote',
+            method: 'get',
+            fitColumns: true,
+            url: '@Url.Action("Grid", "Frm107")',
+            columns: [[
+                { field: 'CNO', title: '房屋編號', width: 60 },
+                { field: 'DOOR', title: '門號', width: 60 },
+                { field: 'FLOR', title: '樓層', width: 60 }
+            ]],
+            onSelect: function (index, row) {
+                initCONTRAH();
+            }
+        });
+
+
+
+        //人員列表
+        $('#f207LOGUSR').combobox({
+            url: '@Url.Action("getLOGUSR", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM'
+            //editable: false
+        });
+
+
+
+        //雜費項目
+        $('#f207FEETP').combobox({
+            url: '@Url.Action("getFEETP", "Frm207")',
+            valueField: 'CNO',
+            textField: 'CNM',
+            editable: false
+        });
+
+
+
+
+
+
+    });   //ready end
+
+    $(window).load(function () {
+
+
+        var dt = new Date();
+        var nowDate = DateTimeUtil.convertDateToISOString(dt);
+        $('#f207QFEEYM').val(nowDate.substr(0, 4) + nowDate.substr(5, 2));
+        f207DG1init();
+
+        
+
+    });
+
+
+
+    function f207DG1init() {
+        var obj = {};
+        obj.RMNO = "";
+        obj.FEEYM = $('#f207QFEEYM').val();
+        $('#f207DG1').datagrid({
+            url: '@Url.Action("getDG1", "Frm207")',
+            width: '600',
+            height: '180',
+            rownumbers: true,
+            queryParams: obj,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                { field: 'RMNO', title: '房屋編號', sortable: true, width: 60, halign: "center", align: "center", sortable: true },
+                { field: 'OTHERN', title: '收費項目', sortable: true, width: 150, halign: "center", align: "center", sortable: true },
+                { field: 'AMTSUM', title: '金額', sortable: true, width: 80, halign: "center", align: "right", sortable: true },
+                { field: 'FEEYM', title: '費用月份', sortable: true, width: 90, halign: "center", align: "center", sortable: true },
+                { field: 'RNO', title: '單據號碼', sortable: true, width: 90, halign: "center", align: "center", sortable: true },
+                { field: 'RNO2', title: '簽帳單號碼', sortable: true, width: 90, halign: "center", align: "center", sortable: true },
+                { field: 'NOTES', title: '費用說明', sortable: true, width: 120, halign: "center", align: "center", sortable: true },
+
+            ]],
+            onSelect: function (rowIndex, row) {
+                initf207FORM(row);
+            }
+        });
+    }
+
+
+
+
+    //房屋合約
+    function initCONTRAH() {
+        var value = $('#f207HOUSE').combogrid('getValue');
+        if (value != null) {
+            var obj = {};
+            obj.CNO = $.trim(value);
+            $.ajax({
+                url: '@Url.Action("getCONTRAH", "Frm201")',
+                type: "post",
+                data: obj,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    if (data.length > 0) {
+                        $('#f207CONTRAH_TAGID').val($.trim(data[0].TAGID));
+                        var obj1 = {};
+                        obj1.TAGID = $.trim(data[0].TAGID);                        
+                        obj1.CNO = $.trim(value);
+                        //姓名列表
+                        $('#f207MAN').combobox({
+                            url: '@Url.Action("getOWNER2MORE", "Frm201c")',
+                            valueField: 'CNM',
+                            textField: 'CNM',
+                            editable: false,
+                            onBeforeLoad: function (param) {
+                                param.TAGID = obj1.TAGID;
+                                param.CNO = obj1.CNO;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    function initf207FORM(row) {
+        
+        $('#f207HOUSE').combogrid('setValue', $.trim(row.RMNO));
+        $('#f207FEETP').combobox('setValue', $.trim(row.FEETP));
+        $('#f207NOTES').val($.trim(row.NOTES));
+        $('#f207AMTSUM').val($.trim(row.AMTSUM));
+        $('#f207FEEYM').val($.trim(row.FEEYM));
+        $('#f207FEEYM').validatebox('validate');
+        $('#f207LOGUSR').combobox('setText', $.trim(row.LOGUSR));
+        $('#f207TAGID').val(row.TAGID);        
+        $('#f207MAN').combobox('setText', $.trim(row.MAN));
+
+        $('#f207RNO').val(row.RNO);
+        $('#f207RNO2').val(row.RNO2);
+        
+       // f207DG1init();
+    }
+
+    function doAdd() {
+        if (doCheck()) {
+            $.messager.confirm('執行確認', "確認要新增資料?", function (r) {
+                if (r) {
+                    var obj = getObj();
+                    obj.TAGID = null;
+                    $.ajax({
+                        url: '@Url.Action("doAdd", "Frm207")',
+                        type: "post",
+                        data: getObj(),
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f207DG1').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已新增!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+
+
+
+
+
+    function doSave() {
+        if (doCheck()) {
+            $.messager.confirm('執行確認', "確認儲存?", function (r) {
+                if (r) {
+                    var obj = getObj();
+                    obj.TAGID = $('#f207TAGID').val();
+                    $.ajax({
+                        url: '@Url.Action("doSave", "Frm207")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f207DG1').datagrid('reload');
+                                $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function getObj() {
+        var obj = {};
+        obj.MAN = $.trim($('#f207MAN').combobox('getText'));
+        obj.RMNO = $.trim($('#f207HOUSE').combogrid('getValue'));
+        obj.FEETP = $('#f207FEETP').combobox('getValue');
+        obj.OTHERN = $('#f207FEETP').combobox('getText');
+        obj.AMTSUM = $('#f207AMTSUM').val();
+        //M.FEEAMT = ROUND(M.AMTSUM * 100 / (100+TXRAT),0)        
+        obj.FEEYM = $('#f207FEEYM').val();
+        obj.NOTES = $.trim($('#f207NOTES').val());
+        obj.LOGUSR = $.trim($('#f207LOGUSR').combobox('getText'));
+        obj.RMTAG = $.trim($('#f207CONTRAH_TAGID').val());
+
+        obj.RNO = $('#f207RNO').val();
+        obj.RNO2 = $('#f207RNO2').val();
+
+        return obj;
+    }
+
+
+    function doClear() {
+        $('#f207TAGID').val('');
+        $('#f207MAN').combobox('setValue', '');
+        $('#f207HOUSE').combogrid('setValue', '');
+        $('#f207NOTES').val('');
+        $('#f207FEETP').combobox('setValue', '');
+        $('#f207LOGUSR').combobox('setValue', '');
+        $('#f207AMTSUM').val('');
+        $('#f207FEEYM').val('');
+        $('#f207CONTRAH_TAGID').val('');
+        $('#f207RNO').val('');
+        $('#f207RNO2').val('');
+    }
+
+
+    //作廢
+    function doRemove() {
+        var row = $('#f207DG1').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('執行確認', '確定要刪除?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.TAGID = $.trim(row.TAGID);
+                    $.ajax({
+                        url: '@Url.Action("doRemove", "Frm207")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f207DG1').datagrid('reload');
+                                doClear();
+                                $.messager.alert('系統訊息', '選取資料已刪除!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+        }
+    }
+
+
+    function doCheck() {
+        var pass = false;
+        if ($('#f207HOUSE').combobox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取住戶資料!', 'warning');
+        } else if ($('#f207FEETP').combobox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取雜費項目!', 'warning');
+        } else if ($('#f207FEEYM').validatebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入費用年月份!', 'warning');
+        } else if ($('#f207FEEYM').val().length != 6) {
+            $.messager.alert('系統訊息', '費用年月份輸入錯誤!', 'warning');
+        } else {
+            pass = true;
+        }
+        
+        return pass;
+    }
+
+
+    function doQuery() {
+        if ($('#f207QFEEYM').val() != "") {
+            var obj = {};
+            obj.RMNO = $.trim($('#f207HOUSE').combogrid('getValue'));
+            obj.FEEYM = $.trim($('#f207QFEEYM').val());
+            $('#f207DG1').datagrid('reload', obj);
+        } else {
+            $.messager.alert('系統訊息', '請輸入年月份!', 'warning');
+        }
+    }
+
+
+
+
+
+</script>
+<h2>Frm207 住戶雜費作業</h2>
+
+<a id="btnCAdd" href="#" class="easyui-linkbutton" data-options="iconCls:'add-icon'" onclick="doAdd()">新增</a>
+<a id="btnCSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSave()">存檔</a>
+<a id="btnRemove" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="doRemove()">刪除</a>
+<br />
+<br />
+<input type="hidden" id="f207TAGID" name="f207TAGID" />
+<input type="hidden" id="f207CONTRAH_TAGID" name="f207CONTRAH_TAGID" />
+<table width="1024" border="1">
+    <tr>
+        <td width="490" valign="top">
+            <table width="490" border="0">
+                <tr>
+                    <td width="105"><div align="right">住戶房號</div></td>
+                    <td width="375">
+                        <input type="text" name="f207HOUSE" id="f207HOUSE" style="width:80px" data-options="required:true" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">住戶姓名</div></td>
+                    <td>
+
+                        <select class="easyui-combobox" id="f207MAN" name="f207MAN" style="width:250px;height:28px"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">雜費項目</div></td>
+                    <td>
+                        <input type="text" id="f207FEETP" name="f207FEETP" style="width:150px;height:28px" data-options="required:true" />
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><div align="right">費用說明</div></td>
+                    <td><input type="text" id="f207NOTES" name="f207NOTES" style="width:160px;height:20px" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">單據號碼</div></td>
+                    <td><input type="text" id="f207RNO" name="f207RNO" style="width:160px;height:20px" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">簽帳單號碼</div></td>
+                    <td><input type="text" id="f207RNO2" name="f207RNO2" style="width:160px;height:20px" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">費用金額</div></td>
+                    <td>
+                        <input name="f207AMTSUM" type="text" class="easyui-validatebox" id="f207AMTSUM" style="width:80px;height:20px" value="0" />
+                        (含稅)
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">費用年月份 Ex:YYYYMM</div></td>
+                    <td><input type="text" id="f207FEEYM" name="f207FEEYM" class="easyui-validatebox" style="width:80px;height:20px" data-options="required:true" /></td>
+                </tr>
+
+                <tr>
+                    <td><div align="right">記錄人員</div></td>
+                    <td><input type="text" id="f207LOGUSR" name="f207LOGUSR" style="width:180px;height:28px" /></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr>
+            </table>
+        </td>
+        <td width="518" valign="top">
+            月份查詢<input type="text" id="f207QFEEYM" name="f207QFEEYM" style="width:80px;height:20px" /><a id="btnQuery" href="#" class="easyui-linkbutton" data-options="iconCls:'search-icon'" onclick="doQuery()">查詢</a>
+            <table id="f207DG1" data-options="fit:true"></table>
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+

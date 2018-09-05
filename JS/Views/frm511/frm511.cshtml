@@ -1,0 +1,68 @@
+﻿@{
+    ViewBag.Title = "Frm511 租約到期一覽表";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+
+    });   //ready end
+
+    $(window).load(function () {
+
+
+
+
+
+    });
+ 
+
+    function getObj() {
+        var obj = {};        
+        obj.FEEYM = $.trim($('#FEEYM').val());
+        obj.FEEYM_CHK = $("input[name='FEEYM_CHK']:checked").val();
+        return obj;
+    }
+
+  
+    function doPrint() {
+        if ($.trim($('#FEEYM').val()) != '') {
+            $('#ifm').form('submit', {
+                url: '@Url.Action("doRunReport", "Frm511")',
+                //  queryParams:obj,
+                dataType: "json",
+                contentType: "application/json",
+                onSubmit: function (param) {
+                    param.obj = JSON.stringify(getObj());
+
+                }
+            });
+
+        } else {
+            $.messager.alert('系統訊息', '尚未輸入到期年度!', 'warning');
+        }
+
+
+
+    }
+
+</script>
+<h2>Frm511 租約到期一覽表</h2>
+<a id="btnClear" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-print'" onclick="doPrint()">列印</a>
+<br />
+<br />
+ 
+<table width="800" border="1">
+    <tr>
+        <td width="50">到期年度</td>
+        <td width="411">
+            <input name="FEEYM" type="text" id="FEEYM" class="easyui-textbox" style="width:70px;height:28px" data-options="prompt:'YYYY'"> <input type="checkbox" name="FEEYM_CHK" value="*">
+            月底到期算次月件
+        </td>
+    </tr>
+
+</table>
+<form name="ifm" id="ifm" method="post" enctype="application/x-www-form-urlencoded"></form>
+

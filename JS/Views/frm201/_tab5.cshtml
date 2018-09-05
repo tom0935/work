@@ -1,0 +1,70 @@
+﻿
+@if (@ViewBag.CNHNO == null)
+{
+    <a id="btn5Contract" href="#" class="easyui-linkbutton" data-options="iconCls:'table-money-icon'" onclick="showContractManagerDialog()">租金作業</a>
+}
+<table width="650" border="1">
+    <tr>
+        <td width="106">
+            雜項合約編號<input type="hidden" id="A_TAGID" name="A_TAGID" />
+        </td>
+        <td><input type="text" id="A_CNANO" name="A_CNANO" readonly /></td>
+        <td colspan="2">&nbsp;</td>
+    </tr>
+    <tr>
+        <td>雜項名稱</td>
+        <td width="170">
+
+            <select class="easyui-combobox" id="A_OTHERN" name="A_OTHERN" style="width:250px;height:28px" data-options="editable:false">
+                <option value="附約-專線費">附約-專線費</option>
+                <option value="附約-有線電視費">附約-有線電視費</option>
+                <option value="附約-水費">附約-水費</option>
+                <option value="附約-水電瓦斯費">附約-水電瓦斯費</option>
+                <option value="附約-清潔費">附約-清潔費</option>
+                <option value="附約-其他">附約-其他</option>
+            </select>
+        </td>
+        <td colspan="2">&nbsp;</td>
+    </tr>
+    <tr>
+        <td>起租日</td>
+        <td><input type="text" id="A_DT1" name="A_DT1" class="easyui-datebox" style="width:160px;height:28px" data-options="prompt:'YYYY-MM-DD',required:true,validType:['date']" /></td>
+        <td>到期日</td>
+        <td width="228"><input type="text" id="A_DT2" name="A_DT2" class="easyui-datebox" style="width:160px;height:28px" data-options="prompt:'YYYY-MM-DD',required:true,validType:['date','isAfter[\'#A_DT1\']']" /></td>
+    </tr>
+
+    <tr>
+        <td>月租費</td>
+        <td><input type="text" id="A_RNFEE" name="A_RNFEE" /></td>
+        <td colspan="2">&nbsp;</td>
+    </tr>
+    <tr>
+        <td>繳費期</td>
+        <td colspan="3">
+            <input id="A_RNFEETP" name="A_RNFEETP" type="radio" value="1" />
+            月繳
+            <input id="A_RNFEETP" name="A_RNFEETP" type="radio" value="2" />
+            季繳
+            <input id="A_RNFEETP" name="A_RNFEETP" type="radio" value="3" />
+            半年繳
+            <input id="A_RNFEETP" name="A_RNFEETP" type="radio" value="4" />
+            年繳
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4">
+            備註<br />
+            <textarea id="A_NOTES" name="A_NOTES" cols="50" rows="5"></textarea>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4">雜項合約列表</td>
+    </tr>
+    <tr>
+        <td height="140" colspan="4" valign="top">
+            <label>
+                <table id="CONTRAA_DG"></table>
+            </label>
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,427 @@
+﻿@{
+    Layout = null;
+}
+
+<script type="text/javascript" src="~/Content/easyui/exts/datagrid-filter.js"></script>
+<script>
+    $(document).ready(function () {
+
+        $('#ContractCNHNO').val($('#CNHNO').val());
+        $('#ContractDT1').val($('#DT1').datebox('getValue'));
+        $('#ContractDT2').val($('#DT2').datebox('getValue'));
+
+
+        
+        var mm = getDiffOfMonth($('#ContractDT1').val(), $('#ContractDT2').val());
+
+        var sDT = new Date($('#DT1').datebox('getValue'));
+        
+        var ary = new Array();
+        var qdt="";
+        for (var i = 0; i < mm ; i++) {
+            var obj = {};
+            obj.id = DateTimeUtil.convertDateToISOStringYYYYMM(sDT);
+            obj.text = DateTimeUtil.convertDateToISOStringYYYYMM(sDT);
+            sDT.setMonth(sDT.getMonth() + 1);            
+            ary.push(obj);
+            if (i == 0) {
+                qdt = obj.id;
+            }
+        }
+
+        var edtDate = new Date();
+        edtDate.setDate(edtDate.getDate());
+        var edtStr = DateTimeUtil.convertDateToISOString(edtDate).substr(0,7);
+       
+        
+        $('#QDT').combobox({
+            data:ary,
+            valueField: 'id',
+            textField: 'text',
+            onLoadSuccess: function () {
+                $('#QDT').combobox('setValue', edtStr);
+            },
+            onSelect: function (record) {
+                var ContractDGselectRow = $('#ContractDG').datagrid('getSelected');
+                var FeeformDGSelectRow = $('#FeeformDG').datagrid('getSelected');
+                var obj = {};
+                if (ContractDGselectRow != null) {
+                    obj.CNNO = $.trim(ContractDGselectRow.CNNO);
+                }
+                if (FeeformDGSelectRow != null) {
+                    obj.FEETP = $.trim(FeeformDGSelectRow.FEETP);
+                }
+                var dt = $.trim(record.id);
+                //obj.FEEYM = dt.replace("-", "") ;                    
+                obj.FEEYM = record.id + "-01";
+                obj.TAGID = $.trim($('#CONTRAH_TAGID').val());
+                
+                $('#FeeformDG').datagrid('reload', obj);
+                $('#FeeformDtlDG').datagrid('reload', obj);
+            }
+        });
+        
+
+        var obj = {};
+        obj.TAGID = $.trim($('#CONTRAH_TAGID').val());
+        obj.FEEYM = $.trim($('#ContractDT2').val());
+        
+        //obj.CNNO = $.trim($('#CNHNO').val());
+        var getGridJSON = '@Url.Action("getContractDG", "Frm201")';
+        $('#ContractDG').datagrid({
+            url: getGridJSON,
+            queryParams: obj,
+            border: false,
+            rownumbers: false,
+            nowrap: true,
+            pagination: false,
+            idField: 'CNO',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                {
+                    field: 'NAME',
+                    title: '合約名稱',
+                    sortable: true,
+                    width: 76,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'CNT',
+                    title: '合約數',
+                    sortable: true,
+                    width: 45,
+                    halign: "center",
+                    align: "center",
+                    sortable: true
+                }
+            ]],
+            onSelect: function (index, row) {                
+                obj.CNNO = $.trim(row.CNNO);
+                var dt = $.trim($('#QDT').combobox('getValue'));
+                //obj.FEEYM = dt.replace("-","");
+                obj.FEEYM = dt + "-01";
+                $('#FeeformDG').datagrid('reload', obj);
+                
+            }
+        });
+
+
+
+        $('#FeeformDG').datagrid({
+            url: '@Url.Action("getFeeformDG", "Frm201")',
+            queryParams: obj,
+            border: false,
+            rownumbers: false,
+            nowrap: true,
+            pagination: false,
+            idField: 'CNO',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            showFooter: true,
+            columns: [[
+                {
+                    field: 'FEETP',
+                    title: '項次',
+                    sortable: true,
+                    width: 40,
+                    halign: "center",
+                    align: "center",
+                    sortable: true
+                },
+                {
+                    field: 'FEETP_NAME',
+                    title: '租金項目',
+                    sortable: true,
+                    width: 120,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'FEEAMT',
+                    title: '未稅金額',
+                    sortable: true,
+                    width: 100,
+                    halign: "center",
+                    align: "right",
+                    sortable: true
+                },
+                {
+                    field: 'AMTTX',
+                    title: '稅額',
+                    sortable: true,
+                    width: 80,
+                    halign: "center",
+                    align: "right",
+                    sortable: true
+                },
+                {
+                    field: 'AMTSUM',
+                    title: '含稅金額',
+                    sortable: true,
+                    width: 100,
+                    halign: "center",
+                    align: "right",
+                    sortable: true,
+                    editor: 'text'
+                }
+            ]],
+            onSelect: function (index, row) {
+                
+                var obj = {};
+                obj.TAGID = $.trim($('#CONTRAH_TAGID').val());                
+                obj.FEETP = $.trim(row.FEETP);
+                var dt = $.trim($('#QDT').combobox('getValue'));
+                obj.FEEYM = dt.replace("-", "");
+                $('#FeeformDtlDG').datagrid('reload', obj);
+                
+            }
+        });
+
+        $('#FeeformDtlDG').datagrid({
+            url: '@Url.Action("getFeeformDtlDG", "Frm201")',
+            border: false,
+            rownumbers: false,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                {
+                    field: 'FEEYM',
+                    title: '年度月份',
+                    sortable: true,
+                    width: 120,
+                    halign: "center",
+                    align: "center",
+                    sortable: true
+                },
+                {
+                    field: 'FEEAMT',
+                    title: '未稅金額',
+                    sortable: true,
+                    width: 100,
+                    halign: "center",
+                    align: "right",
+                    sortable: true
+                },
+                {
+                    field: 'AMTTX',
+                    title: '稅額',
+                    sortable: true,
+                    width: 80,
+                    halign: "center",
+                    align: "right",
+                    sortable: true
+                },
+                {
+                    field: 'AMTSUM',
+                    title: '含稅金額',
+                    sortable: true,
+                    width: 100,
+                    halign: "center",
+                    align: "right",
+                    sortable: true,
+                    editor: 'text'
+                }
+            ]],
+             onEndEdit: function (index, row, changes) {
+            }
+        });
+
+
+    });   //ready end
+
+
+    $.extend($.fn.datagrid.methods, {
+        editCell: function (jq, param) {
+            return jq.each(function () {
+                var opts = $(this).datagrid('options');
+                var fields = $(this).datagrid('getColumnFields', true).concat($(this).datagrid('getColumnFields'));
+                for (var i = 0; i < fields.length; i++) {
+                    var col = $(this).datagrid('getColumnOption', fields[i]);
+                    col.editor1 = col.editor;
+                    if (fields[i] != param.field) {
+                        col.editor = null;
+                    }
+                }
+                $(this).datagrid('beginEdit', param.index);
+                var ed = $(this).datagrid('getEditor', param);
+                if (ed) {
+                    if ($(ed.target).hasClass('textbox-f')) {
+                        $(ed.target).textbox('textbox').focus();
+                    } else {
+                        $(ed.target).focus();
+                    }
+                }
+                for (var i = 0; i < fields.length; i++) {
+                    var col = $(this).datagrid('getColumnOption', fields[i]);
+                    col.editor = col.editor1;
+                }
+            });
+        },
+        enableCellEditing: function (jq) {
+            return jq.each(function () {
+                var dg = $(this);
+                var opts = dg.datagrid('options');
+                opts.oldOnClickCell = opts.onClickCell;
+                opts.onClickCell = function (index, field) {
+                    if (opts.editIndex != undefined) {
+                        if (dg.datagrid('validateRow', opts.editIndex)) {
+                            dg.datagrid('endEdit', opts.editIndex);
+                            opts.editIndex = undefined;
+                        } else {
+                            return;
+                        }
+                    }
+                    dg.datagrid('selectRow', index).datagrid('editCell', {
+                        index: index,
+                        field: field
+                    });
+                    opts.editIndex = index;
+                    opts.oldOnClickCell.call(this, index, field);
+                }
+            });
+        }
+    });
+
+    
+    $(function () {
+        var dg = $('#FeeformDtlDG').datagrid();
+        dg.datagrid('enableFilter', [{
+            field: 'FEEYM',
+            type: 'textbox',
+            //options: { precision: 1 },
+            op: ['equal', 'notequal', 'less', 'greater']
+        }]);
+    });
+    
+
+    $(function () {
+        $('#FeeformDG').datagrid().datagrid('enableCellEditing');
+        $('#FeeformDtlDG').datagrid().datagrid('enableCellEditing');
+    })
+
+
+    function doSaveFeeformDG() {
+        var rows = $('#FeeformDG').datagrid('getRows');
+        if (rows.length > 0) {
+            $.messager.confirm('執行確認', '您確定要儲存?', function (r) {
+                if (r) {
+                    var rows = $('#FeeformDG').datagrid('getRows');
+                    var obj = {};
+                    obj.list = rows;
+                    $.ajax({
+                        url: '@Url.Action("doSaveFeeformDG", "Frm201")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                                $('#FeeformDG').datagrid('reload');
+                            } else {
+                                if (data.message != "") {
+                                    $.messager.alert('系統訊息', data.message, 'error');
+                                } else {
+                                    $.messager.alert('系統訊息', "未異動資料", 'warning');
+                                }
+                            }
+
+                        }, beforeSend: function (xhr, settings) {
+                            settings.data =
+                               settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function doSaveFeeformDtlDG() {
+        var rows = $('#FeeformDtlDG').datagrid('getRows');
+        if (rows.length > 0) {
+            $.messager.confirm('執行確認', '您確定要儲存?', function (r) {
+                if (r) {
+                    var rows = $('#FeeformDtlDG').datagrid('getRows');
+                    var obj = {};
+                    obj.list = rows;
+                    $.ajax({
+                        url: '@Url.Action("doSaveFeeformDtlDG", "Frm201")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                                $('#FeeformDtlDG').datagrid('reload');
+                            } else {
+                                if (data.message != "") {
+                                    $.messager.alert('系統訊息', data.message, 'error');
+                                } else {
+                                    $.messager.alert('系統訊息', "未異動資料", 'warning');
+                                }
+                            }
+
+                        }, beforeSend: function (xhr, settings) {
+                            settings.data = settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+
+    function getDiffOfMonth(start, end) {
+        var diff;
+        if (start == "" || end == "") {
+            diff = "";
+        }
+        var startArr = start.split('-');
+        var endArr = end.split('-');
+        if (startArr[0] == endArr[0]) {
+            diff = endArr[1] - startArr[1];
+        } else {
+            diff = (endArr[0] - startArr[0]) * 12 + (endArr[1] - startArr[1]);
+        }
+        return Math.abs(diff) + 1;
+    }
+
+
+</script>
+<div id="cc" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',split:true" style="height:90px;">
+    房屋主約<input type="text" id="ContractCNHNO" name="ContractCNHNO" readonly />  起租日<input type="text" id="ContractDT1" name="ContractDT1" readonly />到期日<input type="text" id="ContractDT2" name="ContractDT2" readonly /><br />
+        <a id="btn1" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSaveFeeformDG()">各項租金修改存檔</a>
+        <a id="btn2" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSaveFeeformDtlDG()">月份金額修改存檔</a>
+        查詢月份
+        <select id="QDT" name="QDT" class="easyui-combobox" data-options="editable:false" style="width:100px;height:28px">
+
+        </select>         
+    </div>   
+   <!-- <div data-options="region:'south',split:true" style="height:100px;"></div> -->
+    <div data-options="region:'east',title:'各月份稅額',split:true" style="width:420px;">
+        <table id="FeeformDtlDG" data-options="fit:true,modal:true"></table>
+    </div>
+    <div data-options="region:'west',title:'合約項目',split:true" style="width:130px;">
+        <table id="ContractDG" data-options="fit:true,modal:true"></table>
+    </div>
+    <div data-options="region:'center',title:'各項租金'" style="padding:5px;background:#eee;">
+        <table id="FeeformDG" data-options="fit:true,modal:true"></table>
+    </div>
+</div>
+

@@ -1,0 +1,92 @@
+﻿@{
+    Layout = null;
+}
+
+<script>
+    $(document).ready(function () {
+        var getGridJSON = '@Url.Action("Grid", "Frm106")';
+        $('#BrokernmDG').datagrid({
+           
+            url: getGridJSON,
+            border: false,
+            width: '650',
+            height: '400',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            pageSize: 0,
+            idField: 'CNO',
+            striped: true,
+            showHeader: true,
+            fitColumns: true,
+            remoteSort: true,
+            singleSelect: true,
+            sortName: 'CNO',
+            sortOrder: 'asc',
+            columns: [[
+                {
+                    field: 'CNO',
+                    title: '仲介編號',
+                    sortable: true,
+                    width: 50,
+                    halign: "center",
+                    align: "center",
+                    sortable: true,
+                },
+                {
+                    field: 'CNM',
+                    title: '仲介名稱',
+                    sortable: true,
+                    width: 120,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'TEL',
+                    title: '電話',
+                    sortable: true,
+                    width: 120,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'CPID',
+                    title: '統編',
+                    sortable: true,
+                    width: 120,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                }
+            ]],
+            onDblClickRow: function (index, row) {
+                doSelectBrokernm();
+            }
+        });
+    });   //ready end
+
+    $(function () {
+        var dg = $('#BrokernmDG').datagrid();
+        dg.datagrid('enableFilter', [{
+            field: 'A1',
+            type: 'textbox',
+            //options: { precision: 1 },
+            op: ['equal', 'notequal', 'less', 'greater']
+        }]);
+    });
+
+    function doSelectBrokernm() {
+        var row = $('#BrokernmDG').datagrid('getSelected');
+        if (row != null) {
+            $('#BROKERNM').val(row.CNM);
+            initBrokman(row.CNO, '');
+            $('#BrokernmDialog').dialog('close');
+        } else {
+            $.messager.alert('系統訊息', '您尚未選取資料!', 'warning');
+        }
+    }
+</script>
+<table id="BrokernmDG" data-options="fit:true,modal:true"></table>
+

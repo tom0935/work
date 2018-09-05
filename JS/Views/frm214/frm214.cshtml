@@ -1,0 +1,265 @@
+﻿@{
+    ViewBag.Title = "Frm214 週轉金撥補作業";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+
+        //人員列表
+        $('#f214LOGUSR').combobox({
+            url: '@Url.Action("getLOGUSR", "Frm201h")',
+            valueField: 'CNO',
+            textField: 'CNM'
+            //editable: false
+        });
+
+        f214DG1init();
+
+
+
+   
+
+
+    });   //ready end
+
+    $(window).load(function () {
+
+
+        //  $('#NOWDT').datebox('setValue', nowDate);
+
+
+        
+
+        var dt = new Date();
+        var nowDate = DateTimeUtil.convertDateToISOString(dt);
+        $('#f214FEEDT').datebox('setValue', nowDate);
+        
+        $('#f214FEEYM2').val(nowDate.substr(0, 4));
+        doQueryYm();
+
+    });
+
+
+
+    function f214DG1init() {
+        var obj = {};
+        obj.q = "";
+        $('#f214DG1').datagrid({
+            url: '@Url.Action("getDG1", "Frm214")',
+            width: '550',
+            height: '500',
+            queryParams: obj,
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,
+            idField: 'TAGID',
+            striped: true,
+            showHeader: true,
+            fitColumns: false,
+            remoteSort: false,
+            singleSelect: true,
+            columns: [[
+                { field: 'FEEDT', title: '日期', sortable: true, width: 100, halign: "center", align: "center", sortable: true },
+                { field: 'AMTSUM', title: '撥補金額', sortable: true, width: 60, halign: "center", align: "center", sortable: true },
+                { field: 'NOTES', title: '備註說明', sortable: true, width: 280, halign: "center", align: "left", sortable: true }
+            ]],
+            onSelect: function (rowIndex, row) {
+                initf214FORM(row);
+            }
+        });
+    }
+
+
+
+
+
+
+    function initf214FORM(row) {
+        // $('#f214OTHERN').combobox('setText', $.trim(row.OTHERN));        
+        $('#f214FEEDT').datebox('setValue', $.trim(row.FEEDT));        
+        $('#f214FEEDT').datebox('validate');
+        $('#f214AMTSUM').val($.trim(row.AMTSUM));
+        $('#f214AMTSUM').validatebox('validate');
+
+        $('#f214NOTES').val($.trim(row.NOTES));
+        $('#f214LOGUSR').combobox('setText', $.trim(row.LOGUSR));
+        $('#f214TAGID').val($.trim(row.TAGID));
+
+    }
+
+    function doAdd() {
+        if (doCheck()) {
+            $.messager.confirm('執行確認', "確認要新增資料?", function (r) {
+                if (r) {
+                    var obj = getObj();
+                    obj.TAGID = null;
+                    $.ajax({
+                        url: '@Url.Action("doAdd", "Frm214")',
+                        type: "post",
+                        data: getObj(),
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                doQueryYm();
+                                $.messager.alert('系統訊息', '資料已新增!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+
+
+
+    function doQueryYm() {
+        var obj = {};
+        obj.q = $('#f214FEEDT').datebox('getValue');
+        $('#f214DG1').datagrid('reload', obj);
+    }
+
+    function doQueryYm2() {
+        var obj = {};
+        obj.q = $('#f214FEEYM2').val();
+        $('#f214DG1').datagrid('reload', obj);
+    }
+
+
+    function doSave() {
+        if (doCheck()) {
+            $.messager.confirm('執行確認', "確認儲存?", function (r) {
+                if (r) {
+                    var obj = getObj();
+                    
+                    $.ajax({
+                        url: '@Url.Action("doSave", "Frm214")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                doQueryYm();
+                                $.messager.alert('系統訊息', '資料已儲存!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function getObj() {
+        var obj = {};
+        obj.FEEDT = $.trim($('#f214FEEDT').datebox('getValue'));
+        obj.AMTSUM = $.trim($('#f214AMTSUM').val());
+        obj.NOTES = $.trim($('#f214NOTES').val());
+        obj.LOGUSR = $.trim($('#f214LOGUSR').combobox('getText'));
+        obj.TAGID = $.trim($('#f214TAGID').val());
+        return obj;
+    }
+
+
+    function doClear() {
+        $('#f214FEEDT').datebox('setValue', '');
+        $('#f214AMTSUM').val('');
+        $('#f214NOTES').val('');        
+        $('#f214LOGUSR').combobox('setValue','' );
+        $('#f214TAGID').val('');
+    }
+
+
+    //作廢
+    function doRemove() {
+        var row = $('#f214DG1').datagrid('getSelected');
+        if (row != null) {
+            $.messager.confirm('執行確認', '確定要刪除資料?', function (r) {
+                if (r) {
+                    var obj = {};
+                    obj.TAGID = $.trim(row.TAGID);
+                    $.ajax({
+                        url: '@Url.Action("doRemove", "Frm214")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status != '0') {
+                                $('#f214DG1').datagrid('reload');
+                                doClear();
+                                $.messager.alert('系統訊息', '選取資料已刪除!', 'info');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('系統訊息', '尚未選取資料!', 'warning');
+        }
+    }
+
+
+    function doCheck() {
+        var pass = false;
+        if ($('#f214FEEDT').datebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未選取收入日期!', 'warning');
+        } else if ($('#f214AMTSUM').validatebox('isValid') == false) {
+            $.messager.alert('系統訊息', '尚未輸入收入金額!', 'warning');         
+        }else{
+            pass = true;
+        }
+        return pass;
+    }
+
+
+
+
+
+
+</script>
+<h2>Frm214 週轉金撥補作業</h2>
+
+<a id="btnCAdd" href="#" class="easyui-linkbutton" data-options="iconCls:'add-icon'" onclick="doAdd()">新增</a>
+<a id="btnCSave" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doSave()">存檔</a>
+<a id="btnRemove" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="doRemove()">刪除</a>
+<br />
+<br />
+<input type="hidden" id="f214TAGID" name="f214TAGID" />
+<input type="hidden" id="f214CONTRAH_TAGID" name="f214CONTRAH_TAGID" />
+<input type="hidden" id="f214FEEYM" name="f214FEEYM" />
+<table width="1024" height="500" border="1">
+    <tr>
+        <td width="490" valign="top">
+            <table width="490" border="0">
+                <tr>
+                    <td width="105"><div align="right">撥補日期</div></td>
+                    <td width="375">
+                        <input type="text" name="f214FEEDT" id="f214FEEDT" class="easyui-datebox" style="width:150px;height:28px" data-options="required:true" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><div align="right">撥補金額</div></td>
+                    <td>
+                        <input type="text" id="f214AMTSUM" name="f214AMTSUM" class="easyui-validatebox" data-options="required:true" />
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td><div align="right">備註說明</div></td>
+                    <td><input type="text" id="f214NOTES" name="f214NOTES" style="width:300px;height:20px" /></td>
+                </tr>
+                <tr>
+                    <td><div align="right">記錄人員</div></td>
+                    <td><input type="text" id="f214LOGUSR" name="f214LOGUSR" style="width:180px;height:28px"  /></td>
+                </tr>
+            </table>
+        </td>
+        <td width="518" valign="top">
+            月份查詢<input type="text" id="f214FEEYM2" name="f214FEEYM2" /><a id="btnCqy" href="#" class="easyui-linkbutton" onclick="doQueryYm2()">查詢</a>
+            <table id="f214DG1"></table>
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,66 @@
+﻿@{
+    ViewBag.Title = "Frm517 週轉金撥補明細表";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+
+    });   //ready end
+
+    $(window).load(function () {
+
+
+
+
+
+    });
+ 
+
+    function getObj() {
+        var obj = {};        
+        obj.FEEYM = $.trim($('#FEEYM').val());        
+        return obj;
+    }
+
+  
+    function doPrint() {
+        if ($.trim($('#FEEYM').val()) != '') {
+            $('#ifm').form('submit', {
+                url: '@Url.Action("doRunReport", "Frm517")',
+                //  queryParams:obj,
+                dataType: "json",
+                contentType: "application/json",
+                onSubmit: function (param) {
+                    param.obj = JSON.stringify(getObj());
+
+                }
+            });
+
+        } else {
+            $.messager.alert('系統訊息', '尚未輸入年度!', 'warning');
+        }
+
+
+
+    }
+
+</script>
+<h2>Frm517 週轉金撥補明細表</h2>
+<a id="btnClear" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-print'" onclick="doPrint()">列印</a>
+<br />
+<br />
+ 
+<table width="800" border="1">
+    <tr>
+        <td width="50">年度輸入</td>
+        <td width="411">
+            <input name="FEEYM" type="text" id="FEEYM" class="easyui-textbox" style="width:70px;height:28px" data-options="prompt:'YYYY'"> 
+        </td>
+    </tr>
+
+</table>
+<form name="ifm" id="ifm" method="post" enctype="application/x-www-form-urlencoded"></form>
+

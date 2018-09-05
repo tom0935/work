@@ -1,0 +1,147 @@
+﻿@{
+    ViewBag.Title = "Frm520 設備分佈報表";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+<script type="text/javascript" src="~/Content/easyui/exts/validatebox-ext.js"></script>
+<script>
+    $(document).ready(function () {
+
+        Initialize_DataGrid();
+    });   //ready end
+
+    $(window).load(function () {
+
+
+
+
+
+    });
+ 
+    function Initialize_DataGrid() {
+        var getGridJSON = '@Url.Action("Grid", "Frm105")';
+        $('#DataGrid').datagrid({
+            title: '設備資料維護',
+            url: getGridJSON,
+            width: '650',
+            height: '400',
+            rownumbers: true,
+            nowrap: true,
+            pagination: false,            
+            idField: 'CNO',
+            striped: true,
+            showHeader: true,
+            fitColumns: true,
+            remoteSort: true,
+            singleSelect: false,
+            sortName: 'CNO',
+            sortOrder: 'asc',
+            columns: [[
+               { field: 'CHK', title: '列印', sortable: true, width: 10, halign: "center", align: "center", checkbox: true },
+                {
+                    field: 'CNO',
+                    title: '設備編號',
+                    sortable: true,
+                    width: 50,
+                    halign: "center",
+                    align: "center",
+                    sortable: true,
+                },
+                {
+                    field: 'CNM',
+                    title: '設備名稱',
+                    sortable: true,
+                    width: 120,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'MAKR',
+                    title: '製造商',
+                    sortable: true,
+                    width: 120,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'SPEC',
+                    title: '規格',
+                    sortable: true,
+                    width: 120,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'KIND',
+                    title: '設備分類',
+                    sortable: true,
+                    width: 120,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                },
+                {
+                    field: 'ASET',
+                    title: '新光資產項',
+                    sortable: true,
+                    width: 120,
+                    halign: "center",
+                    align: "left",
+                    sortable: true
+                }
+            ]]
+        });
+
+    }
+
+
+
+    /*
+    function getObj() {
+        var obj = {};        
+        obj.FEEYM = $.trim($('#FEEYM').val());
+        obj.OPT = $("input[name='OPT']:checked").val();
+        return obj;
+    }*/
+
+  
+    function doPrint() {
+        var row = $('#DataGrid').datagrid('getChecked');
+        if (row.length > 0 ) {
+            $('#ifm').form('submit', {
+                url: '@Url.Action("doRunReport", "Frm520")',
+                //  queryParams:obj,
+                dataType: "json",
+                contentType: "application/json",
+                onSubmit: function (param) {
+                    param.list = JSON.stringify(row);
+                }
+            });
+
+        } else {
+            $.messager.alert('系統訊息', '尚未選取設備!', 'warning');
+        }
+
+
+
+    }
+
+</script>
+<h2>Frm520 設備分佈報表</h2>
+<a id="btnClear" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-print'" onclick="doPrint()">列印</a>
+<br />
+<br />
+ 
+<table width="379" border="1">
+    <tr>
+        <td width="106" height="305" valign="top">選擇設備</td>
+        <td width="257" valign="top">
+            <table id="DataGrid"></table>
+        </td>
+    </tr>
+</table>
+<form name="ifm" id="ifm" method="post" enctype="application/x-www-form-urlencoded"></form>
+
