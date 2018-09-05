@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.AspNet.WebPages.OAuth.zh-Hant</id>
+    <version>3.2.6</version>
+    <title>Microsoft WebPages OAuth 程式庫 繁體中文 資源</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <licenseUrl>http://www.microsoft.com/web/webpi/eula/net_library_eula_CHT.htm</licenseUrl>
+    <projectUrl>https://www.asp.net/web-pages</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>此套件包含 ASP.NET Web Pages OAuth 的 繁體中文 附屬組件。</description>
+    <summary>Microsoft.AspNet.WebPages.OAuth 套件的 繁體中文 資源</summary>
+    <releaseNotes>Please visit http://go.microsoft.com/fwlink/?LinkID=403011 to view the release notes.</releaseNotes>
+    <copyright>© Microsoft Corporation. 著作權所有，並保留一切權利。</copyright>
+    <language>zh-Hant</language>
+    <tags>Microsoft AspNet WebPages AspNetWebPages OpenId OAuth authentication</tags>
+    <dependencies>
+      <dependency id="Microsoft.AspNet.WebPages.OAuth" version="[3.2.6]" />
+    </dependencies>
+  </metadata>
+</package>
