@@ -1,0 +1,1033 @@
+﻿   @Styles.Render("~/Content/css")
+   
+ 
+@section scripts
+{
+    <link href="~/Content/easyui/themes/bootstrap/easyui.css" rel="stylesheet" />	
+	<link href="~/Content/easyui/themes/icon.css" rel="stylesheet" type="text/css">
+	<link href="~/Content/easyui/demo/demo.css" rel="stylesheet" type="text/css" >
+    <link href="~/Content/mystyle.css" rel="stylesheet" type="text/css" >
+
+    <script src="~/Content/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="~/Content/easyui/locale/easyui-lang-zh_TW.js"></script>
+    <script type="text/javascript" src="~/Content/easyui/easyloader.js"></script>
+    <script type="text/javascript" src="~/Content/easyui/exts/datebox-ext.js"></script>
+    <script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+    
+ <script type="text/javascript">
+     $(document).ready(function () {
+
+
+
+        $('#form1').form({
+            url: '@Url.Action("doRunReport", "CakeCodeManager")'
+        });
+
+        $('#POSPNM').textbox({ onClickButton: function () {
+            openOrderDialog();
+          }          
+        });
+
+        $('#SearchFixBtn').textbox({ onClickButton: function () {
+             var obj={};
+            obj.SEARCH=$('#SearchFixBtn').textbox('getValue');
+            $('#FixCakeOrderList').datagrid('reload',obj);
+          }          
+        });
+
+
+
+        initFixCakeOrderList();
+
+        
+
+     });//ready end
+
+     $(window).load(function () {
+           // initOrderDataGrid();
+
+           InitProductGrid();
+         $('#COMP1').combobox({
+	        onSelect: function(newValue, oldValue){      
+               $('#DEPT1').combobox('clear');          
+		       $('#DEPT1').combobox('reload');
+	        }
+        });
+
+
+        //部門
+        $('#DEPT1').combobox({
+            url: '@Url.Action("getDPT", "CakeCodeManager")',
+            valueField: 'CODE',
+            textField: 'NAME',
+           onBeforeLoad: function (param) {            
+              var CODE= $('#COMP1').combobox('getValue');
+               param.CODE = CODE;
+           }
+        });
+        $('#COMP1').combobox('setValue', '01');
+
+          /*
+           $("#POSPNM").textbox('textbox').bind('keypress', function (e) {
+                if (e.which == 13) {
+                      openOrderDialog();
+                }
+            });
+            */
+        
+     });
+
+
+     function dlgCheckNowDate(obj) {
+         var edtDate = new Date();
+         edtDate.setDate(edtDate.getDate());
+         var edtStr = DateTimeUtil.convertDateToISOString(edtDate);
+         $('#' + obj).datebox('setValue', edtStr);
+     }
+
+     function productCheckall() {
+         $('#SPOSNO').textbox('setValue','0000000');  
+         $('#EPOSNO').textbox('setValue','ZZZZZZZ');
+     }
+
+     function departCheckall() {
+         $('#SDEPART').textbox('setValue', '0000');
+         $('#EDEPART').textbox('setValue', '9999');
+     }
+
+     function doRunReport(rptCode,title) {     
+      
+       if($('#form1').form('validate')){
+       //$('#frameAttachment').contents().find('body').html("讀取中...請稍候!");
+       
+
+
+        var x = document.getElementById("frameAttachment");
+        var y = (x.contentWindow || x.contentDocument);
+        if (y.document)y = y.document;
+        y.body.style.backgroundColor = "white";
+        y.body.innerHTML = "讀取中...請稍候!";
+
+        //document.getElementById('frameAttachment').contentWindow.location.reload();
+
+        // $('#SPOSNO').textbox('getValue');      
+         $('#RPT').val(rptCode);         
+         //$.messager.progress();
+        var RPT=rptCode;
+        var SDT=$('#SDT').datebox('getValue');
+        var EDT=$('#EDT').datebox('getValue');
+        var COMP=$('#COMP').combobox('getValue');
+        var SDEPART=$('#SDEPART').textbox('getValue');
+        var EDEPART=$('#EDEPART').textbox('getValue');
+        var SPOSNO=$('#SPOSNO').textbox('getValue'); 
+        var EPOSNO=$('#EPOSNO').textbox('getValue'); 
+        var QTY_TYPE=$("input[name='QTY_TYPE']:checked").val(); 
+        
+   //  $('#win').window('setTitle',title);
+
+       //測試開啟ReportViewer
+      //window.open("@Url.Action("ViewPage1","CakeCodeManager")"+'?RPT=' + RPT + '&SDT=' +SDT +'&EDT=' +EDT +'&COMP='+ COMP+'&SDEPART='+SDEPART+'&EDEPART='+EDEPART+'&SPOSNO='+SPOSNO+'&EPOSNO='+EPOSNO ,"","_blank");
+
+       //開啟PDF       
+        
+        if(rptCode!=6){
+            $('#frameAttachment').attr('src',"@Url.Action("doRunReport","CakeCodeManager")"+'?RPT=' + RPT + '&SDT=' +SDT +'&EDT=' +EDT +'&COMP='+ COMP+'&SDEPART='+SDEPART+'&EDEPART='+EDEPART+'&SPOSNO='+SPOSNO+'&EPOSNO='+EPOSNO+'&QTY_TYPE='+QTY_TYPE);
+            $('#win').window('open'); 
+            $('#win').window('refresh');
+        }else{
+            $('#frameAttachment').attr('src',"@Url.Action("doRunReportExcel","CakeCodeManager")"+'?RPT=' + RPT + '&SDT=' +SDT +'&EDT=' +EDT +'&COMP='+ COMP+'&SDEPART='+SDEPART+'&EDEPART='+EDEPART+'&SPOSNO='+SPOSNO+'&EPOSNO='+EPOSNO+'&QTY_TYPE='+QTY_TYPE);
+        }
+        /*
+         $('#form1').form('submit', {
+             onSubmit: function () {
+
+             },
+             success: function (data) {
+              
+            }
+         });
+         */
+       }
+     }
+
+     $.extend($.fn.datebox.defaults.rules, {
+         validDate: {
+             validator: function (value) {
+                 var date = $.fn.datebox.defaults.parser(value);
+                 var s = $.fn.datebox.defaults.formatter(date);
+                 return s == value;
+             },
+             message: '請輸入正確的日期格式(YYYY-MM-DD)'
+         },
+         matchLength: {
+             validator: function (value, param) {
+                 return value.length == param[0];
+             },
+             message: '長度應為 {0} 位數!'
+         }
+
+     });
+     /*
+   function initOrderDataGrid() {
+         var getGridJSON = '@Url.Action("OrderGrid", "CakeOrdersManager")';
+         $('#OrderDataGrid').datagrid({        
+             autoRowHeight: false,
+             url: getGridJSON,
+             border: false,             
+             nowrap: false,
+             pagination: true,
+            fit:true,
+             pageSize: 20,
+             pageList: [20, 50, 100],
+             idField: 'ODDNO',
+             striped: true,
+             showHeader: true,
+             fitColumns: true,
+             remoteSort: true,
+             singleSelect: true,
+             sortName: 'ODDNO',
+             sortOrder: 'desc',             
+             rownumbers: true,
+             striped: true,
+             showPageList: true,
+             pagePosition: 'bottom',
+             columns: [[
+                    { field: 'ODDNO',
+                        title: '單號',
+                        sortable: true,
+                        width: 100,
+                        halign: "center",
+                        align: "center"
+                    },
+                    { field: 'COMP',
+                        title: '公司',
+                        sortable: true,
+                        width: 100,
+                        halign: "center",
+                        align: "center",
+                        sortable: true,
+                        formatter: function (value, objRow, iIndex) {                          
+                          return value + " " + objRow.COMP_NAME;
+                        }
+                    },
+                    { field: 'DEPT',
+                        title: '部門',
+                        sortable: true,
+                        width: 100,
+                        halign: "center",
+                        align: "left",
+                        sortable: true,
+                        formatter: function (value, objRow, iIndex) {                          
+                          return value + " " + objRow.DEPT_NAME;
+                        }
+                    },
+                    { field: 'OUSER',
+                        title: '建單人員',
+                        sortable: true,
+                        width: 100,
+                        halign: "center",
+                        align: "center",
+                        sortable: true
+                    },  
+                    { field: 'ODATE',
+                        title: '建單時間',
+                        sortable: true,
+                        width: 100,
+                        halign: "center",
+                        align: "center",
+                        sortable: true
+                    },                                       
+                    {
+                        field: 'SDATE',
+                        title: '出貨日期時間',
+                        sortable: true,
+                        width: 150,
+                        halign: "center",
+                        align: "center",
+                        sortable: true
+                    },
+                    {
+                        field: 'STATUS',
+                        title: '狀態',
+                        sortable: true,
+                        width: 50,
+                        halign: "center",
+                        align: "center",
+                        sortable: true,
+                        styler: function (value, row, index) {
+                            //font-weight:bold
+                            sstr = "";
+                            if (row.STATUS == "O") {
+                                sstr = "color:#FF9900;font-weight: bold;";
+                            } else if ( row.STATUS == "P" ) {
+                                sstr = "color:#336600;font-weight: bold;";
+                            } else if (row.STATUS == "C") {
+                                sstr = "color:red;";
+                            }else if(row.STATUS == "F"){
+                                sstr = "color:blue;";
+                            }
+                            return sstr;
+                        },
+                        formatter: function (value, objRow, iIndex) {                          
+                          return objRow.STATUS_STR;
+                        }
+
+                    }
+                ]],
+             onSelect: function (rowIndex, rowData) {
+                 initOrderDetailDataGrid(rowData.ODDNO);                 
+                  //$('#DtlDataGrid').datagrid('getPanel').panel('setTitle','訂單明細 訂單編號:'+ rowData.ODDNO + ' 出貨日期時間:'+rowData.SDATE + '('+rowData.COMP_NAME+rowData.DEPT_NAME+')');  
+             }
+         });
+
+      }     
+      */
+      /*
+     function initOrderDetailDataGrid(oddno) {
+          var getGridJSON = '@Url.Action("OrderDetailGrid", "CakeOrdersManager")';
+          var obj = {};          
+          obj.ODDNO = oddno;
+          $('#DtlDataGrid').datagrid({
+          autoRowHeight: false,
+              url: getGridJSON,
+              border: false,
+              queryParams: obj,
+              rownumbers: true,
+              nowrap: false,           
+              fit: true,
+              idField: 'UUID',
+              striped: true,
+              showHeader: true,
+              fitColumns: true,
+              remoteSort: true,
+              singleSelect: true,
+              sortName: 'PDNO',              
+              title:oddno,
+              sortOrder: 'asc',              
+              rownumbers: true,
+              striped: true,           
+              columns: [[
+                    { field: 'PDNO',
+                        title: '商品代碼',
+                        sortable: true,
+                        width: 80,
+                        halign: "center",
+                        align: "center"
+                    },
+                    { field: 'QTY',
+                        title: '預定數量',
+                        sortable: true,
+                        width: 40,
+                        halign: "center",
+                        align: "right",
+                        sortable: true
+                    }, 
+                    { field: 'AQTY',
+                        title: '實訂數量',
+                        sortable: true,
+                        width: 50,
+                        halign: "center",
+                        align: "right",
+                        sortable: true,
+                        formatter:function(value,objRow,index){
+                          var strValue;
+                          if(value !=objRow.QTY ){ 
+                             strValue ="<a title='調整歷程' href='#' onclick=addDialog('"+objRow.UUID+"','"+objRow.QTY+"')>"+value+"</a>";
+                           }else{
+                             strValue=value;
+                           }                   
+                           return strValue;
+                        },
+                        styler: function (value, objRow, index) {
+                          var strValue;
+                           if(value !=objRow.QTY){ 
+                             strValue = "background-color:#FFC8C8;color:white";
+                           }
+                           return strValue;
+                        }
+                    },
+                    { field: 'SQTY',
+                        title: '實領數量',
+                        sortable: true,
+                        width: 40,
+                        halign: "center",
+                        align: "right",
+                        sortable: true,     
+                        formatter: function (value, objRow, iIndex) {
+                            var strValue;
+                            if(value=="" || value==null ){
+                              strValue =objRow.AQTY;
+                            }else{
+                              strValue=value;
+                            }
+                            return strValue;
+                        }
+                     },
+                    {
+                        field: 'PDNAME',
+                        title: '商品名稱',
+                        sortable: true,
+                        width: 160,
+                        halign: "center",
+                        align: "left",
+                        sortable: true
+                    },
+                    {
+                        field: 'PRICE',
+                        title: '預估收入',
+                        sortable: true,
+                        width: 50,
+                        halign: "center",
+                        align: "right",
+                        sortable: true,
+                        formatter:function(value,objRow,index){                          
+                           if(objRow.SQTY !=""  ){ 
+                              value =objRow.SQTY * value;
+                           }else{
+                              value =objRow.QTY * value;
+                           }
+                           return value;
+                        }
+                    },
+                    {
+                        field: 'COST',
+                        title: '成本',
+                        sortable: true,
+                        width: 50,
+                        halign: "center",
+                        align: "right",
+                        sortable: true
+                    },
+                    {
+                        field: 'REMARK',
+                        title: '備註',
+                        sortable: true,
+                        width: 90,
+                        halign: "center",
+                        align: "left",
+                        sortable: true
+                    },
+                    {
+                        field: 'CAKE_REMARK',
+                        title: '點心房備註',
+                        sortable: true,
+                        width: 60,
+                        halign: "center",
+                        align: "left",
+                        sortable: true                     
+                    }
+                ]]
+          });          
+      }
+      */
+    function doQuery(){
+       //var obj={};    
+       //obj.ODDNO = $('#SEARCH').textbox('getValue').toUpperCase();
+       //obj.Q ="Y";
+          var obj = {};
+         obj.MODE = 'Q';
+         
+         var searchValue = $('#POSPNM').textbox('getValue').toUpperCase();
+         obj.SNAME = searchValue;
+        $('#ProductDataGrid').datagrid('reload',obj);
+      //  initOrderDetailDataGrid(obj.ODDNO);
+    }  
+
+
+   function openOrderDialog(){
+     doQuery();
+        $('#OrderDialog').dialog({
+             title:"請選擇資料",
+             width: 400,
+             height: 500,
+             closed: false,
+             cache: false,
+             modal: true,
+             resizable:true,
+             collapsible:true,
+             maximizable:true,
+             iconCls: 'application-edit',
+             buttons: [{
+                 text: '選取',
+                 iconCls: 'application-edit',
+                 handler: function () {
+                   dtlRow=$('#ProductDataGrid').datagrid('getSelected');
+                   if(dtlRow!=null){
+                      showForm();
+                       $('#OrderDialog').dialog('close');
+                   }else{
+                      $.messager.alert('系統訊息', '您尚未選取產品', 'warning');   
+                   }
+                 }
+             }, {
+                 text: '取消',
+                 iconCls: 'icon-cancel',
+                 handler: function () {
+                    
+                     $('#OrderDialog').dialog('close');
+                 }
+             }]
+
+         });  
+         
+         
+                   
+      }
+
+
+      function showForm(){
+       //  row=$('#OrderDataGrid').datagrid('getSelected');
+         dtlRow=$('#ProductDataGrid').datagrid('getSelected');
+
+         if(dtlRow!=null){                       
+            $('#POSPNM').textbox('setValue',dtlRow.POSPNM);
+            $('#POSPNO').val(dtlRow.POSPNO);
+            $('#PRICE').numberbox('setValue',dtlRow.PRICE);
+            $('#COST').numberbox('setValue',dtlRow.COST);
+         }
+      }
+     
+     /*
+      function showFormByDG(){
+
+        var row=$('#FixCakeOrderList').datagrid('getSelected');
+      if(row!=null){
+        var obj={};
+        obj.UUID=row.UUID;
+         $.ajax({
+           url: '@Url.Action("getFixCakeOrderList", "CakeCodeManager")',
+           type: "post",
+           data: obj,
+           dataType: "json",
+           success: function (data, textStatus, jqXHR) {
+  
+            }  
+           });      
+        }
+      }*/
+
+      function initForm(){
+            $('#UUID').val('');
+            $('#POSPNM').textbox('setValue','');
+            $('#POSPNO').val('');
+            $('#PRICE').numberbox('setValue','');
+            $('#COST').numberbox('setValue','');         
+            $('#ADDQTY').textbox('setValue','');         
+            $('#COMP1').combobox('setValue','01'); 
+            $('#DEPT1').combobox('clear');
+            $('#CR_DT').datebox('setValue','');  
+            $('#REMARK').val('');  
+            $('#cc1').layout('panel','center').panel('setTitle','新增資料');         
+      }
+
+      function doAdd(){      
+      if(!checkForm()){         
+         $.messager.alert('系統訊息', '尚有資料未填寫,無法儲存!', 'warning');              
+         return false;
+      }         
+       $.messager.confirm('系統訊息', '確定儲存?', function (r) {
+        if (r) {
+                var obj = {};
+                    obj.UUID = $('#UUID').val();
+                    obj.POSPNM=$('#POSPNM').textbox('getValue');
+                    obj.POSPNO = $('#POSPNO').val();
+                    obj.COST =$('#COST').numberbox('getValue');
+                    obj.PRICE =$('#PRICE').numberbox('getValue');
+                    obj.COMP =$('#COMP1').combobox('getValue');
+                    obj.DEPT =$('#DEPT1').combobox('getValue');
+                    obj.ADD_REMARK =  $('#REMARK').val();
+                    obj.CR_DT =$('#CR_DT').datebox('getValue');
+                    obj.AQTY = $('#ADDQTY').textbox('getValue');                    
+                    $.ajax({
+                       url: '@Url.Action("doAddDetail", "CakeCodeManager")',
+                       type: "post",
+                       data: obj,
+                       dataType: "json",
+                       success: function (data, textStatus, jqXHR) {
+                            $('#UUID').val('');
+                            $('#POSPNM').textbox('setValue','');
+                            $('#POSPNO').val('');
+                            $('#PRICE').numberbox('setValue','');
+                            $('#COST').numberbox('setValue','');  
+                            $('#ADDQTY').textbox('setValue','');  
+                       //$('#AddDGList').datagrid('reload');
+                        //initForm();
+                        $('#FixCakeOrderList').datagrid('reload');
+                        $.messager.alert('系統訊息', '資料儲存完成!', 'info');     
+                    }
+                });
+           }
+         });  
+
+      }
+
+
+   function initAddDGList(UUID,QTY){        
+        var obj={};        
+        obj.UUID=UUID;
+        obj.QTY=QTY;
+        var getGridJSON = '@Url.Action("getAddDetailList", "CakeOrders")';
+         $('#AddDGList').datagrid({                          
+             queryParams:obj,
+             autoRowHeight: false,
+             url: getGridJSON,
+             border: false,
+             rownumbers: true,
+             nowrap: false,
+             fit:true,             
+             idField: 'UUID',
+             striped: true,
+             fitColumns: true,
+             remoteSort: true,
+             singleSelect: true,
+             sortName: 'CR_DT',
+             sortOrder: 'desc',             
+             striped: true, 
+             showFooter: true,
+             columns: [[
+                    { field: 'CR_DT',
+                        title: '調整日期',
+                        sortable: true,
+                        width: 80,
+                        halign: "center",
+                        align: "left",
+                        sortable: true
+                    }, 
+                    { field: 'AQTY',
+                        title: '增減數量',
+                        sortable: true,
+                        width: 50,
+                        halign: "center",
+                        align: "right"
+                    },                                    
+                    {
+                        field: 'ADD_REMARK',
+                        title: '調整原因',
+                        sortable: true,
+                        width: 150,
+                        halign: "center",
+                        align: "left",
+                        sortable: true
+                    }
+                ]]
+         });  
+    }
+
+
+    function addDialog(UUID,QTY){
+      initAddDGList(UUID,QTY);
+
+    $('#AddDialog').dialog({
+             title:'數量增減歷程',
+             width: 640,
+             height: 480,
+             closed: false,
+             cache: false,
+             modal: true,
+             iconCls: 'cart-add-icon',
+             buttons: [{
+                 text: '關閉',
+                 iconCls: 'icon-cancel',
+                 handler: function () {
+                     $('#AddDialog').dialog('close');
+                 }
+             }]
+         });      
+    }
+
+    //調整單列表
+     function initFixCakeOrderList(){
+        
+        var getGridJSON = '@Url.Action("getFixCakeOrderList", "CakeCodeManager")';
+       $('#FixCakeOrderList').datagrid({             
+             autoRowHeight: false,
+             url: getGridJSON,
+             border: false,
+             rownumbers: true,
+             nowrap: false,
+             pagination: true,
+             width: '100%',
+             height: '88%',
+             pageSize: 20,
+             pageList: [20, 50, 100],
+             idField: 'PDNO',
+             striped: true,
+             showHeader: true,
+             fitColumns: true,
+             remoteSort: true,
+             singleSelect: true,
+             pageSize: 20,
+             pageList: [20, 50, 100],
+             showPageList: true,
+             pagePosition: 'bottom',
+             sortName: 'PDNO',
+             sortOrder: 'desc',
+             //  maximized: true,
+             rownumbers: true,
+             striped: true,
+             showPageList: true,
+             pagePosition: 'bottom',
+             fit:true,
+             columns: [[
+                    {
+                        field: 'DEPT',
+                        title: '部門',
+                        sortable: true,
+                        width: 150,
+                        halign: "center",
+                        align: "left",
+                        sortable: true,
+                        formatter: function (value, objRow, iIndex) {
+                            value += "<br>"+objRow.DEPT_NAME;
+                            return value;
+                        }
+                    },
+                    {
+                        field: 'PDNAME',
+                        title: '產品名稱',
+                        sortable: true,
+                        width: 200,
+                        halign: "center",
+                        align: "left",
+                        sortable: true
+                    },
+                   {
+                        field: 'PRICE',
+                        title: '單價',
+                        sortable: true,
+                        width: 90,
+                        halign: "center",
+                        align: "right",
+                        sortable: true
+                    },
+                    {
+                        field: 'COST',
+                        title: '成本',
+                        sortable: true,
+                        width: 70,
+                        halign: "center",
+                        align: "right",
+                        sortable: true
+                    },
+                    {
+                        field: 'QTY',
+                        title: '調整數',
+                        sortable: true,
+                        width: 70,
+                        halign: "center",
+                        align: "right",
+                        sortable: true
+                    }
+                ]],
+                onSelect:function(index,row){
+                   
+                   $('#cc1').layout('panel','center').panel('setTitle','編輯資料');          
+                    $('#UUID').val(row.UUID);
+                    $('#POSPNM').textbox('setValue',row.PDNAME);
+                    $('#POSPNO').val(row.PDNO);
+                    $('#PRICE').numberbox('setValue',row.PRICE);
+                    $('#COST').numberbox('setValue',row.COST);
+                    $('#COMP1').combobox('setValue',row.COMP);  
+                    $('#DEPT1').combobox('setValue',row.DEPT);
+                    $('#ADDQTY').textbox('setValue',row.QTY);
+                                        
+                    $('#REMARK').val(row.REMARK);
+                    $('#CR_DT').datebox('setValue',row.CR_DT);
+                    
+                }
+
+         });
+
+     }
+      
+
+     function InitProductGrid() {          
+         
+         var getGridJSON = '@Url.Action("Grid", "CakeOrders")';
+         $('#ProductDataGrid').datagrid({
+             //   title: '產品清單',
+             autoRowHeight: false,
+             url: getGridJSON,
+             border: false,
+             rownumbers: true,
+             nowrap: false,
+             pagination: true,
+             width: '100%',
+             height: '88%',
+             pageSize: 20,
+             pageList: [20, 50, 100],
+             idField: 'POSPNO',
+             striped: true,
+             showHeader: true,
+             fitColumns: true,
+             remoteSort: true,
+             singleSelect: true,
+             //sortName: 'COST',
+             sortOrder: 'desc',
+             //  maximized: true,
+             rownumbers: true,
+             striped: true,
+             showPageList: true,
+             pagePosition: 'bottom',
+             fit:true,
+             columns: [[
+
+                    { field: 'POSPNO',
+                        title: '產品代碼',
+                        sortable: true,
+                        width: 100,
+                        halign: "center",
+                        align: "center",
+                        sortable: true
+                    },
+                    {
+                        field: 'POSPNM',
+                        title: '產品名稱',
+                        sortable: true,
+                        width: 250,
+                        halign: "center",
+                        align: "left",
+                        sortable: true
+                    },
+                   {
+                        field: 'PRICE',
+                        title: '單價',
+                        sortable: true,
+                        width: 90,
+                        halign: "center",
+                        align: "right",
+                        sortable: true
+                    },
+                    {
+                        field: 'COST',
+                        title: '成本',
+                        sortable: true,
+                        width: 90,
+                        halign: "center",
+                        align: "right",
+                        sortable: true
+                    }
+                ]],
+             onLoadSuccess: function (data) {
+
+             },onDblClickRow:function(index,selectRow){                   
+                   if(selectRow!=null){
+                      showForm();
+                       $('#OrderDialog').dialog('close');
+                   }
+                                            
+              }
+
+         });
+
+     }
+
+
+
+     function checkForm(){
+        var chk =true;
+        if(!$('#ADDQTY').textbox('isValid') || !$('#POSPNM').textbox('isValid') || !$('#COST').numberbox('isValid') || !$('#PRICE').numberbox('isValid')|| !$('#DEPT1').combobox('isValid')|| !$('#CR_DT').datebox('isValid')){
+           chk = false;   
+        }
+        return chk;
+     }
+
+
+  function doRemove(){
+   var row=$('#FixCakeOrderList').datagrid('getSelected');
+  if(row!=null){
+    $.messager.confirm('系統訊息', '確定刪除?', function (r) {
+    if (r) {
+
+        var obj={};
+        obj.UUID=row.UUID;
+         $.ajax({
+           url: '@Url.Action("doRemove", "CakeCodeManager")',
+           type: "post",
+           data: obj,
+           dataType: "json",
+           success: function (data, textStatus, jqXHR) {              
+                if(data.status!="0"){
+                   $('#FixCakeOrderList').datagrid('reload');
+                   initForm();
+                }
+            }  
+           });      
+      }
+     });            
+    }else{
+        $.messager.alert('系統訊息', '您尚未選取資料!', 'warning');     
+    }         
+   }
+
+   function doSearchFixDate(){
+         var obj={};
+         obj.SDT=$('#FixSdt').datebox('getValue');
+         obj.EDT=$('#FixEdt').datebox('getValue');
+         $('#FixCakeOrderList').datagrid('reload',obj);
+   }
+
+
+    </script>
+}     
+
+<div id="tt" class="easyui-tabs" data-options="fit:true,selected:1">
+    <div title="報表輸出"  style="padding:10px;" data-options="iconCls:'report-icon'">
+<form id="form1" name="form1" method="POST" target="_blank" >
+<div id="p" class="easyui-panel" title="請輸入查詢條件" style="width:60%;height:100%;padding:10px;">
+<input type="hidden" id="RPT" name="RPT" value="" />
+<table width="557" border="0" cellpadding="2" cellspacing="4">
+  <tr>
+    <td width="65">日　期</td>
+    <td width="171"><input id="SDT" name="SDT" type="text" class="easyui-datebox" required="required"   data-options="validType:'validDate[\'yyyy-MM-dd\']',prompt:'YYYY-MM-DD'"></td>
+    <td width="33"><div align="center">～</div></td>
+    <td width="173"><input id="EDT" name="EDT" type="text" class="easyui-datebox" required="required"   data-options="validType:'validDate[\'yyyy-MM-dd\']',prompt:'YYYY-MM-DD'"></td>
+    <td width="114"><a id="btn" href="#" class="easyui-linkbutton" onclick="dlgCheckNowDate('SDT');dlgCheckNowDate('EDT')">當日</a></td>
+  </tr>
+  <tr>
+    <td>公司別</td>
+    <td colspan="4"><select name="COMP" id="COMP" class="easyui-combobox" data-options="editable:false" style="width:160px;">    
+    <option value="01">01福華仁愛店</option>
+    <option value="04">04敦化綠園</option>
+    <option value="05">05福永企業</option>
+    <option value="08">08太福育樂</option>
+    <option value="19">19福華長春店</option>
+    <!--<option value="22">22福華石門店</option>-->
+    <option value="23">23太福水鄉</option>
+    <option value="35">35文教會館</option>
+	<option value="21">21萬里產業</option>
+	<option value="30">30石門福華</option>
+    </select>    </td>
+  </tr>
+  <tr>
+    <td>部　門</td>
+    <td><input id="SDEPART" name="SDEPART" type="text" class="easyui-textbox" required="required" data-options="validType:'matchLength[4]',prompt:'請輸入4位數代碼',missingMessage:'不能空白'" style="width:160px"></td>
+    <td><div align="center">～</div></td>
+    <td><input id="EDEPART" name="EDEPART" type="text" class="easyui-textbox" required="required" data-options="validType:'matchLength[4]',prompt:'請輸入4位數代碼',missingMessage:'不能空白'" style="width:160px" ></td>
+    <td><a id="btn" href="#" class="easyui-linkbutton" onclick="departCheckall()">全部</a></td>
+  </tr>
+  <tr>
+    <td>商品代碼</td>
+    <td><input id="SPOSNO" name="SPOSNO" type="text" class="easyui-textbox" required="required" data-options="validType:'matchLength[7]',prompt:'請輸入7位數代碼',missingMessage:'不能空白'"   style="width:160px"></td>
+    <td><div align="center">～</div></td>
+    <td><input id="EPOSNO" name="EPOSNO" type="text" class="easyui-textbox" required="required" data-options="validType:'matchLength[7]',prompt:'請輸入7位數代碼',missingMessage:'不能空白'" style="width:160px" ></td>
+    <td><a id="btn" href="#" class="easyui-linkbutton" onclick="productCheckall()">全部</a></td>
+  </tr>
+  <tr>
+    <td>資料顯示</td>
+    <td colspan="4"><label>
+      <input name="QTY_TYPE" type="radio" value="Y" checked="checked"/>
+    含調整單 </label>
+    <label><input name="QTY_TYPE" type="radio" value="N"/>
+    不含調整單 </label></td>
+  </tr>
+
+</table>
+</div>
+</form>
+   <div style="padding:5px 0;">
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-large-chart',size:'large',iconAlign:'top',disabled:true" onclick="doRunReport('1','出貨銷售彙總表')">出貨銷售彙總表</a>        
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-large-chart',size:'large',iconAlign:'top'" onclick="doRunReport('2','出貨彙總表')">出貨彙總表</a>
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-large-chart',size:'large',iconAlign:'top'" onclick="doRunReport('6','出貨彙總表')">出貨彙總表(Excel)</a>
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-large-chart',size:'large',iconAlign:'top'" onclick="doRunReport('3','出貨明細表')">出貨明細表</a>
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-large-chart',size:'large',iconAlign:'top'" onclick="doRunReport('4','出貨產品彙總表(依產品不分店別)')">出貨產品彙總表(依產品不分店別)</a>        
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-large-chart',size:'large',iconAlign:'top'" onclick="doRunReport('5','出貨調整表')">出貨調整表</a> 
+    </div>
+    </div>
+    <div title="調整單輸入" style="overflow:auto;padding:10px;" data-options="iconCls:'application-edit'">
+    <div id="cc1" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'west',title:'調整單列表',split:true" style="width:25%;padding-bottom:11em">
+    <input id="SearchFixBtn" name="SearchFixBtn" type="text" class="easyui-textbox" data-options="prompt:'請輸入關鍵字',buttonText:'查詢',buttonIcon:'icon-search'" style="width:100%;height:28px"/>
+    <input id="FixSdt" name="FixSdt" type="text" class="easyui-datebox" data-options="prompt:'調整生效日期起日'" style="width:150;height:28px"/> ~
+    <input id="FixEdt" name="FixEdt" type="text" class="easyui-datebox" data-options="prompt:'調整生效日期迄日'" style="width:150;height:28px"/>
+    <a id="btnfixdt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearchFixDate()">查詢</a>
+    <table id="FixCakeOrderList"></table> </div>
+    <div data-options="region:'center',title:'新增資料'" >
+<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'add-icon'" onclick="initForm()">新增</a>
+<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="doAdd()">儲存</a>
+<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="doRemove()">刪除</a>
+
+<br/><br/>
+<input id="UUID" type="hidden" />
+<table width="600" border="1" cellpadding="5" cellspacing="2" style="font-size:14px">
+                <tr>
+                    <td width="145" bgcolor="#DFDFDF" >產品名稱</td>
+                  <td width="278"><input id="POSPNM" name="POSPNM" type="text" class="easyui-textbox" data-options="prompt:'請輸入產品名稱關鍵字',buttonText:'查詢',buttonIcon:'icon-search',required:true,missingMessage:'不能空白'" style="width:250px;height:28px"/></td>
+                </tr>
+                <tr>
+                    <td bgcolor="#DFDFDF">產品代碼</td>
+                  <td><input id="POSPNO" type="text" readonly="readonly" style="width:120px;height:28px" ></input></td>
+                </tr>
+                  <tr>
+                    <td bgcolor="#DFDFDF">單價</td>
+                    <td><input id="PRICE" class="easyui-numberbox" style="width:50px;height:28px" data-options="required:true"></input></td>
+                </tr>
+                  <tr>
+                    <td bgcolor="#DFDFDF">成本</td>
+                    <td><input id="COST" class="easyui-numberbox" style="width:50px;height:28px" data-options="required:true"></input></td>
+                 </tr>
+                  <tr>
+                    <td bgcolor="#DFDFDF">公司</td>
+                    <td>
+                     <select name="COMP1" id="COMP1" class="easyui-combobox" data-options="editable:false,required:true" style="width:200px;height:28px">  
+                        
+                        <option value="01">福華仁愛店</option>
+                        <option value="04">敦化綠園</option>
+                        <option value="05">福永企業</option>
+                        <option value="08">太福育樂</option>
+                        <option value="19">福華長春店</option>
+                        <option value="22">福華石門店</option>
+                        <option value="23">太福水鄉</option>
+                        <option value="35">文教會館</option>
+	                    <option value="21">萬里產業</option>
+	                    <option value="30">福享水鄉</option>
+                    </select>                    
+                    </td>
+                 </tr>
+                <tr>
+                    <td bgcolor="#DFDFDF">部門</td>
+                  <td><input id="DEPT1" name="DEPT1" class="easyui-combobox" data-options="editable:false,required:true" style="width:200px;height:28px"></input> </td>
+                </tr>
+                <tr>
+                    <td bgcolor="#DFDFDF">調整生效日期</td>
+                  <td><input id="CR_DT" name="CR_DT" class="easyui-datebox" data-options="required:true" style="width:200px;height:28px"></input> </td>
+                </tr>
+                <tr>
+                    <td bgcolor="#DFDFDF">調整實訂數量輸入</td>
+                  <td><input id="ADDQTY" class="easyui-textbox" style="width:70px;height:28px" data-options="prompt:'數量',required:true,missingMessage:'不能空白'"></input>  可輸入負值
+                                          
+                  </td>
+                </tr>
+                <tr>
+                    <td bgcolor="#DFDFDF">備註欄</td>
+                    <td><textarea id="REMARK" name="REMARK" placeholder="備註欄輸入"  style="width:400px;height:80px"></textarea></td>
+                </tr>
+                </table>
+            </div>
+     </div>
+     </div>
+</div>
+
+
+
+<div id="win" class="easyui-window"  style="width:800px;height:600px"
+        data-options="iconCls:'pdf-icon',modal:true,closed:true,shadow:true,cache: false,minimizable:false">        
+<iframe id="frameAttachment" name="frameAttachment" frameborder="0" style="display:block; width: 100%; height: 100%; vertical-align: top; border: 0px">
+</iframe>
+</div>
+
+
+<!--
+<div id="OrderDialog" >
+    <div id="cc" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'north',title:'訂單',split:true" style="height:45%;"><table id="OrderDataGrid"></table> </div>
+        <div data-options="region:'center',title:'訂購商品'" style="padding:5px;background:#eee;"> <table id="DtlDataGrid"></table> </div>
+    </div>
+</div>
+-->
+<div id="OrderDialog" >
+  <table id="ProductDataGrid"></table> 
+</div>
+<div id="AddDialog" >
+  <table id="AddDGList" ></table>
+</div>

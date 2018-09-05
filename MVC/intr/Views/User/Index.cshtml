@@ -1,0 +1,100 @@
+﻿@model IList<IntranetSystem.Models.User>
+@{
+    ViewBag.Title = "使用者資料一覽表";
+}
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-primary">
+            <div class="panel-heading">@ViewBag.Title
+                <span class="pull-right"><span class="glyphicon glyphicon-plus"></span>@Html.ActionLink("新增", "Create", null, new { @class = "btn btn-xs btn-default" })</span></div>
+            <div class="panel-body">
+                <form role="form" name="ajaxform" id="ajaxform" action="~/User/SearchUser" method="POST">
+                <div class="input-group">
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-search"></span>關鍵字搜尋</span>
+                    <input id="keywords" type="text" class="form-control" placeholder="請輸入部門、名字、帳號或E-Mail；輸入空白搜尋，就表示全部顯示。">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit">
+                            Go!</button>
+                    </span>
+                </div>
+                </form>
+                <hr class="divider" />
+                <div id="formTable">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    名字
+                                </th>
+                                <th>
+                                    帳號
+                                </th>
+                                <th>
+                                    電子郵件
+                                </th>
+                                <th>
+                                    備註
+                                </th>
+                                <th>
+                                    &nbsp;
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in this.Model)
+                            {
+                                <tr>
+                                    <td>@item.NAME
+                                    </td>
+                                    <td>@item.USERID
+                                    </td>
+                                    <td>@item.EMAIL
+                                    </td>
+                                    <td>@item.REMARK
+                                    </td>
+                                    <td>
+                                        <span class="pull-right">
+                                            @Html.ActionLink("權限", "Edit", "UserPermit", new { id = item.AID }, new { @class = "btn btn-sm btn-success", role = "button" })
+                                            | @Html.ActionLink("部門", "Edit", "DepartMapping", new { id = item.AID }, new { @class = "btn btn-sm btn-info", role = "button" })
+                                            | @Html.ActionLink("編輯", "Edit", new { id = item.AID }, new { @class = "btn btn-sm btn-warning", role = "button" })
+                                            @if (item.ENABLE.ToString() == "1")
+                                            {
+                                                @Html.Raw(" | ") @Html.ActionLink("停用", "Disable", new { id = item.AID }, new { @class = "btn btn-sm btn-danger", role = "button", onclick = "return confirm('確定要停用這筆資料?');" })
+                                            }
+                                            else
+                                            {
+                                                @Html.Raw(" | ") @Html.ActionLink("啟用", "Enable", new { id = item.AID }, new { @class = "btn btn-sm btn-default", role = "button", onclick = "return confirm('確定要啟用這筆資料?');" })
+                                            }
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    @Html.Raw(ViewData["pageList"])
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts {
+    <script type="text/javascript">
+        $("#ajaxform").submit(function (e) {
+            var postData = $("input#keywords").val();
+            var formURL = $(this).attr("action");
+            if (postData != "") {
+                $.ajax({
+                    url: formURL,
+                    type: "POST",
+                    data: { keywords: postData.trim() },
+                    success: function (data) {
+                        $("div#formTable").html(data);
+                    }
+                });
+            } else {
+                window.location.reload();
+            }
+            e.preventDefault(); //STOP default action
+        });
+    </script>
+}

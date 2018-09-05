@@ -1,0 +1,438 @@
+﻿@{
+    ViewBag.Title = "QRCode 留言管理";
+}
+ <script src="~/Scripts/bootstrap-table.min.js"></script>
+ <script src="~/Scripts/bootstrap-table-zh-TW.min.js"></script>
+ <script src="~/Scripts/bootbox.min.js"></script>
+ <script src="~/Scripts/BTable.js"></script>
+  <script src="~/Scripts/validator.min.js"></script>
+<script src="~/Scripts/jquery.form.min.js"></script>
+ <link rel="stylesheet" href="~/Content/bootstrap-table.css">
+
+
+     <style>
+    .panel-header, .panel-body {
+    border-width: 0px;
+    }
+    .datagrid,.combo-p{
+    border:solid 1px #D4D4D4;
+    }
+    .datagrid *{
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    }
+	.panel-body{
+			padding:10;
+		}
+		.datagrid-btable{
+			border-collapse:separate;
+		}
+
+
+        </style>
+<div id="alert_placeholder"></div>
+<h4><span class="label label-primary">@ViewBag.Title</span></h4>
+<script>
+
+    var valid = false;
+  var selections = [];
+    $(document).ready(function () {
+        initTable();
+
+    });
+
+    function initTable() {
+        $('#table').bootstrapTable({
+            url: '@Url.Action("getQRCodeQA", "QRCodeQA")',
+            columns: [
+            {
+                field: 'ANS',
+                title: '回覆留言',
+                valign: 'middle',
+                align: 'center',
+                width: '5',                
+                formatter: function (value, row, iIndex) {                  
+                    return '<a href="javascript:doReply(\'' + row.UUID + '\')" title="回覆留言"><i class="glyphicon glyphicon-envelope"></i></a>';
+                }
+             },                
+            {
+                field: 'UUID',
+                title: '編號',
+                align: 'center',
+                valign: 'middle',
+                width: '8'
+            },
+            {
+                field: 'DT',
+                title: '日期',
+                valign: 'middle',
+                align: 'center',
+                sortable: true,
+                width: '100'
+             },
+            {
+                field: 'CNAME',
+                title: '姓名',
+                align: 'center',
+                valign: 'middle',
+                sortable: true,
+                width: '100'
+            },
+            {
+                field: 'TEL',
+                title: '電話',
+                align: 'center',
+                valign: 'middle',
+                sortable: true,
+                width: '100'
+            },{         
+                field: 'EMAIL',
+                title: 'EMAIL',
+                width: '100',
+                align: 'center', 
+                sortable: true,                            
+                valign: 'middle'
+            },{
+                field: 'QUESTION',
+                title: '留言內容',
+                width: '300',
+                align: 'left',
+                sortable: true,
+                valign: 'middle',
+                formatter: function (value, row, iIndex) {                  
+                   var str="";
+                    if(value.length > 15){
+                       return value.substr(0,15) + "...";
+                    }else{
+                      return value;
+                    }
+                     
+                }
+            }
+            ],
+            onClickRow: function (row, $element) {
+                $('#dialog').html(row.CNAME + "-留言回覆");
+                $('#DT').val(row.DT);
+                $('#EMAIL').val(row.EMAIL);
+                $('#UUID').val(row.UUID);
+                $('#QRCODE_DTL_UUID').val(row.QRCODE_DTL_UUID);                
+                $('#CNAME').val(row.CNAME);
+                $('#QUESTION').val(row.QUESTION);
+                $('#ANSWER').val('');  
+
+                //showDetail(row.UUID);
+                                
+            },
+            rowStyle:function(row, index){
+            
+               
+              if(row.ANSWER!=""){
+                return {classes: "warning"};
+              }else{
+                return {classes: "active"};
+              }
+            },
+            onExpandRow:function(index, row, $detail){
+             //   showDetail(row.UUID);
+            }
+        });
+
+
+  
+
+
+        $('#table').on('check.bs.table uncheck.bs.table ' +
+                'check-all.bs.table uncheck-all.bs.table', function () {
+                    selections = getIdSelections();
+                });
+        $('#table').on('click-row.bs.table', function (e, row, $element) {
+            $('.success').removeClass('success');
+            $($element).addClass('success');
+        });
+
+
+
+
+
+        $('#report').click(function () {
+           doRunReport();
+        });
+
+
+ 
+
+
+    }
+
+    $(window).load(function () {
+
+
+
+        $('#form').validator().on('submit', function (e) {
+
+            if (e.isDefaultPrevented()) {
+
+            } else {
+                bootbox.confirm("確認儲存?", function (result) {
+
+                    if (result) {
+
+                        var url;
+                        var obj = {};
+                       
+                       url = '@Url.Action("doReply", "QRCodeQA")';
+                       obj.UUID = $('#UUID').val();
+                       obj.QUESTION = $('#QUESTION').val();
+                       obj.ANSWER = $('#ANSWER').val();
+                       obj.EMAIL = $('#EMAIL').val();
+                      $('#form').ajaxSubmit({
+                        url: url,
+                        type: 'post',
+                        dataType: 'json',
+                        data:obj,
+                        beforeSubmit: function () {
+                    
+                        },
+                        success: function (data) {
+                                if (data.status > 0) {
+                                    $('#replyModal').modal('hide');
+                                    $('#table').bootstrapTable("refresh");                                                                       
+                                     showalert('信件已回覆成功!', 'alert-success');
+                                } else {
+                                    $('#replyModal').modal('hide');
+                                    showalert(data.message, 'alert-danger');
+                                }            
+                        }
+                    });
+
+
+                    }
+                });
+                return false;
+            }
+        });
+    });
+
+    function detailFormatter(index, row) {
+        var html = [];
+        /*
+        $.each(row, function (key, value) {
+            html.push('<p><b>' + key + ':</b> ' + value + '</p>');
+        });*/
+        
+        html.push('<b>留言日期:' + row.DT + '</b><br>');
+        html.push('<b>留言內容:' + row.QUESTION + '</b><br><br>');
+        html.push('<div style="border-top:1px dashed #cccccc;height: 1px;overflow:hidden"></div>');
+        html.push('<br><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;回覆日期:' + row.RDT + '</b><br>');
+        html.push('<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;回覆內容:' + row.ANSWER + '</b><br><div id="reply"></div>');
+        var str='';
+          if(row.ANSWER!=""){
+               var obj={};
+                obj.UUID = row.UUID;
+               $.ajax({
+                      url: '@Url.Action("getQRCodeQAReply", "QRCodeQA")',
+                      type: "post",
+                      dataType: "json",
+                      data:JSON.stringify(obj),
+                      contentType: "application/json",
+                      sync: false,
+                      success: function (data, textStatus, jqXHR) {
+                       
+                        $.each(data.rows, function (index, value) {
+                           //console.log(value);
+                           str +='<br><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;回覆日期:' + value.RDT + '</b><br><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;回覆內容:' + value.CONTENT + '</b><br>';
+                           
+                        })
+                       
+                         $('#reply').html(str);
+                       
+                    }
+                });
+                
+           html.push(str);
+        }
+        return html.join('');
+    }
+
+    function showDetail(UUID){
+                $('#REPLY').val('');
+                var obj={};
+                obj.UUID = UUID;
+               $.ajax({
+                      url: '@Url.Action("getQRCodeQAReply", "QRCodeQA")',
+                      type: "post",
+                      dataType: "json",
+                      data:JSON.stringify(obj),
+                      contentType: "application/json",
+                      sync: false,
+                      success: function (data, textStatus, jqXHR) {
+                        var str='';
+                        $.each(data.rows, function (index, value) {
+                           //console.log(value);
+                           str +='<br><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;回覆日期:' + value.RDT + '</b><br><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;回覆內容:' + value.CONTENT + '</b><br>';
+                           
+                        })
+                         $('#REPLY').val(str);
+                    }
+                });
+    }
+
+
+    function doPrint(UUID,w,h) {
+    var obj={};
+
+        var urlStr = "@Url.Action("doPrint","QRCode")";                
+           //開啟PDF
+         window.open(urlStr + '?UUID=' + UUID + '&w='+w+'&h='+h);
+
+    }
+
+
+    function doEdit(uuid) {
+        var row = $('#table').bootstrapTable("getRowByUniqueId", uuid);
+        $('#dgTitle').html('編輯資料');
+            $('#UUID').val(row.UUID);
+            $('#UUID2').val(row.UUID);
+            $('#URL').val(row.URL);
+            $('#SUBJECT').val(row.SUBJECT);
+            
+            //$('#CONTENT').val(row.CONTENT);
+            $("#CONTENT").jqteVal(row.CONTENT);
+            $('#EDMURL').val(row.EDMURL);
+            $('#img').attr("src", "http://reservation.howard-hotels.com.tw/WebBooking/images/qrcode/"+ row.IMG);
+
+            
+
+            
+            
+            openModel();
+    }
+
+
+
+
+
+
+
+    window.operateEvents = {
+        'click .remove': function (e, value, row, index) {
+
+        }
+    };
+
+
+
+
+
+    
+
+
+
+
+
+    function doReply(id){
+        $('#replyModal').modal('toggle');
+    }
+
+
+
+   function openRptModel(){
+       $('#rptModal').modal('toggle');
+   }
+
+
+    function doRunReport() {
+    /*
+        var urlStr = "@Url.Action("doRunReport","QRCode")";
+           //開啟PDF
+           var SDT =  $('#RPT_SDT').val();
+           var EDT =  $('#RPT_EDT').val();
+           var SUBJECT = $('#RPT_SUBJECT').val();
+
+         window.open(urlStr + "?SUBJECT="+SUBJECT + "&SDT="+SDT + "&EDT="+EDT);
+         */
+    }
+
+
+</script>
+<div id="toolbar">
+ <!--
+    <button id="report" class="btn btn-danger">
+        <i class="glyphicon glyphicon-stats"></i> 報表
+    </button>
+    -->
+</div>
+<div class="panel panel-default col-md-12">
+ <div class="panel-body collapse in" id="pb">
+    <table id="table"
+       data-toolbar="#toolbar"
+       data-classes="table table-hover table-condensed"
+      
+       data-search="true"
+       data-detail-view="true"
+       data-detail-formatter="detailFormatter"
+       data-unique-id="UUID"
+       data-show-refresh="true"
+       data-show-toggle="true"
+       data-show-columns="true"
+       data-show-export="true"
+       data-minimum-count-columns="2"
+       data-show-pagination-switch="true"
+       data-sort-name="UUID"
+       data-pagination="true"
+       data-id-field="UUID"
+       data-page-size="20"
+       data-page-list="[20, 50, 100,All]"
+       data-show-footer="false"
+       data-side-pagination="server"
+       data-click-to-select="true"
+       data-single-select="true"
+       data-response-handler="responseHandler"></table>
+    </div>
+</div>
+
+
+<form data-toggle="validator" id="form" class="form-horizontal" role="form">
+<input type="hidden"  id="EMAIL" name="EMAIL" >
+<input type="hidden"  id="UUID" name="UUID" >
+<input type="hidden"  id="QRCODE_DTL_UUID" name="QRCODE_DTL_UUID" >
+<input type="hidden"  id="CNAME" name="CNAME" >
+<input type="hidden"  id="REPLY" name="REPLY" >
+    <div id="replyModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">            
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h5 class="modal-title" id="dialog"></h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="DT">留言日期</label>
+                        <div class="col-sm-10">                            
+                           <input type="text" class="form-control" id="DT" name="DT" disabled>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="QUESTION">客人留言</label>
+                        <div class="col-sm-10">                          
+                          <textarea rows="3" class="form-control" id="QUESTION" name="QUESTION" readonly ></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="ANSWER">回覆留言</label>
+                        <div class="col-sm-10">                            
+                          <textarea rows="8" class="form-control" id="ANSWER" name="ANSWER"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-ok"></i> 確認送出</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="glyphicon glyphicon-remove"></i> 關閉</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div> 
+    </form>

@@ -1,0 +1,88 @@
+﻿@model IntranetSystem.Models.DeliveryAdd
+@{
+    ViewBag.Title = "領料補單";
+    string WebSiteRootPath = (Request.ApplicationPath == "/") ? "" : Request.ApplicationPath;
+}
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-primary">
+            <div class="panel-heading">@ViewBag.Title</div>
+            <!-- Form Start -->
+            @using (Html.BeginForm("Create", "DeliveryAdd", FormMethod.Post, new { @class = "form-horizontal", role = "from" }))
+            {   
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="department" class="col-sm-2 control-label">
+                                部 門<br>
+                                DEPARTMENT</label>
+                            <div class="col-sm-2">
+                                <select name="department" id="department" class="form-control" onchange="refreshMaterial();">
+                                    @Html.Raw(Model.DNAME)
+                                </select>
+                            </div>
+                            <label for="CODE" class="col-sm-2 control-label">
+                                單 號<br>
+                                ORDER NO</label>
+                            <div class="col-sm-2" style="font-size: x-large;">@Model.RID.ToString().PadLeft(8, '0')</div>
+                            <label for="CREATE_DATE" class="col-sm-2 control-label">
+                                建 立 日 期<br>
+                                CREATE DATE</label>
+                            <div class="col-sm-2" style="font-size: large;">@Model.CREATE_DATE</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group has-success col-sm-12 col-sm-offset-1">
+                        <div id="MaterialLists">
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="panel-footer">
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="REMARK" class="col-sm-2 control-label">
+                                申請單備註</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="remark" id="remark" />
+                                <input name="RID" id="RID" type="hidden" value="@Model.RID.ToString()" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-md-10 col-md-offset-1">
+                                <button type="button" id="verify" class="btn btn-block btn-danger" onclick="toVerify();">
+                                    送出補單資料</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            <!-- Form Stop -->
+        </div>
+    </div>
+</div>
+@section header {
+    @Scripts.Render("~/bundles/jbval")
+    <script type="text/javascript">        $(function () {
+            $("input,select,textarea").not("[type=submit]").jqBootstrapValidation();
+        });
+    </script>
+}
+@section scripts {
+    @Scripts.Render("~/bundles/deliveryadd")
+    <script type="text/javascript">
+        $(document).ready(function () {
+            refreshMaterial()
+        });
+
+        function refreshMaterial() {
+            $.post("@WebSiteRootPath/RequisitionOrder/MaterialLists", { did: $("#department").val() })
+                .done(function (data) {
+                    $("div#MaterialLists").html(data);
+                });
+        }
+    </script>
+}

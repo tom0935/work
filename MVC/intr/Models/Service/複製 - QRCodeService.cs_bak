@@ -1,0 +1,193 @@
+﻿using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Linq.Dynamic;
+using IntranetSystem.Poco;
+using IntranetSystem.Models.Edmx;
+using System.Data;
+
+namespace IntranetSystem.Models.Service
+{
+    public class QRCodeService
+    {
+        private HowardIntraEntities db = new HowardIntraEntities();
+        public JObject getQRCode(PagingParamPoco param)
+        {
+           
+            JArray ja = new JArray();
+            JObject jo = new JObject();
+            var query = from t in db.QRCODE   
+                        where t.ISSHOW ==1           
+                        select t;
+                        
+            if (StringUtils.getString(param.search) != "")
+            {                
+                query = query.Where(q => q.SUBJECT.Contains(param.search) || q.CONTENT.Contains(param.search) || q.UUID.ToString().Contains(param.search));
+            }
+            query = query.OrderByDescending(q => q.UUID);
+            var total = query.Count();
+           // query = query.OrderBy(string.Format("{0} {1}", param.sort, param.order)); //排序        
+            query = query.Skip(param.offset).Take(param.limit);    //分頁    
+           
+
+            foreach (var item in query)
+            {
+                var itemObject = new JObject
+                       {   
+                          {"UUID",StringUtils.getString(item.UUID)},
+                          {"SUBJECT",StringUtils.getString(item.SUBJECT)},
+                          {"CONTENT",StringUtils.getString(item.CONTENT) },
+                          {"URL",StringUtils.getString(item.URL)},
+                          {"EDMURL",StringUtils.getString(item.EDMURL)},
+                          {"EDIT_DT",StringUtils.getString(item.EDIT_DT)},
+                          {"EDIT_USER",StringUtils.getString(item.EDIT_USER)},
+                          {"CNT",StringUtils.getString(item.CNT)},
+                          {"ISSHOW",StringUtils.getString(item.ISSHOW)}
+                       };
+                ja.Add(itemObject);
+            }
+            jo.Add("rows", ja);
+            jo.Add("total", total);
+
+            return jo;
+      }
+
+     /*
+        public JArray getCorp()
+        {
+
+            JArray ja = new JArray();
+            JObject jo = new JObject();
+             string[] strArray = new string [] { "18", "19","21","22","30","33"};
+             var query = from t in db.BACK_COMPID where t.BACK_COMP_NO != "**" && strArray.Contains(t.BACK_COMP_NO) select t;
+            
+            foreach (var item in query)
+            {
+                var itemObject = new JObject
+                       {                             
+                          {"CODE",item.BACK_COMP_NO},
+                          {"NAME",item.BACK_CO_NAME1}
+                       };
+                ja.Add(itemObject);
+            }
+                    
+            return ja;
+        }
+        */
+        public String getURL(String UUID)
+        {
+            String url="";
+            if (StringUtils.getString(UUID) != "")
+            {
+                int uuid = System.Convert.ToInt32(UUID);                
+                var query = (from t in db.QRCODE where t.UUID == uuid select t).SingleOrDefault();
+                url = query.URL;
+            }            
+            return url;
+        }
+
+
+        public int doCreate(QRCODE param)
+        {
+                int i = 0;
+                QRCODE obj = new QRCODE();
+                obj.CONTENT = param.CONTENT;
+                obj.CORP = "01";
+                obj.EDIT_DT = System.DateTime.Now;
+                obj.EDIT_USER = param.EDIT_USER;
+                obj.SUBJECT = param.SUBJECT;
+                obj.CNT = 0;
+                obj.ISSHOW = param.ISSHOW;
+                obj.URL = param.URL;
+                obj.EDMURL = param.EDMURL;
+                db.QRCODE.AddObject(obj);
+                i = db.SaveChanges();
+            return obj.UUID;
+        }
+
+        public int doEdit(QRCODE param)
+        {
+            int i = 0;
+            var obj = (from t in db.QRCODE where t.UUID == param.UUID select t).SingleOrDefault();
+            if (obj != null)
+            {
+                obj.CONTENT = param.CONTENT;                
+                obj.EDIT_DT = System.DateTime.Now;
+                obj.EDIT_USER = param.EDIT_USER;
+                obj.SUBJECT = param.SUBJECT;               
+                obj.ISSHOW = param.ISSHOW;                
+                obj.EDMURL = param.EDMURL;
+                i = db.SaveChanges();
+            }
+            
+            return i;
+        }
+
+
+        public int doEditURL(QRCODE param)
+        {
+            int i = 0;
+            var obj = (from t in db.QRCODE where t.UUID == param.UUID select t).SingleOrDefault();
+            if (obj != null)
+            {              
+                obj.EDIT_DT = System.DateTime.Now;
+                obj.EDIT_USER = param.EDIT_USER;                            
+                obj.URL = param.URL;
+                i = db.SaveChanges();
+            }
+
+            return i;
+        }
+
+        public int doRemove(List<QRCODE> list,String userid)
+        {
+            
+            foreach (var obj in list)
+            {
+                var query = (from t in db.QRCODE where t.UUID == obj.UUID select t).SingleOrDefault();
+                if (query != null)
+                {
+                    query.ISSHOW = 0;
+                    query.EDIT_USER = userid;
+                    query.EDIT_DT = System.DateTime.Now;
+                }
+            }
+           int i = db.SaveChanges();
+            return i;
+        }
+
+/*
+        public DataTable getDataTableByNewper(String UUID,String CORP)
+        {
+            LinqExtensions le = new LinqExtensions();
+            var query = from t in db.QRCODE  select t;
+
+            if (StringUtils.getString(UUID) != "")
+            {
+
+                query = query.Where(q => q.UUID == UUID);
+            }
+            else
+            {
+
+                if (StringUtils.getString(CORP) != "all")
+                {
+                    query = query.Where(q => q.PRINT_MARK == "Y" && q.COMP_NO == CORP);
+                }
+                else
+                {
+                    query = query.Where(q => q.PRINT_MARK == "Y");
+                }
+            }
+            DataTable dt = le.LinqQueryToDataTable(query);
+            return dt;
+        }
+
+*/
+
+
+
+    }
+}

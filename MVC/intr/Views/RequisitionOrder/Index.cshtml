@@ -1,0 +1,112 @@
+﻿@model IList<IntranetSystem.Models.RequisitionOrder>
+@{
+    ViewBag.Title = "耗材申請單一覽表";
+    string menuId = "1";
+    string mark1 = string.Empty;
+    string mark2 = string.Empty;
+
+    if (ViewContext.Controller.ValueProvider.GetValue("id") != null)
+    {
+        menuId = ViewContext.Controller.ValueProvider.GetValue("id").RawValue.ToString();
+    }
+
+    switch (menuId)
+    {
+        case "1":
+            mark1 = "active";
+            break;
+        case "2":
+            mark2 = "active";
+            break;
+    }
+}
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="form-group">
+                        <div class="col-md-1">
+                            <img src="~/Content/images/printer_add.png" height="45" />
+                        </div>
+                        <div class="col-md-10">
+                            @Html.ActionLink("按此填寫耗材申請單", "Create", null, new { @class = "btn btn-lg btn-block btn-warning active" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 頁籤 -->
+            <ul class="nav nav-tabs">
+                <li class="@mark1">@Html.ActionLink("個人申請", "Index", new { @id = 1 })</li>
+                <li class="@mark2">@Html.ActionLink("部門申請", "Index", new { @id = 2 })</li>
+            </ul>
+            <div class="panel-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>
+                                單號
+                            </th>
+                            <th>
+                                申請人
+                            </th>
+                            <th>
+                                狀態
+                            </th>
+                            <th>
+                                建立日期
+                            </th>
+                            <th>
+                                備註
+                            </th>
+                            <th>
+                                &nbsp;
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in this.Model)
+                        {
+                            <tr>
+                                <td>@item.RID.ToString().PadLeft(8, '0')
+                                </td>
+                                <td>@item.CNAME
+                                </td>
+                                <td>@Html.Raw(item.STATUS_TEXT)
+                                </td>
+                                <td>@item.CREATE_DATE
+                                    @if (item.CREATE_DATE != item.UPDATE_DATE)
+                                    {
+                                        <span class="glyphicon glyphicon-time" title="修改人員：@item.UNAME@Html.Raw("\n")修改日期：@item.UPDATE_DATE">
+                                        </span>
+                                    }
+                                </td>
+                                <td>@item.REMARK
+                                @if (item.CXNL != "" && item.CXNL != null)
+                                {
+                                    @Html.Raw(" <font color='#FF3030' title='領用後作廢'><span class='glyphicon glyphicon-trash'></sapn>")  @item.CXNL @Html.Raw("</font>")
+                                }
+                                </td>
+                                <td>
+                                    <span class="pull-right">
+                                        @if (item.STATUS.ToString() == "1")
+                                        {
+                                            @Html.ActionLink("編輯", "Edit", new { id = item.RID }, new { @class = "btn btn-sm btn-warning", role = "button" });
+                                            @Html.Raw(" | ");
+                                            @Html.ActionLink("刪除", "Delete", new { id = item.RID }, new { @class = "btn btn-sm btn-danger", role = "button", onclick = "return confirm('確定要刪除這筆資料?');" });
+                                        }
+                                        else
+                                        {
+                                            @Html.ActionLink("檢視", "Details", new { id = item.RID }, new { @class = "btn btn-sm btn-success", role = "button" });
+                                        }
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @Html.Raw(ViewData["pageList"])
+            </div>
+        </div>
+    </div>
+</div>

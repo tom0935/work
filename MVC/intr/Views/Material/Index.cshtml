@@ -1,0 +1,172 @@
+﻿@model IList<IntranetSystem.Models.Material>
+@{
+    ViewBag.Title = "物料一覽表";
+
+    string mark = string.Empty;
+}
+<div class="row">
+    <div class="col-sm-10 col-sm-offset-1">
+        <div class="panel panel-primary">
+            <div class="panel-heading">@ViewBag.Title
+                <span class="pull-right"><span class="pull-right"><span class="glyphicon glyphicon-plus">
+                </span>@Html.ActionLink("新增", "Create", null, new { @class = "btn btn-xs btn-default", role = "button" })</span>
+            </div>
+            <!-- 頁籤 -->
+            <ul class="nav nav-tabs">
+                @foreach (var item in (IList<IntranetSystem.Models.MaterialType>)ViewData["tabs"])
+                {
+                    //當前頁籤加入active樣式
+                    if (item.TID.ToString() == ViewData["menuId"].ToString()) { mark = "class='active'"; } else { mark = ""; }
+                    <li @Html.Raw(mark) >@Html.ActionLink(item.NAME, "Index", new { @id = item.TID })</li>
+                }
+            </ul>
+            <div class="panel-body">
+                <form role="form" name="ajaxform" id="ajaxform" action="~/Material/SearchMaterial/@ViewData["menuId"]" method="POST">
+                <div class="input-group">
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-search"></span>關鍵字搜尋</span>
+                    <input id="keywords" type="text" class="form-control" placeholder="請輸入料號或名稱；輸入空白搜尋，就表示全部顯示。">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit">
+                            Go!</button>
+                    </span>
+                </div>
+                </form>
+                <hr class="divider" />
+                <div id="formTable">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    料號
+                                </th>
+                                <th>
+                                    名稱
+                                </th>
+                                <th>
+                                    規格
+                                </th>
+                                <th>
+                                    單位
+                                </th>
+                                @if (ViewData["menuId"].ToString() == "2")
+                                {
+                                    <th>
+                                        安全量
+                                    </th>
+                                }
+                                <th>
+                                    目前存貨
+                                </th>
+                                @if (ViewData["menuId"].ToString() == "2")
+                                {
+                                    <th>
+                                        &nbsp;
+                                    </th>
+                                }
+                                <th>
+                                    &nbsp;
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in this.Model)
+                            {
+                                <tr>
+                                    <td>@item.CODE
+                                    </td>
+                                    <td>@item.NAME
+                                    </td>
+                                    <td>@item.SPEC
+                                    </td>
+                                    <td>@item.UNIT
+                                    </td>
+                                    @if (item.TID == 2)
+                                    {
+                                        <td>@item.SAFETY
+                                        </td>
+                                    }
+                                    <td>
+                                        @if (item.TID == 2 || item.TID == 41)
+                                        {
+                                            if (item.INVENTORY < item.SAFETY)
+                                            {
+                                            <font style="color: #C9302C;">@item.INVENTORY</font>
+                                            }
+                                            else
+                                            {
+                                            <font style="color: #357EBD;">@item.INVENTORY</font>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <font style="color: #357EBD;">@item.PQTY</font>
+                                        }
+                                    </td>
+                                    @if (item.TID == 2 )
+                                    {                                        
+                                        <td>
+                                            <a href='@Url.Action("TonerRef", "Material", new { id = item.MID })' target="_blank" class="colorboxAjax btn btn-sm btn-success" role = "button" >
+                                                <span class="glyphicon glyphicon-print"></span></a>
+                                        </td>
+                                    }
+                                    <td>
+                                        <span class="pull-right">
+                                            @if (ViewData["menuId"].ToString() == "1")
+                                            {
+                                                @Html.ActionLink("耗材", "Edit", "PrinterMapping", new { id = item.MID }, new { @class = "btn btn-sm btn-success", role = "button", title = "耗材對應" })
+                                                @Html.Raw(" | ");
+                                                @Html.ActionLink("部門", "Edit", "PrinterDepartment", new { id = item.MID }, new { @class = "btn btn-sm btn-info", role = "button", title = "部門對應" })
+                                                @Html.Raw(" | ");
+                                            }
+                                            @Html.ActionLink("編輯", "Edit", new { id = item.MID }, new { @class = "btn btn-sm btn-warning", role = "button" })
+                                            | @Html.ActionLink("刪除", "Delete", new { id = item.MID }, new { @class = "btn btn-sm btn-danger", role = "button", onclick = "return confirm('確定要刪除這筆資料?');" })
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    @Html.Raw(ViewData["pageList"])
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts {
+    @Styles.Render("~/Content/colorbox")
+    @Scripts.Render("~/bundles/colorbox")
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            initColorBox();
+        });
+
+
+        $("#ajaxform").submit(function (e) {
+            var postData = $("input#keywords").val();
+            var formURL = $(this).attr("action");
+            if (postData != "") {
+                $.ajax({
+                    url: formURL,
+                    type: "POST",
+                    data: { keywords: postData.trim() },
+                    success: function (data) {
+                        $("div#formTable").html(data);
+                        initColorBox();
+                    }
+                });
+            } else {
+                window.location.reload();
+            }
+            e.preventDefault(); //STOP default action
+        });
+
+        function initColorBox() {
+            $(".colorboxAjax").colorbox({
+                iframe: true,
+                innerWidth: 800,
+                innerHeight: 600
+            });
+        }
+    </script>
+}

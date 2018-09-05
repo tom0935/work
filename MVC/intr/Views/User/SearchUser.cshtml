@@ -1,0 +1,60 @@
+﻿@model IList<IntranetSystem.Models.User>
+@if (this.Model != null)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>
+                    名字
+                </th>
+                <th>
+                    帳號
+                </th>
+                <th>
+                    電子郵件
+                </th>
+                <th>
+                    備註
+                </th>
+                <th>
+                    &nbsp;
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in this.Model)
+            {
+                <tr>
+                    <td>@item.NAME
+                    </td>
+                    <td>@item.USERID
+                    </td>
+                    <td>@item.EMAIL
+                    </td>
+                    <td>@item.REMARK
+                    </td>
+                    <td>
+                        <span class="pull-right">
+                            @Html.ActionLink("權限", "Edit", "UserPermit", new { id = item.AID }, new { @class = "btn btn-sm btn-success", role = "button" })
+                            | @Html.ActionLink("部門", "Edit", "DepartMapping", new { id = item.AID }, new { @class = "btn btn-sm btn-info", role = "button" })
+                            | @Html.ActionLink("編輯", "Edit", new { id = item.AID }, new { @class = "btn btn-sm btn-warning", role = "button" })
+                            @if(item.ENABLE.ToString() == "1")
+                            {
+                                @Html.Raw(" | ") @Html.ActionLink("停用", "Disable", new { id = item.AID }, new { @class = "btn btn-sm btn-danger", role = "button", onclick = "return confirm('確定要停用這筆資料?');" })
+                            }
+                            else
+                            {
+                                @Html.Raw(" | ") @Html.ActionLink("啟用", "Enable", new { id = item.AID }, new { @class = "btn btn-sm btn-default", role = "button", onclick = "return confirm('確定要啟用這筆資料?');" })
+                            }
+                        </span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <h3>
+        查無資料...</h3>
+}

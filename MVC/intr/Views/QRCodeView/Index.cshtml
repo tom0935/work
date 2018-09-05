@@ -1,0 +1,832 @@
+﻿@{
+    ViewBag.Title = "QRCode 行銷活動審核";
+}
+ <script src="~/Scripts/bootstrap-table.min.js"></script>
+ <script src="~/Scripts/bootstrap-table-zh-TW.min.js"></script>
+ <script src="~/Scripts/bootbox.min.js"></script>
+ <script src="~/Scripts/BTable.js"></script>
+ 
+ <script src="~/Scripts/bootstrap-switch.min.js"></script>
+ <link href="~/Content/bootstrap-switch.min.css" rel="stylesheet">
+ <script src="~/Scripts/validator.min.js"></script>
+ <script src="~/Scripts/jquery.form.min.js"></script>
+
+ <script src="https://apis.google.com/js/client.js"> </script>
+ 
+ <script src="~/Scripts/bootstrap-filestyle.min.js"></script>
+ 
+ <link rel="stylesheet" href="~/Content/bootstrap-table.css">
+
+ <link rel="Stylesheet" type="text/css" href="~/Content/jQueryTE/jquery-te-1.4.0.css" />
+<script type="text/javascript" src="~/Content/jQueryTE/jquery-te-1.4.0.min.js"></script>
+     <style>
+    .panel-header, .panel-body {
+    border-width: 0px;
+    }
+    .datagrid,.combo-p{
+    border:solid 1px #D4D4D4;
+    }
+    .datagrid *{
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    }
+	.panel-body{
+			padding:10;
+		}
+		.datagrid-btable{
+			border-collapse:separate;
+		}
+
+
+        </style>
+<div id="alert_placeholder"></div>
+<h4><span class="label label-primary">@ViewBag.Title</span></h4>
+<script>
+
+    var valid = false;
+  var selections = [];
+    $(document).ready(function () {
+        initTable();
+
+        $(".jqte-test").jqte({
+            placeholder: "請在此輸入或貼上文字",
+            "titletext": true,
+            "format": false,
+            "color": true,
+            "ol": true,
+            "ul": true,
+            "sub": false,
+            "sup": false,
+            "left": true,
+            "right": true,
+            "center": true,
+            "outdent": false,
+            "indent": false,
+            "p": true,
+            "br": true,
+            "b": true,
+            "i": true,
+            "u": true,
+            "link": true,
+            "unlink": true,
+            "remove": true,
+            "rule": false,
+            titletext: [
+        { title: "格式" },
+        { title: "字體大小" },
+        { title: "字體顏色" },
+        { title: "粗體", hotkey: "B" },
+        { title: "斜體", hotkey: "I" },
+        { title: "底線", hotkey: "U" },
+        { title: "Ordered List", hotkey: "." },
+        { title: "Unordered List", hotkey: "," },
+        { title: "Subscript", hotkey: "down arrow" },
+        { title: "Superscript", hotkey: "up arrow" },
+        { title: "Outdent", hotkey: "left arrow" },
+        { title: "Indent", hotkey: "right arrow" },
+        { title: "靠左" },
+        { title: "靠中" },
+        { title: "靠右" },
+        { title: "刪除線", hotkey: "K" },
+        { title: "加入連結", hotkey: "L" },
+        { title: "移除連結", hotkey: "" },
+        { title: "Cleaner Style", hotkey: "Delete" },
+        { title: "Horizontal Rule", hotkey: "H" },
+        { title: "顯示Html標籤", hotkey: "" }
+            ]
+        });
+
+         
+         $('#ISSHOW').bootstrapSwitch();
+    });
+
+    function initTable() {
+        $('#table').bootstrapTable({
+            url: '@Url.Action("getQRCode", "QRCodeView")',
+            columns: [            
+            {
+                field: 'UUID',
+                title: '編號',
+                align: 'center',
+                valign: 'middle',
+                width: '30'
+            },
+              {         
+                field: 'EDMURL',
+                title: '活動網址',
+                width: '20',
+                align: 'center',
+             //   sortable: true,
+                valign: 'middle',
+                formatter: function (value, row, iIndex) {                  
+                   if(row.COUPON_IMG!=''){
+                     return '<a href="'+value+'" target="_blank" title="開啟網址"> <i class="glyphicon glyphicon-link"></i></a> | <a href="http://reservation.howard-hotels.com.tw/WebBooking/images/qrcode/coupon/'+row.COUPON_IMG+'" target="_blank" title="兌換券圖片"><i class="glyphicon glyphicon-picture"></i></a>'; 
+                     }else{
+                     return '<a href="'+value+'" target="_blank" title="開啟網址"> <i class="glyphicon glyphicon-link"></i></a>'; 
+                     }
+                }
+            },{
+                field: 'SUBJECT',
+                title: '活動標題',
+                width: '200',
+                align: 'left',
+              //  sortable: true,
+                valign: 'middle'
+            }, {
+                field: 'EDIT_USER',
+                title: '編輯人員',
+                align: 'center',
+                width: '100',
+             //   sortable: true,
+                valign: 'middle'
+            },
+              {
+                  field: 'SDT',
+                  title: '生效日期',
+                  align: 'center',
+                  width: '80',
+             //     sortable: true,
+                  valign: 'middle'
+              },
+              {
+                  field: 'EDT',
+                  title: '截止日期',
+                  align: 'center',
+                  width: '80',
+             //     sortable: true,
+                  valign: 'middle'
+              },
+              {
+                  field: 'ISSHOW',
+                  title: '啟用',
+                  align: 'center',
+                  width: '80',
+             //     sortable: true,
+                  valign: 'middle',
+                formatter: function (value, row, iIndex) {
+                     if(value=="0"){
+                        return '<select type="checkbox" id="ISSHOW" name="ISSHOW" onchange="doChange('+row.UUID+',this.value)"><option value="0" selected>下架</option><option value="1">待審核</option><option value="2">上架</option></select>';
+                     }else if(value=="1"){
+                       return '<select type="checkbox" id="ISSHOW" name="ISSHOW" onchange="doChange('+row.UUID+',this.value)"><option value="0">下架</option><option value="1" selected>待審核</option><option value="2">上架</option></select>';
+                     }else if(value=="2"){
+                       return '<select type="checkbox" id="ISSHOW" name="ISSHOW" onchange="doChange('+row.UUID+',this.value)"><option value="0">下架</option><option value="1">待審核</option><option value="2" selected>上架</option></select>';
+                     }
+
+                     
+                }
+              }
+            ],
+            onClickRow: function (row, $element) {
+                selectDtl(row);
+            }
+        });
+
+
+      $('#dtltable').bootstrapTable({
+            url: '@Url.Action("getQRCodeDTL", "QRCode")',
+            columns: [
+            {
+                field: 'UUID_DTL',
+                title: '編號',
+                align: 'center',
+                valign: 'middle',
+                width: '30'
+            },
+            {                
+                title: 'QRCode',
+                align: 'center',
+                valign: 'middle',
+                width: '20',
+                formatter: function (value, row, iIndex) {                    
+                       return '<a class="edit" href="javascript:doPrint(\'' + row.UUID_DTL + '\',300,300)" title="列印 300x300"><i class="glyphicon glyphicon-qrcode"></i></a> <a class="edit" href="javascript:doPrint(\'' + row.UUID_DTL + '\',600,600)" title="列印 600x600"><i style="font-size:1.5em;" class="glyphicon glyphicon-qrcode"></i></a>';
+                }
+            },{         
+                field: 'URL_DTL',
+                title: 'QRCode網址',
+                width: '20',
+                align: 'left',
+             //   sortable: true,glyphicon glyphicon-copy
+                valign: 'middle',
+                formatter: function (value, row, iIndex) {                    
+                       return '<a href="'+value+'" target="_blank">'+value+'</a>';
+                }
+            },{
+                field: 'SUBJECT_DTL',
+                title: '活動通路',
+                width: '200',
+                align: 'left',
+              //  sortable: true,
+                valign: 'middle'
+            },
+              {
+                  field: 'CNT_DTL',
+                  title: '點擊數',
+                  align: 'center',
+                  width: '50',
+             //     sortable: true,
+                  valign: 'middle'
+              }, {
+                field: 'EDIT_USER_DTL',
+                title: '編輯人員',
+                align: 'center',
+                width: '100',
+             //   sortable: true,
+                valign: 'middle'
+            },
+              {
+                  field: 'EDIT_DT_DTL',
+                  title: '編輯日期',
+                  align: 'center',
+                  width: '80',
+             //     sortable: true,
+                  valign: 'middle'
+              }
+            ]
+
+        });  
+
+          //公司
+          /*
+          $.ajax({
+              url: '@Url.Action("getCORP", "FnNewper")',
+              type: "post",
+              dataType: "json",
+              contentType: "application/json",
+              sync: false,
+              success: function (data, textStatus, jqXHR) {
+                  $("#COMP_NO2").append("<option value='all'>全部</option>");
+                  $.each(data, function (index, value) {
+                      $("#COMP_NO").append("<option value='" + value.CODE + "'>" +value.CODE +" "+ value.NAME + "</option>");
+                      $("#COMP_NO2").append("<option value='" + value.CODE + "'>" +value.CODE +" "+ value.NAME + "</option>");
+                  })
+              }
+          });
+          */
+         // $('#PRINT_MARK').bootstrapSwitch();
+         /*
+        setTimeout(function () {
+            $('#table').bootstrapTable('resetView');
+        }, 200);
+       */
+        $('#table').on('check.bs.table uncheck.bs.table ' +
+                'check-all.bs.table uncheck-all.bs.table', function () {
+                    selections = getIdSelections();
+                });
+        $('#table').on('click-row.bs.table', function (e, row, $element) {
+            $('.success').removeClass('success');
+            $($element).addClass('success');
+        });
+
+
+        $('#dtltable').on('check.bs.table uncheck.bs.table ' +
+                'check-all.bs.table uncheck-all.bs.table', function () {
+                    selections = getDTLIdSelections();
+                });
+        $('#dtltable').on('click-row.bs.table', function (e, row, $element) {
+            $('.danger').removeClass('danger');
+            $($element).addClass('danger');
+        });
+
+        /*
+        $('#table').on('expand-row.bs.table', function (e, index, row, $detail) {
+            if (index % 2 == 1) {
+                $detail.html('Loading from ajax request...');
+                $.get('LICENSE', function (res) {
+                    $detail.html(res.replace(/\n/g, '<br>'));
+                });
+            }
+        });
+        $('#table').on('all.bs.table', function (e, name, args) {
+            // console.log(name, args);
+        });
+        */
+        $('#create').click(function () {
+            $('#dgTitle').html('新增資料');
+            initForm();
+            openModel();
+        });
+
+        $('#goo').click(function () {
+            openGoogl();
+        });
+
+        $('#report').click(function () {
+           doRunReport();
+        });
+
+
+        $('#remove').click(function () {
+
+            bootbox.confirm("確認刪除?", function (result) {
+                if (result) {
+                    var obj = {};
+                    //var ids = getIdSelections();
+                    //var UUID = $.parseJSON(JSON.stringify(ids));
+                    var row = $('#table').bootstrapTable('getSelections');
+                    obj.list = row;
+
+                    $.ajax({
+                        url: '@Url.Action("doRemove", "QRCode")',
+                        type: "post",
+                        data: JSON.stringify(obj),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (data, textStatus, jqXHR) {
+                          if(data.status !="0"){
+                            var ids = getIdSelections();
+                            $('#table').bootstrapTable('remove', {
+                                field: 'UUID',
+                                values: ids
+                            });
+                            $('#table').bootstrapTable("refresh");
+                            $('#remove').prop('disabled', true);
+                            showalert('選取資料已下架', 'alert-success');
+                          }else{                        
+                             showalert(data.message, 'alert-danger');
+                          }
+                        }
+                    });
+                }
+            });
+
+
+
+        });
+        $(window).resize(function () {
+            $('#table').bootstrapTable('resetView', {
+                height: 300
+            });
+            $('#dtltable').bootstrapTable('resetView', {
+                height: 300
+            });
+
+        });
+
+    }
+
+
+    function doPrint(UUID,w,h) {
+    var obj={};
+
+        var urlStr = "@Url.Action("doPrint","QRCode")";                
+           //開啟PDF
+         window.open(urlStr + '?UUID=' + UUID + '&w='+w+'&h='+h);
+
+    }
+    /*
+    function doPrintCorp(){    
+        var CORP = $('#COMP_NO2').val();
+        var urlStr = "@Url.Action("doPrint","FnNewper")";                
+           //開啟PDF
+         window.open(urlStr + '?CORP=' + CORP );
+
+    }
+    */
+
+    function doEdit(uuid) {
+        var row = $('#table').bootstrapTable("getRowByUniqueId", uuid);
+        $('#dgTitle').html('編輯資料');
+            $('#UUID').val(row.UUID);
+            $('#UUID2').val(row.UUID);
+            $('#URL').val(row.URL);
+            $('#SUBJECT').val(row.SUBJECT);
+            $('#QA_EMAIL').val(row.QA_EMAIL);
+            //$('#CONTENT').val(row.CONTENT);
+            $("#CONTENT").jqteVal(row.CONTENT);
+            $('#EDMURL').val(row.EDMURL);
+            $('#img').attr("src", "http://reservation.howard-hotels.com.tw/WebBooking/images/qrcode/"+ row.IMG);
+            $('#img2').attr("src", "http://reservation.howard-hotels.com.tw/WebBooking/images/qrcode/coupon/"+ row.COUPON_IMG);
+
+            
+            if (row.CUS_SAVE == "1") {
+                $('#CUS_SAVE').bootstrapSwitch('state', true, true);
+                $('#dfile').show();
+                $('#dimg').show();
+
+            } else {
+                $('#CUS_SAVE').bootstrapSwitch('state', false, false);
+                $('#dfile').hide();
+                $('#dimg').hide();
+            }
+
+            if (row.ISSHOW == "1") {
+                $('#ISSHOW').bootstrapSwitch('state', true, true);
+            } else {
+                $('#ISSHOW').bootstrapSwitch('state', false, false);
+            }
+            
+            
+            openModel();
+    }
+
+
+    function doEditDTL(uuid) {
+        //var row0 = $('#table').bootstrapTable("getSelections");
+        var row = $('#dtltable').bootstrapTable("getRowByUniqueId", uuid);
+        
+        $('#dgTitleDTL').html('編輯資料');
+            $('#UUID_DTL').val(row.UUID_DTL);
+           // $('#URL_DTL').val(row.URL_DTL);
+            $('#SUBJECT_DTL').val(row.SUBJECT_DTL);
+        
+                        
+            if (row.ISSHOW_DTL == "1") {
+                $('#ISSHOW_DTL').bootstrapSwitch('state', true, true);
+            } else {
+                $('#ISSHOW_DTL').bootstrapSwitch('state', false, false);
+            }
+            $('#myModalDTL').modal('toggle');
+    }
+
+
+
+
+    function operateFormatter(value, row, index) {
+        return '<a class="edit" href="javascript:doEdit(\'' + row.UUID + '\')" title="編輯"><i class="glyphicon glyphicon-edit"></i></a>';
+    }
+
+    window.operateEvents = {
+        'click .remove': function (e, value, row, index) {
+
+        }
+    };
+
+
+
+    $(window).load(function () {
+
+
+
+        $('#form').validator().on('submit', function (e) {
+
+            if (e.isDefaultPrevented()) {
+
+            } else {
+                bootbox.confirm("確認儲存?", function (result) {
+
+                    if (result) {
+
+                        var url;
+                        var obj = getObj();
+
+
+                       //var obj={};
+                        if ($('#dgTitle').html() == "新增資料") {
+                            url = '@Url.Action("doCreate", "QRCode")';
+                        } else {
+                            url = '@Url.Action("doEdit", "QRCode")';
+                            obj.UUID = $('#UUID').val();
+                        }
+
+
+                        /*
+                        $.ajax({
+                            url: url,
+                            type: "post",
+                            data:  $('#form').serialize(),
+                            dataType: "text/html",
+                            //contentType: "application/json",
+                            success: function (data, textStatus, jqXHR) {
+
+                                if (data.status > 0) {
+                                    $('#myModal').modal('hide');
+                                    $('#table').bootstrapTable("refresh");
+                                     showalert('資料已儲存更新', 'alert-success');
+                                } else {
+                                    $('#myModal').modal('hide');
+                                    showalert(data.message, 'alert-danger');
+                                }
+                            }
+                        });*/
+                        
+                      $('#form').ajaxSubmit({
+                        url: url,
+                        type: 'post',
+                        dataType: 'json',
+                        data:obj,
+                        beforeSubmit: function () {
+                    
+                        },
+                        success: function (data) {
+                                if (data.status > 0) {
+                                    $('#myModal').modal('hide');
+                                    $('#table').bootstrapTable("refresh");                                                                       
+                                     showalert('資料已儲存更新', 'alert-success');
+                                } else {
+                                    $('#myModal').modal('hide');
+                                    showalert(data.message, 'alert-danger');
+                                }            
+                        }
+                    });
+
+
+                    }
+                });
+                return false;
+            }
+        });
+
+
+        $('#form_dtl').validator().on('submit', function (e) {
+
+            if (e.isDefaultPrevented()) {
+
+            } else {
+                bootbox.confirm("確認儲存?", function (result) {
+
+                    if (result) {
+
+                        var url;
+                        var obj = getObjDTL();
+
+                        if ($('#dgTitleDTL').html() == "新增資料") {
+                            url = '@Url.Action("doCreateDTL", "QRCode")';
+                        } else {
+                            url = '@Url.Action("doEditDTL", "QRCode")';
+                            obj.UUID_DTL = $('#UUID_DTL').val();
+                        }
+                       
+
+
+
+                        $.ajax({
+                            url: url,
+                            type: "post",
+                            data: JSON.stringify(obj),
+                            dataType: "json",
+                            contentType: "application/json",
+                            success: function (data, textStatus, jqXHR) {
+
+                                if (data.status > 0) {
+                                    $('#myModalDTL').modal('hide');
+
+                                    if ($('#dgTitleDTL').html() == "新增資料") {
+                                     
+                                         getGoogl(data.status);                               
+                                    }else{
+                                    var o={};
+                                    o.UUID= $('#QRCODE_UUID').val();
+                                    
+                                    $('#dtltable').bootstrapTable("refresh",{ query:o });
+                                        showalert('資料已儲存更新', 'alert-success');
+                                    }
+                                } else {
+                                    $('#myModalDTL').modal('hide');
+                                    showalert(data.message, 'alert-danger');
+                                }
+                            }
+                        });
+
+                    }
+                });
+                return false;
+            }
+        });
+
+
+
+    });
+
+    
+
+
+
+    function initForm() {
+
+        $('#ISSHOW').bootstrapSwitch('state', true, true);
+    }
+
+    function getObj() {
+     
+        var obj = {};
+        
+        obj.URL = "---";
+        obj.EDMURL = $('#EDMURL').val();
+        obj.SUBJECT = $('#SUBJECT').val();
+        obj.CONTENT = $('#CONTENT').val();
+        obj.QA_EMAIL = $('#QA_EMAIL').val();
+        if ($('#CUS_SAVE').bootstrapSwitch('state')) {
+            obj.CUS_SAVE = "1";
+        } else {
+            obj.CUS_SAVE = "0";
+        }
+        if ($('#ISSHOW').bootstrapSwitch('state')) {
+          obj.ISSHOW = "1";
+        }else {
+          obj.ISSHOW = "0";
+        }
+        
+        return obj;
+    }
+
+
+    function getObjDTL() {
+     
+        var obj = {};
+        obj.QRCODE_UUID= $('#QRCODE_UUID').val();
+     //   obj.UUID_DTL = $('#UUID_DTL').val();
+        obj.URL_DTL = "---";
+        
+        obj.SUBJECT_DTL = $('#SUBJECT_DTL').val();
+        
+        if ($('#ISSHOW_DTL').bootstrapSwitch('state')) {
+            obj.ISSHOW_DTL = "1";
+        } else {
+            obj.ISSHOW_DTL = "0";
+        }
+        return obj;
+    }
+
+
+    /*
+    function showModel2(){ 
+        $('#pdfModal').modal('toggle');
+    }
+    */
+    function openModel() {
+ 
+        $('#myModal').modal('toggle');
+    }
+
+    function doSave() {
+       
+        $('#form').validator('validate');
+
+        if (valid) {
+
+
+            bootbox.confirm("確認儲存?", function (result) {
+
+                if (result) {
+
+                    var url;
+                    var obj = getObj();
+
+                    if ($('#dgTitle').html() == "新增資料") {
+                        url = '@Url.Action("doCreate", "QRCode")';
+                    } else {
+                        url = '@Url.Action("doEdit", "QRCode")';
+                        obj.UUID = $('#UUID').val();
+                    }
+
+
+
+
+                    $.ajax({
+                        url: url,
+                        type: "post",
+                        data: JSON.stringify(obj),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (data, textStatus, jqXHR) {
+                            
+                            if (data.status > 0) {
+                                $('#myModal').modal('hide');
+                                $('#table').bootstrapTable("refresh");                                
+                                if ($('#dgTitle').html() == "新增資料") {
+                                   showalert('資料新增完成!產生短網址,請稍後...', 'alert-success');
+
+                                }else{
+                                   showalert('資料已儲存更新', 'alert-success');
+                                }
+                            } else {
+                                $('#myModal').modal('hide');
+                                showalert(data.message, 'alert-danger');
+                            }
+                        }, beforeSend: function (xhr, settings) {
+                           settings.data =
+                          settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+                         }
+                    });
+
+                }
+            });
+        }
+    }
+
+
+ 
+ 
+ 
+
+
+      /*
+      function auth() {
+        var config = {
+          'client_id': 'howard-1274',
+          'scope': 'https://www.googleapis.com/auth/urlshortener'
+        };
+        gapi.auth.authorize(config, function() {
+          console.log('login complete');
+          console.log(gapi.auth.getToken());
+        });
+      }*/
+
+
+
+      function selectDtl(row){        
+        $("#create").removeClass("disabled");
+        var obj = {};
+        $('#SUBJECT_').val(row.SUBJECT);
+        $('#QRCODE_UUID').val(row.UUID);
+        obj.UUID = row.UUID;        
+        $('#dtltable').bootstrapTable("refresh",
+         {
+             query: obj
+         });
+      }
+
+      function doChange(uuid,value){
+        
+        var obj={};
+          obj.UUID = uuid;
+          obj.ISSHOW = value;
+          $.ajax({
+              url: '@Url.Action("doChange", "QRCodeView")',
+              type: "post",
+              dataType: "json",
+              data: JSON.stringify(obj),
+              contentType: "application/json",
+              sync: false,
+              success: function (data, textStatus, jqXHR) {
+                 showalert('資料已更新', 'alert-success');
+              }
+          });
+
+      }
+
+
+
+
+
+
+
+</script>
+<div id="toolbar">
+     <!--
+    <button id="create" class="btn btn-success">
+        <i class="glyphicon glyphicon-plus"></i> 新增活動
+    </button>
+ 
+    <button id="remove" class="btn btn-danger" disabled>
+        <i class="glyphicon glyphicon-remove"></i> 下架
+    </button>
+
+    <button id="report" class="btn btn-danger">
+        <i class="glyphicon glyphicon-stats"></i> 報表
+    </button>
+    -->
+</div>
+<div class="panel panel-default col-md-12">
+ <div class="panel-body collapse in" id="pb">
+    <table id="table"
+       data-toolbar="#toolbar"
+       data-classes="table table-hover table-condensed"
+       data-height="400"
+       data-search="true"
+       
+       data-unique-id="UUID"
+       data-show-refresh="true"
+       data-show-toggle="true"
+       data-show-columns="true"
+       data-show-export="true"
+       data-minimum-count-columns="2"
+       
+       data-pagination="true"
+       data-id-field="UUID"
+       data-page-size="20"
+       data-page-list="[20, 50, 100,All]"
+       data-show-footer="false"
+       data-side-pagination="server"
+       data-click-to-select="true"
+       data-single-select="true"
+       data-response-handler="responseHandler"></table>
+    </div>
+</div>
+<div class="panel panel-default col-md-12">    
+    <div class="panel-body">
+    <table id="dtltable"
+      
+       data-classes="table table-hover table-condensed"
+       data-height="300"
+       data-search="false"
+       
+       data-unique-id="UUID_DTL"
+       data-show-refresh="false"
+       data-show-toggle="false"
+       data-show-columns="false"
+       data-show-export="false"
+       data-minimum-count-columns="2"
+       
+       data-pagination="false"
+       data-id-field="UUID_DTL"
+       data-page-size="20"
+
+       data-show-footer="false"
+       data-side-pagination="server"
+       data-click-to-select="true"
+       data-single-select="true"
+       data-response-handler="responseHandlerDTL"></table>
+    </div>
+</div>

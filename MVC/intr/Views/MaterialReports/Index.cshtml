@@ -1,0 +1,69 @@
+﻿@{
+    ViewBag.Title = "耗材報表";
+}
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-primary">
+            <div class="panel-heading">@ViewBag.Title</div>
+            <div class="panel-body">
+                <table class="table table-hover">
+                    <tr>
+                        <td>
+                            01
+                        </td>
+                        <td>
+                            福華大飯店仁愛店 - 部門耗材盤點表
+                        </td>
+                        <td>
+                            @Html.ActionLink("PDF", "GetInventory", "MaterialReports", null, new { @class = "colorboxPdf btn btn-sm btn-info", role = "button", title = "部門耗材盤點表" })
+                            @Html.Raw(" | ")
+                            <a href="~/Reports/TonerRpt1.aspx" class="colorboxAjax btn btn-sm btn-success" role="button"
+                                title="部門耗材盤點表">HTML</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            02
+                        </td>
+                        <td>
+                            福華大飯店仁愛店 - 耗材申請狀態統計總表
+                        </td>
+                        <td>
+                            @Html.ActionLink("PDF", "GetOrderSummary", "MaterialReports", null, new { @class = "colorboxPdf btn btn-sm btn-info", role = "button", title = "耗材申請狀態統計總表" })
+                            @Html.Raw(" | ")
+                            <a href="~/Reports/TonerRpt2.aspx" class="colorboxAjax btn btn-sm btn-success" role="button"
+                                title="耗材申請狀態統計總表">HTML</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            03
+                        </td>
+                        <td>
+                            福華大飯店仁愛店 - 印表機耗材領用統計表
+                        </td>
+                        <td>
+                            @Html.ActionLink("》查詢報表", "DeliveryReport", "MaterialReports", null, new { @class = "btn btn-sm btn-success", role = "button", title = "印表機耗材領用統計表" })
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts {
+    @Styles.Render("~/Content/colorbox")
+    @Scripts.Render("~/bundles/colorbox")
+    <script type="text/javascript">
+        $(".colorboxAjax").colorbox({
+            iframe: true,
+            innerWidth: 915,
+            innerHeight: 1310
+        });
+        $(".colorboxPdf").colorbox({
+            iframe: true,
+            innerWidth: 880,
+            innerHeight: '85%'
+        });
+    </script>
+}

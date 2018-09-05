@@ -1,0 +1,127 @@
+﻿@model IList<IntranetSystem.Models.DeliveryOrder>
+@{
+    ViewBag.Title = "耗材領料一覽表";
+    string menuId = "1";
+    string mark1 = string.Empty;
+    string mark2 = string.Empty;
+    string mark3 = string.Empty;
+
+    if (ViewContext.Controller.ValueProvider.GetValue("id") != null)
+    {
+        menuId = ViewContext.Controller.ValueProvider.GetValue("id").RawValue.ToString();
+    }
+
+    switch (menuId)
+    {
+        default:
+        case "1":
+            mark1 = "active";
+            break;
+        case "2":
+            mark2 = "active";
+            break;
+        case "3":
+            mark3 = "active";
+            break;
+    }
+}
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-primary">
+            <div class="panel-heading">@ViewBag.Title
+            </div>
+            <!-- 頁籤 -->
+            <ul class="nav nav-tabs">
+                <li class="@mark1">@Html.ActionLink("待領料", "Index", new { @id = 1 })</li>
+                <li class="@mark2">@Html.ActionLink("已領料", "Index", new { @id = 2 })</li>
+                <li class="@mark3">@Html.ActionLink("待審中", "Index", new { @id = 3 })</li>
+            </ul>
+            <div class="panel-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>
+                                單號                            </th>
+                            <th>
+                                申請人                            </th>
+                            <th>
+                                部門                            </th>
+                            <th>
+                                狀態                            </th>
+                            @if (menuId == "2")
+                            {
+                                <th>
+                                    領料日期                                </th>
+                                <th>
+                                    財務單號                                </th>
+                                 <th>耗材</th>
+                            }
+                            else
+                            {
+                                <th>
+                                    建立日期                                </th>
+                                <th>耗材</th>
+                            }
+                        <th>
+                            備註                        </th>
+                            <th>&nbsp;                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in this.Model)
+                        {
+                            <tr>
+                                <td>@item.RID.ToString().PadLeft(8, '0')                                </td>
+                                <td>@item.CNAME                                </td>
+                                <td>@item.DNAME                                </td>
+                                <td>@Html.Raw(item.STATUS_TEXT)                                </td>
+                                @if (menuId == "2")
+                                {
+                                    <td>@item.RECECIVE_DATE                                    </td>
+                                    <td>@item.FNO                                    </td>
+                                    <td>@item.MNAME <br />
+                                    共 @item.QTY 筆 </td>                                    
+                                }
+                                else
+                                {
+                                    <td>@item.CREATE_DATE                                    </td>
+                                    <td>@item.MNAME <br />
+                                    共 @item.QTY 筆 </td>
+                                }
+                            <td> @item.REMARK                                </td>
+                                <td>
+                                    @if (item.STATUS.ToString() == "3")
+                                    {
+                                        <a href="~/Reports/OrderRpt1.aspx?rid=@item.RID" target="_blank" class="colorboxAjax btn btn-sm btn-warning" role = "button">
+                                            領用耗材</a>
+                                        @Html.Raw(" | ")
+                                        @Html.ActionLink("取消申請", "Deny", new { id = item.RID, chkno = item.CHKNO }, new { @class = "btn btn-sm btn-danger", role = "button", onclick = "return confirm('確定要取消這筆申請單?');" })
+                                    }
+                                    else if (item.STATUS.ToString() == "4")
+                                    {
+                                        <a href="~/Reports/OrderRpt1.aspx?rid=@item.RID" target="_blank" class="colorboxAjax btn btn-sm btn-warning" role = "button">
+                                            查看領料單</a>
+                                    }
+                                    
+                                                                    </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @Html.Raw(ViewData["pageList"])
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts {
+    @Styles.Render("~/Content/colorbox")
+    @Scripts.Render("~/bundles/colorbox")
+    <script type="text/javascript">
+        $(".colorboxAjax").colorbox({
+            iframe: true,
+            innerWidth: 915,
+            innerHeight: 1310,
+            onClosed: function () { window.location.reload(); }
+        });
+    </script>
+}

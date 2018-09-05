@@ -1,0 +1,258 @@
+﻿@{
+    ViewBag.Title = "2016ITF旅展重覆條碼收券";
+}
+ <script src="~/Scripts/bootstrap-table.min.js"></script>
+ <script src="~/Scripts/bootstrap-table-zh-TW.min.js"></script>
+ <script src="~/Scripts/bootbox.min.js"></script>
+ <script src="~/Scripts/BTable.js"></script>
+ 
+ <script src="~/Scripts/bootstrap-switch.min.js"></script>
+ <link href="~/Content/bootstrap-switch.min.css" rel="stylesheet">
+ <script src="~/Scripts/validator.min.js"></script>
+ <script src="~/Scripts/jquery.form.min.js"></script>
+
+ <script src="https://apis.google.com/js/client.js"> </script>
+ 
+ <script src="~/Scripts/bootstrap-filestyle.min.js"></script>
+ 
+ <link rel="stylesheet" href="~/Content/bootstrap-table.css">
+
+
+     <style>
+    .panel-header, .panel-body {
+    border-width: 0px;
+    }
+    .datagrid,.combo-p{
+    border:solid 1px #D4D4D4;
+    }
+    .datagrid *{
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    }
+	.panel-body{
+			padding:10;
+		}
+		.datagrid-btable{
+			border-collapse:separate;
+		}
+
+
+        </style>
+<div id="alert_placeholder"></div>
+<h4><span class="label label-primary">@ViewBag.Title</span></h4>
+<script>
+
+    var valid = false;
+  var selections = [];
+  $(document).ready(function () {
+
+        $('#table').bootstrapTable({
+            url: '@Url.Action("getApply", "CouponApply")',
+            //url: 'getApply',
+            columns: [
+            {
+                field: 'CINO',
+                title: '心意券條碼',
+                align: 'center',
+                valign: 'middle',
+                width: '30'
+            },
+              {
+                  field: 'CINO_PRINT',
+                  title: '印出的票券條碼',
+                  align: 'left',
+                  width: '80',
+                  //     sortable: true,
+                  valign: 'middle'
+              },
+              {
+                  field: 'STATUS',
+                  title: '票券狀態',
+                  align: 'center',
+                  width: '80',
+                  //     sortable: true,
+                  valign: 'middle'
+              },
+              {
+                  field: 'APPLY_USER',
+                  title: '收券人員',
+                  align: 'left',
+                  width: '80',
+                  //     sortable: true,
+                  valign: 'middle'
+              },
+            {
+                field: 'APPLY_DT',
+                title: '收券日期',
+                align: 'center',
+                valign: 'middle',
+                width: '20'
+            }
+            ]
+        });  
+    });
+
+
+
+
+
+    $(window).load(function () {
+
+
+
+        $('#form').validator().on('submit', function (e) {
+            var code = $('#CODE').val();
+            var chkno = $('#CHKNO').val();
+            if (e.isDefaultPrevented()) {
+
+            } else {
+                bootbox.confirm("兌換券序號: " + code + " 確認收券?", function (result) {
+                    if (result) {
+                        var url;
+                        var obj = {};
+
+                        obj.CINO = code;
+                        obj.CHKNO = chkno;
+                        url = '@Url.Action("doApply", "CouponApply")';
+
+                        $('#form').ajaxSubmit({
+                            url: url,
+                            type: 'post',
+                            dataType: 'json',
+                            data: obj,
+                            beforeSubmit: function () {
+
+                            },
+                            success: function (data) {
+                                
+                                if (data.status ==1) {
+                                    // $('#myModal').modal('hide');
+                                    //$('#table').bootstrapTable("refresh");                                                                       
+                                    showalert('券號:' + code + '已完成收券!', 'alert-success');
+                                    $('#CODE').val('');
+                                    $('#CHKNO').val('');
+
+                                } else if (data.status == 3) {
+                                    showalert('無此收券人員帳號,請確認!', 'alert-danger');
+                                } else {
+                                    //$('#myModal').modal('hide');
+                                    showalert('此券不在異常名單中,請使用心意券系統收券即可!', 'alert-danger');
+                                }
+                            }
+                        });
+
+
+                    }
+                });
+                return false;
+            }
+        });
+
+
+
+    });
+
+    
+
+
+
+
+
+
+
+
+    function openModel() {
+ 
+        $('#myModal').modal('toggle');
+    }
+
+  
+
+
+
+
+
+      function doCheck(uuid,value){
+        
+        var obj={};
+          obj.UUID = uuid;
+          obj.ISSHOW = value;
+          $.ajax({
+              url: '@Url.Action("doChange", "QRCodeView")',
+              type: "post",
+              dataType: "json",
+              data: JSON.stringify(obj),
+              contentType: "application/json",
+              sync: false,
+              success: function (data, textStatus, jqXHR) {
+                 showalert('資料已更新', 'alert-success');
+              }
+          });
+
+      }
+
+
+
+
+
+
+
+</script>
+<br /><br />
+<div class="panel panel-default col-md-12">
+<div class="panel-heading">心意券系統收券 (僅可收2016ITF旅展重覆條碼票券)</div>
+ <div class="panel-body collapse in" align="center" id="pb">
+    
+    <form  role="apply" id="form" class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="CODE">請輸入券號</label>
+                        <div class="col-sm-10">                            
+                             <input type="text" class="form-control input-lg" placeholder="請輸入券號" id="CODE" name="CODE" maxlength="14" required>
+                             <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="CODE">請輸入墨攻編號末五碼</label>
+                        <div class="col-sm-10">                            
+                             <input type="text" class="form-control input-lg" placeholder="請輸入墨攻編號末五碼" id="CHKNO" name="CHKNO" maxlength="5" required>
+                             <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="USERID">收券人員帳號</label>
+                        <div class="col-sm-10">                            
+                             <input type="text" class="form-control input-lg" placeholder="請輸入收券人員帳號" id="USERID" name="USERID" required>
+                             <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+    <button type="submit" class="btn btn-success btn-lg"> 收 券 </button>
+    </form>
+
+  </div>
+</div>
+
+<div class="panel panel-default col-md-12">   
+<div class="panel-heading"  ><a href="#demo" data-toggle="collapse">查 詢</a></div> 
+    <div class="panel-body collapse" id="demo">
+    <table id="table"
+      data-sort-name="CODE"
+       data-classes="table table-hover table-condensed"
+       data-height="350"
+       data-search="true"              
+       data-show-refresh="false"
+       data-show-toggle="false"
+       data-show-columns="true"
+       data-show-export="false"
+       data-minimum-count-columns="2"       
+       data-pagination="true"       
+       data-page-size="20"
+       data-page-list="[20, 50, 100,All]"
+       data-show-footer="false"
+       data-side-pagination="server"
+       data-click-to-select="true"
+       data-single-select="true"
+       data-response-handler="responseHandler"></table>
+    </div>
+</div>
+

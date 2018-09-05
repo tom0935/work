@@ -1,0 +1,17 @@
+﻿@{
+    ViewBag.Title = "登出";
+}
+
+<!--
+<div id="test"></div>
+-->
+
+@section scripts{
+    <script type="text/javascript">
+        $.post('/ASP/logout.asp',
+            { userid: '@ViewData["USERID"]', aid: '@ViewData["AID"]' })
+            .done(function (data) {
+                //$('#test').html(data);
+            });
+    </script>
+}

@@ -1,0 +1,51 @@
+﻿@model IList<IntranetSystem.Models.MaterialType>
+@{
+    ViewBag.Title = "物料類型";
+    string disabled = ""; //標記重要項目不給刪
+}
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-primary">
+            <div class="panel-heading">@ViewBag.Title
+            <span class="pull-right">
+                <span class="pull-right"><span class="glyphicon glyphicon-plus"></span>@Html.ActionLink("新增", "Create", null, new { @class = "btn btn-xs btn-default" })</span>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>
+                                名稱
+                            </th>
+                            <th>
+                                備註
+                            </th>
+                            <th>
+                                &nbsp;
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in this.Model)
+                        {
+                            <tr>
+                                <td>@item.NAME
+                                </td>
+                                <td>@item.REMARK
+                                </td>
+                                <td><span class="pull-right">
+                                @Html.ActionLink("編輯", "Edit", new { id = item.TID }, new { @class = "btn btn-sm btn-warning", role = "button" })
+                                @{
+                                    disabled = (item.TID <= 2)? "disabled" : "";
+                                }
+                                 | @Html.ActionLink("刪除", "Delete", new { id = item.TID }, new { @class = "btn btn-sm btn-danger " + disabled, role = "button", onclick = "return confirm('確定要刪除這筆資料?');" })
+                                
+                                </span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

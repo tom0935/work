@@ -1,0 +1,67 @@
+﻿@model IntranetSystem.Models.PrinterMapping
+@{
+    ViewBag.Title = "印表機耗材歸屬設定";
+}
+<div class="row">
+    <div class="col-sm-10 col-sm-offset-1">
+        <div class="panel panel-primary">
+            <div class="panel-heading">@ViewBag.Title</div>
+            
+            <!-- Form Start -->
+            @using (Html.BeginForm("Edit", "PrinterMapping", FormMethod.Post, new { @class = "form-horizontal", role = "from", onsubmit = "return checkForm()" }))
+            {
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">印表機料號</label>
+                        <div class="col-sm-10"><p class="form-control-static">@Model.CODE</p></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">印表機名稱</label>
+                        <div class="col-sm-10"><p class="form-control-static">@Model.NAME</p></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">歸屬耗材</label>
+                        <div class="col-sm-4">
+                            <select id="hastoner" name="hastoner" multiple size="20" class="form-control" ondblclick="delToner();">
+                            @Html.Raw(Model.HASTONER)
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <p><a href="javascript:selToner();" class="btn btn-default btn-block"><span class="glyphicon glyphicon-chevron-left"></span>新增</a></p>
+                            <p><a href="javascript:delToner();" class="btn btn-danger btn-block">移除<span class="glyphicon glyphicon-chevron-right"></span></a></p>
+                        </div>
+                        <div class="col-sm-4">
+                            <select id="toner" name="toner" multiple size="20" class="form-control" ondblclick="selToner();">
+                            @Html.Raw(Model.TONER)
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-footer">
+                    <div class="row">
+                        <div class="col-sm-4 col-sm-offset-2">
+                            <button class="btn btn-block btn-success" type="submit" >確認送出</button>
+                        </div>
+                        <div class="col-sm-4">
+                            @Html.ActionLink("回上層", "Index", "Material", null, new { @class = "btn btn-block btn-default", role = "button" })
+                        </div>
+                    </div>
+                </div>
+            }
+            <!-- Form Stop -->
+            
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/pt_mapping.js" type="text/javascript"></script>
+    <script>
+        function checkForm() {
+            //送出所有hastoner的項目            
+            $("#hastoner option").prop("selected", true);
+            return true;
+        }    
+    </script>
+}

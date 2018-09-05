@@ -1,0 +1,62 @@
+﻿@{
+    ViewBag.Title = "使用者變更密碼";
+}
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-primary">
+            <div class="panel-heading">@ViewBag.Title</div>
+            <!-- Form Start -->
+            @using (Html.BeginForm("ChangePwd", "User", FormMethod.Post, new { @class = "form-horizontal", role = "from" }))
+            {
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">
+                            使用者帳號</label>
+                        <div class="col-sm-10">
+                            @Model.USERID
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">
+                            變更密碼</label>
+                        <div class="col-sm-10">
+                            <input type="password" class="form-control" name="password" id="password" placeholder="請輸入新密碼" data-placement="left" data-toggle="tooltip" data-trigger="manual" data-original-title="CapsLock 大寫鎖定中" required />
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-footer">
+                    <div class="row">
+                        <div class="col-md-4 col-md-offset-2">
+                            <button type="submit" class="btn btn-block btn-success">
+                                確認送出</button>
+                        </div>
+                        <div class="col-md-4">
+                            @Html.ActionLink("回上層", "Index", "Home", null, new { @class = "btn btn-block btn-default" })
+                        </div>
+                    </div>
+                </div>
+            }
+            <!-- Form Stop -->
+        </div>
+    </div>
+</div>
+@section scripts {
+    @Scripts.Render("~/bundles/jbval")
+    <script type="text/javascript">
+        $(function () { $("input,select,textarea").not("[type=submit]").jqBootstrapValidation(); });
+
+        $(function () {
+            $("#password").keypress(function (e) {
+                if (
+                    (e.which >= 65 && e.which <= 90 && !e.shiftKey)     //沒按下Shift鍵，卻輸入大寫字母
+                    || (e.which >= 97 && e.which <= 122 && e.shiftKey)  //按下Shift鍵時，卻輸入小寫字母
+                   )
+                { $('#password').tooltip('show'); }
+                else
+                { $('#password').tooltip('hide') }
+            }).focusout(function () { $('#password').tooltip('hide'); });
+        });
+
+    </script>
+}

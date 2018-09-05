@@ -1,0 +1,61 @@
+﻿@model IList<IntranetSystem.Models.MaterialReports>
+@{
+    ViewBag.Title = "印表機耗材領用統計表";
+}
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                @ViewBag.Title【 統計區間： @ViewData["sDate"] ~ @ViewData["eDate"] 】</div>
+            <div class="panel-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>
+                                領料日期
+                            </th>
+                            <th>
+                                單號
+                            </th>
+                            <th>
+                                所屬部門
+                            </th>
+                            <th>
+                                領用人
+                            </th>
+                            <th>
+                                耗材品名
+                            </th>
+                            <th>
+                                領用數量
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in this.Model)
+                        {
+                            <tr>
+                                <td>@item.RECECIVE_DATE
+                                </td>
+                                <td>@item.RID.ToString().PadLeft(8, '0')
+                                </td>
+                                <td>@item.DNAME
+                                </td>
+                                <td>@item.CNAME
+                                </td>
+                                <td>@item.MNAME
+                                </td>
+                                <td>@item.QTY
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel-footer">
+                <button type="button" class="btn btn-default btn-block" onclick="javascript:history.back();">
+                    回上一頁</button>
+            </div>
+        </div>
+    </div>
+</div>

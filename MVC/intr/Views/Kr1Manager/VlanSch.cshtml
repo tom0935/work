@@ -1,0 +1,760 @@
+﻿   @Styles.Render("~/Content/css")
+@section scripts
+{
+    <link href="~/Content/easyui/themes/bootstrap/easyui.css" rel="stylesheet" />	
+	<link href="~/Content/easyui/themes/icon.css" rel="stylesheet" type="text/css">
+	<link href="~/Content/easyui/demo/demo.css" rel="stylesheet" type="text/css" >
+    <link href="~/Content/mystyle.css" rel="stylesheet" type="text/css" >
+    <script src="~/Content/easyui/jquery.min.js"></script>
+    <script src="~/Content/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="~/Content/easyui/locale/easyui-lang-zh_TW.js"></script>
+    
+    <script type="text/javascript" src="~/Content/easyui/easyloader.js"></script>
+    <script type="text/javascript" src="~/Content/easyui/exts/datebox-ext.js"></script>
+    <script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+    <script type="text/javascript" src="~/Content/easyui/exts/datagrid-filter.js"></script>
+ <script type="text/javascript">
+     $(document).ready(function () {
+         initVLanDataGrid();
+     });
+
+     $(window).load(function () {
+         /*
+
+         */
+         find();
+     });
+
+     function initVLanDataGrid() {
+
+
+         var getGridJSON = '@Url.Action("VLanScheduleGrid", "Kr1Manager")';
+
+         $('#DataGrid').datagrid({
+             //   title: '產品清單',
+             autoRowHeight: false,
+             title: '客房網路公有IP和頻寬調整',
+             url: getGridJSON,
+             border: false,
+             rownumbers: true,
+             nowrap: false,
+             pagination: false,
+             fit: false,
+             idField: 'VLAN',
+             striped: true,
+             showHeader: true,
+             fitColumns: false,
+             remoteSort: true,
+             singleSelect: false,
+             sortName: 'VLAN',
+             sortOrder: 'asc',
+             rownumbers: true,
+             striped: true,
+             showPageList: false,
+             toolbar: "#toolbar",
+             rowStyler: function (index, row) {
+                 return 'color:#000000;'; // return inline style		
+             },
+             columns: [[
+                    { field: 'CHK',
+                        width: 80,
+                        halign: "center",
+                        align: "center",
+                        checkbox: true
+                    },
+                    { field: 'EDIT',
+                        title: '編輯',
+                        sortable: true,
+                        width: 50,
+                        halign: "center",
+                        align: "center",
+                        formatter: function (value, objRow, iIndex) {
+                            var strSpanButtonIconId = 'spanButtonIconId' + iIndex;
+                            var strValue = "";
+                            strValue = "<a id='" + iIndex + "' title='編輯' href='#' onclick=openDialog('" + objRow.VLAN + "','" + iIndex + "')><img src='../../Content/easyui/themes/icons/application-edit-icon.png'></a>";
+                            return strValue;
+                        }
+                    },
+                    { field: 'VLAN',
+                        title: '房號',
+                        sortable: true,
+                        width: 80,
+                        halign: "center",
+                        align: "center",
+                        formatter: function (value, objRow, iIndex) {
+                            var str = value;
+                            if (objRow.RC == "Y") {
+                                str = "<b><font color='red'>" + value + "</font></b>";
+                            }
+                            return str;
+                        }
+                    },
+                    { field: 'SDT',
+                        title: '生效日',
+                        width: 130,
+                        halign: "center",
+                        align: "center",
+                        sortable: true,
+                        formatter: function (value, objRow, iIndex) {
+                            if (value != "") {
+                                return value + " " + objRow.STIME + "時";
+                            } else {
+                                return "";
+                            }
+                        }
+                    },
+                    { field: 'EDT',
+                        title: '截止日',
+                        sortable: true,
+                        width: 130,
+                        halign: "center",
+                        align: "center",
+                        formatter: function (value, objRow, iIndex) {
+                            if (value != "") {
+                                return value + " " + objRow.ETIME + "時";
+                            } else {
+                                return "";
+                            }
+                        }
+                    },
+                    { field: 'SESSION',
+                        title: '最大連線數',
+                        width: 80,
+                        halign: "center",
+                        align: "center",
+                        sortable: true
+                    },
+                    {
+                        field: 'DHCPIP',
+                        title: 'DHCP IP',
+                        width: 130,
+                        halign: "center",
+                        align: "center",
+                        sortable: true
+                    },
+                   {
+                       field: 'BandwidthUp',
+                       title: '上傳',
+                       width: 100,
+                       halign: "center",
+                       align: "center",
+                       sortable: true,
+                       formatter: function (value, objRow, iIndex) {
+                           return value + "(" + value / 1024 + "M)";
+                       }
+
+                   }, {
+                       field: 'BandwidthDown',
+                       title: '下載',
+                       sortable: true,
+                       width: 100,
+                       halign: "center",
+                       align: "center",
+                       sortable: true,
+                       formatter: function (value, objRow, iIndex) {
+                           return value + "(" + value / 1024 + "M)";
+                       }
+                   }, {
+                       field: 'SCHED',
+                       title: '狀態',
+                       width: 80,
+                       halign: "center",
+                       align: "center",
+                       sortable: true
+                   },
+                    {
+                        field: 'ACTION',
+                        title: '登入頁',
+                        width: 80,
+                        halign: "center",
+                        align: "center",
+                        sortable: true,
+                        formatter: function (value, objRow, iIndex) {
+                            var str = "";
+                            if (value == "Charge") {
+                                str = "<img src='../../Content/easyui/themes/icons/ilock-icon.png' title='出現登入頁'>";
+                            } else {
+                                str = "<img src='../../Content/easyui/themes/icons/ilock-unlock-icon.png' title='無登入頁'>";
+                            }
+                            return str;
+                        }
+                    }
+
+                ]],
+             onLoadSuccess: function (data) {
+
+             }
+         });
+
+
+
+     }
+
+
+
+     /*
+      $(function () {
+          var dg = $('#DataGrid').datagrid();
+          
+          dg.datagrid('enableFilter', [{
+              field: 'A1',
+              type: 'textbox',
+              //options: { precision: 1 },
+              op: ['equal', 'notequal', 'less', 'greater']
+          }]);
+      });
+      */
+
+     Date.prototype.dateDiff = function (interval, objDate) {
+         var dtEnd = new Date(objDate);
+         if (isNaN(dtEnd)) return undefined;
+         switch (interval) {
+             case "s": return parseInt((dtEnd - this) / 1000);
+             case "n": return parseInt((dtEnd - this) / 60000);
+             case "h": return parseInt((dtEnd - this) / 3600000);
+             case "d": return parseInt((dtEnd - this) / 86400000);
+             case "w": return parseInt((dtEnd - this) / (86400000 * 7));
+             case "m": return (dtEnd.getMonth() + 1) + ((dtEnd.getFullYear() - this.getFullYear()) * 12) - (this.getMonth() + 1);
+             case "y": return dtEnd.getFullYear() - this.getFullYear();
+         }
+     }
+
+    $.extend($.fn.datebox.defaults.rules, { 
+		validDate: {  
+			validator: function(value){  
+				var date = $.fn.datebox.defaults.parser(value);
+				var s = $.fn.datebox.defaults.formatter(date);
+				return s==value; 
+			},  
+			message: '請輸入正確的日期格式(YYYY-MM-DD)'
+		}
+	});
+
+
+    function doReload(){
+      obj={};
+
+        $('#dlgmode').val('');
+        $('#DataGrid').datagrid('reload', obj);
+     //   Initialize_DataGrid('');
+    }
+
+
+
+
+
+     Date.prototype.dateDiff = function (interval, objDate) {
+         var dtEnd = new Date(objDate);
+         if (isNaN(dtEnd)) return undefined;
+         switch (interval) {
+             case "s": return parseInt((dtEnd - this) / 1000);
+             case "n": return parseInt((dtEnd - this) / 60000);
+             case "h": return parseInt((dtEnd - this) / 3600000);
+             case "d": return parseInt((dtEnd - this) / 86400000);
+             case "w": return parseInt((dtEnd - this) / (86400000 * 7));
+             case "m": return (dtEnd.getMonth() + 1) + ((dtEnd.getFullYear() - this.getFullYear()) * 12) - (this.getMonth() + 1);
+             case "y": return dtEnd.getFullYear() - this.getFullYear();
+         }
+     }
+
+    $.extend($.fn.datebox.defaults.rules, { 
+		validDate: {  
+			validator: function(value){  
+				var date = $.fn.datebox.defaults.parser(value);
+				var s = $.fn.datebox.defaults.formatter(date);
+				return s==value; 
+			},  
+			message: '請輸入正確的日期格式(YYYY-MM-DD)'
+		}
+	});
+
+
+function doSave() {
+
+    if (doCheck()) {
+        $.messager.progress();
+        var win = $.messager.progress({
+            title: '資料更新',
+            msg: '遠端資料更新中,請稍候...'
+        });
+
+        var obj = {};
+        obj.VLAN = $.trim($('#VLAN').textbox('getValue'));
+        obj.SDT = $.trim($('#SDT').datebox('getValue'));
+        obj.EDT = $.trim($('#EDT').datebox('getValue'));
+        obj.STIME = $.trim($('#STIME').combobox('getValue'));
+        obj.ETIME = $.trim($('#ETIME').combobox('getValue'));
+        obj.UP = $.trim($('#BandwidthUp').combobox('getValue'));
+        obj.DOWN = $.trim($('#BandwidthDown').combobox('getValue'));
+        obj.DHCPIP = $.trim($("input[name='DHCP']:checked").val());
+        obj.ACTION = $.trim($("input[name='ACTION']:checked").val());
+
+        
+        $.ajax({
+            url: '@Url.Action("doSaveDB", "Kr1Manager")',
+            type: "post",
+            data: obj,
+            dataType: "json",
+            success: function (data, textStatus, jqXHR) {
+                if (data.status == "1") {
+                    $.messager.progress('close');
+                    $('#editDialog').dialog('close');
+                    $.messager.alert('系統訊息', '房號:' + obj.VLAN + ' 資料已更新!', 'info');
+                    $('#DataGrid').datagrid('reload');
+                }
+            }
+        });
+    }
+ }
+
+
+ function doSaveArray() {
+
+     if (doCheck()) {
+         $.messager.progress();
+         var win = $.messager.progress({
+             title: '資料更新',
+             msg: '遠端資料更新中,請稍候...'
+         });
+
+         var obj = {};
+         var row = $('#DataGrid').datagrid('getChecked');
+         
+         obj.LIST = row;
+         obj.SDT = $.trim($('#SDT').datebox('getValue'));
+         obj.EDT = $.trim($('#EDT').datebox('getValue'));
+         obj.STIME = $.trim($('#STIME').combobox('getValue'));
+         obj.ETIME = $.trim($('#ETIME').combobox('getValue'));
+         obj.UP = $.trim($('#BandwidthUp').combobox('getValue'));
+         obj.DOWN = $.trim($('#BandwidthDown').combobox('getValue'));
+         obj.DHCPIP = $.trim($("input[name='DHCP']:checked").val());
+         obj.ACTION = $.trim($("input[name='ACTION']:checked").val());
+
+         $.ajax({
+             url: '@Url.Action("doSaveDBArray", "Kr1Manager")',
+             type: "post",
+             data: JSON.stringify(obj),
+             dataType: "json",
+             contentType: "application/json",
+             success: function (data, textStatus, jqXHR) {                 
+                 if (data.status >= 1) {                     
+                     $.messager.progress('close');
+                     $('#editDialog').dialog('close');
+                     $.messager.alert('系統訊息', '共 '+data.status+' 筆資料已完成更新!', 'info');
+                     $('#DataGrid').datagrid('reload');
+                 }
+             }
+         });
+     }
+ }
+
+
+
+
+    function doCheck() {
+        var now = new Date();
+
+        var sdate = $('#SDT').datebox('getValue');
+        var edate = $('#EDT').datebox('getValue');
+        var stime = $('#STIME').combobox('getValue');
+        var etime = $('#ETIME').combobox('getValue');
+        var sDT = new Date(sdate + " " + stime + ":00");
+        var eDT = new Date(edate + " " + etime + ":00");
+        var msg;
+
+
+        if ($('#SDT').datebox('isValid') == false) {
+            msg = "請輸入正確的生效日!!";
+        } else if ($('#EDT').datebox('isValid') == false) {
+            msg = "請輸入正確的截止日!!";
+        } else if (now.dateDiff("h", eDT) < 0) {
+            msg = "截止日時間不可小於目前日期時間!";
+        } else if (sDT.dateDiff("h", eDT) < 0) {
+            msg = "截止日時間不可小於生效日時間!";
+        } 
+
+        if (msg == null) {
+            return true;
+        } else {
+            $.messager.alert('系統訊息', msg, 'warning');
+            return false;
+        }
+    }
+
+
+
+    //開啟新增商品對話框
+    function openDialog(id, iIndex) {
+        var obj = {};
+        obj.VlanID = id;
+        var title = id;
+        $('#DataGrid').datagrid('selectRow', iIndex);
+
+        //        console.info(selectRow);
+        var selectRow = $('#DataGrid').datagrid('getSelected');
+
+
+        $('#VLAN').textbox('setValue',id);
+
+        if (selectRow.SDT == '' || selectRow.SDT == null) {
+            var sdt = new Date();
+            var stimeStr = "";
+            if (sdt.getHours() < 10) {
+                stimeStr = "0" + sdt.getHours();
+            } else {
+                stimeStr = sdt.getHours();
+            }
+
+            sdt.setDate(sdt.getDate());
+            var sdtStr = DateTimeUtil.convertDateToISOString(sdt);
+            $('#SDT').datebox('setValue', sdtStr);
+            $('#EDT').datebox('setValue', '');
+            $('#STIME').combobox('setValue', stimeStr);
+            $('#ETIME').combobox('setValue', "12");
+        } else {
+            $('#SDT').datebox('setValue', selectRow.SDT);
+            $('#EDT').datebox('setValue', selectRow.EDT);
+            $('#STIME').combobox('setValue', selectRow.STIME);
+            $('#ETIME').combobox('setValue', selectRow.ETIME);
+        }
+
+        
+        if (selectRow.DHCPIP.substr(0, 3) == '10.') {         
+            $('input[name="DHCP"]')[0].checked = true;
+        } else {
+            $('input[name="DHCP"]')[1].checked = true;
+        }        
+
+        $('#BandwidthUp').combobox('setValue', selectRow.BandwidthUp);
+        $('#BandwidthDown').combobox('setValue', selectRow.BandwidthDown);
+
+        if (selectRow.ACTION == 'Charge') {
+            $('input[name="ACTION"]')[0].checked = true;
+        } else {
+            $('input[name="ACTION"]')[1].checked = true;
+        }        
+
+
+
+        $('#editDialog').dialog({
+            title: ' 編輯 VLanID:' + title ,
+            width: 480,
+            height: 350,
+            closed: false,
+            cache: false,
+            modal: true,
+            iconCls: 'calendar-import-icon',
+            buttons: [{
+                text: '儲存',
+                iconCls: 'save-icon',
+                handler: function () {
+                    doSave();
+                }
+            },
+                  {
+                      text: '取消',
+                      iconCls: 'icon-cancel',
+                      handler: function () {
+                          $('#editDialog').dialog('close');
+                      }
+                  }]
+        });
+
+    }
+
+
+ 
+
+    function getListVLanDefineIP(vlanid,mac) {
+        var obj = {};
+        obj.vlanid = vlanid;
+        obj.mac = mac;
+        $.ajax({
+            url: '@Url.Action("getListVLanDefineIP", "Kr1Manager")',
+            type: "post",
+            data: obj,
+            dataType: "json",
+            success: function (data, textStatus, jqXHR) {
+
+                $('#DHCP').combobox('setValue', data.DHCP);
+                var sec = data.SEC;
+                if(sec > 0){
+                   sec= (sec / 86400);
+                }
+                $('#CDS').textbox('setValue', "" + sec);
+            }, beforeSend: function (xhr, settings) {
+                settings.data =
+                               settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+            }
+        });
+    }
+
+
+    function find(){
+        var dg = $('#DataGrid').datagrid();
+        dg.datagrid('enableFilter', [{
+            field: 'AA',
+            type: 'textbox',
+            //options: { precision: 1 },
+            op: ['equal', 'notequal', 'less', 'greater']
+        }]);
+
+    }
+
+    function doReset() {
+       var selectRow = $('#DataGrid').datagrid('getSelected');
+       var msg;
+       var msg1;
+       if (selectRow != null) {
+           msg = '您確定要將房號' + selectRow.VLAN + '回覆為預設值?';
+           msg1 = '房號'+selectRow.VLAN+'已回覆為預設值!';
+       } else {
+           msg = '您未選取房號,要將所有房號全部還原成預設值?';
+           msg1 = '已將全部房號已回覆為預設值!'
+       }
+
+
+        $.messager.confirm('執行確認', msg , function (r) {
+            if (r) {
+                var obj = {};
+                obj.VLAN = selectRow.VLAN;
+                $.ajax({
+                    url: '@Url.Action("doReSet", "Kr1Manager")',
+                    type: "post",
+                    data: obj,
+                    dataType: "json",
+                    success: function (data, textStatus, jqXHR) {
+                        if (data.status == "1") {
+                            $.messager.alert('系統訊息',msg1, 'info');
+                            $('#DataGrid').datagrid('reload');
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+
+    function updateRC(){
+        var cbxVehicle = new Array();
+        $('input:checkbox:checked[name="RC"]').each(
+          function (i,n) { 
+            cbxVehicle[i] = this.value;          
+          }
+        );        
+    }
+
+/*
+            $.messager.confirm('執行確認', '此動作將會重置VLan DB資料確定要執行?', function (r) {
+                if (r) {
+                    $.ajax({
+                        url: '@Url.Action("doCreateVLanDB", "Kr1Manager")',
+                        type: "post",
+                        data: obj,
+                        dataType: "json",
+                        success: function (data, textStatus, jqXHR) {
+                            if (data.status == "1") {
+                                $.messager.alert('系統訊息', '資料已重置完成!', 'info');
+                            }
+                        }
+                    });
+                }
+            });          
+
+*/
+
+    function editArray(){
+        var row = $('#DataGrid').datagrid('getChecked');
+        if (row.length > 0) {
+            var sdt = new Date();
+            var stimeStr = "";
+            if (sdt.getHours() < 10) {
+                stimeStr = "0" + sdt.getHours();
+            } else {
+                stimeStr = sdt.getHours();
+            }
+
+            var checkedValues = new Array();
+            $.each(row, function (index, value) {
+                checkedValues.push(value.VLAN);    
+            });
+
+            $('#VLAN').textbox('setValue',checkedValues.join(','));
+            
+            var sdtStr = DateTimeUtil.convertDateToISOString(sdt);
+            $('#SDT').datebox('setValue', sdtStr);
+            $('#EDT').datebox('setValue', '');
+            $('#STIME').combobox('setValue', stimeStr);
+            $('#ETIME').combobox('setValue', "12");
+            $('#BandwidthUp').combobox('setValue', '3072');
+            $('#BandwidthDown').combobox('setValue', '3072');
+            $('input[name="DHCP"]')[0].checked = true;
+            $('input[name="ACTION"]')[0].checked = true;
+            $('#editDialog').dialog({
+                title: '批次編輯',
+                width: 480,
+                height: 350,
+                closed: false,
+                cache: false,
+                modal: true,
+                iconCls: 'calendar-import-icon',
+                buttons: [{
+                    text: '儲存',
+                    iconCls: 'save-icon',
+                    handler: function () {
+                        doSaveArray();
+                    }
+                },
+                  {
+                      text: '取消',
+                      iconCls: 'icon-cancel',
+                      handler: function () {
+                          $('#editDialog').dialog('close');
+                      }
+                  }]
+            });
+        }else{
+            $.messager.alert('系統訊息', '您尚未選取資料!', 'warning');
+        }
+    }
+   </script>
+}     
+<!--
+<input type="hidden" id="dlgmode" name="dlgmode" value="" />
+<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-reload'" onclick="doReload()">VLan List</a>
+-->
+
+<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="find()">查詢</a>
+<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'session-icon'" onclick="editArray()">批次編輯</a>
+<!--<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'save-icon'" onclick="updateRC()">更新RC房</a>-->
+
+<!--
+<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-undo'" onclick="doReset()">回復初始值</a>
+-->
+<div id="cc" class="easyui-layout" data-options="fit:true" style="padding-bottom:10em"  >   
+
+    <div data-options="region:'center'"  style="background:#eee;width:100%;">
+         <table id="DataGrid"></table>  
+    </div>            
+</div>
+
+
+
+
+<div id="editDialog" style="padding:10px">
+ <table width="100%" border="0" cellpadding="3" cellspacing="1" bordercolor="#FFFFFF">
+    <tr>
+      <td width="89" bgcolor="#CCCCCC"><strong>房號 </strong></td>
+      <td width="227"><input id="VLAN" class="easyui-textbox" data-options="multiline:true" style="width:300px;height:50px" readonly/></td>
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>VPN對外連接IP</strong></td>
+      <td> <!--<input id="DHCP" name="DHCP"  style="width:200px;"/> -->
+      <label><input id="DHCP" name="DHCP" type="radio" value="1" /> 私有IP</label>
+      <label><input id="DHCP" name="DHCP" type="radio" value="2" /> 公用IP</label>      </td>
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>生效日</strong></td>
+      <td><input id="SDT" class="easyui-datebox" required="required"   data-options="validType:'validDate[\'yyyy-MM-dd\']',prompt:'YYYY-MM-DD'" style="width:120px;" />
+        <select name="STIME" id="STIME" class="easyui-combobox" data-options="editable:false" style="width:50px;">
+        <option value="00">00</option>
+        <option value="01">01</option>
+        <option value="02">02</option>
+        <option value="03">03</option>
+        <option value="04">04</option>
+        <option value="05">05</option>
+        <option value="06">06</option>
+        <option value="07">07</option>
+        <option value="08">08</option>
+        <option value="09">09</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+        <option value="23">23</option>
+        </select> 
+        時      </td>
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>截止日</strong></td>
+      <td><input id="EDT" class="easyui-datebox" required="required"   data-options="validType:'validDate[\'yyyy-MM-dd\']',prompt:'YYYY-MM-DD'" style="width:120px;" />
+        <select name="ETIME" id="ETIME" class="easyui-combobox" data-options="editable:false" style="width:50px;">
+        <option value="00">00</option>
+        <option value="01">01</option>
+        <option value="02">02</option>
+        <option value="03">03</option>
+        <option value="04">04</option>
+        <option value="05">05</option>
+        <option value="06">06</option>
+        <option value="07">07</option>
+        <option value="08">08</option>
+        <option value="09">09</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+        <option value="23">23</option>
+        </select>           
+      時      </td>
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>上傳</strong></td>
+      <td>      
+      <!--<input id="BandwidthUp" name="BandwidthUp" type="text" class="easyui-numberbox" style="width:100px"  data-options="min:0,precision:0" />-->
+      <select name="BandwidthUp" id="BandwidthUp" class="easyui-combobox" data-options="editable:false" style="width:100px;">        
+        <option value="1024">1M</option>
+        <option value="3072">3M</option>
+        <option value="5120">5M</option>
+        <option value="8192">8M</option>
+        <option value="10240">10M</option>
+        <option value="15360">15M</option>        
+      </select>      </td>
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>下載</strong></td>
+      <td>
+      <!--<input id="BandwidthDown" name="BandwidthDown" type="text" class="easyui-numberbox" style="width:100px"  data-options="min:0,precision:0" /> -->
+      <select name="BandwidthDown" id="BandwidthDown" class="easyui-combobox" data-options="editable:false" style="width:100px;">        
+        <option value="1024">1M</option>
+        <option value="3072">3M</option>
+        <option value="5120">5M</option>
+        <option value="8192">8M</option>
+        <option value="10240">10M</option>
+        <option value="15360">15M</option>        
+      </select>      </td>
+    </tr>
+    <tr>
+      <td bgcolor="#CCCCCC"><strong>出現登入頁</strong></td>
+      <td>
+	    <label><input id="radio" name="ACTION" type="radio" value="Charge" />
+	    是</label>
+        <label><input id="radio" name="ACTION" type="radio" value="Free" />
+        否</label></td>
+    </tr>
+  </table>
+
+</div>  
+
+
+
+
+
+

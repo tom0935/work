@@ -1,0 +1,27 @@
+﻿<script type="text/javascript" src="~/Scripts/jquery-1.10.2.js"></script>
+@Scripts.Render("~/bundles/bootstrap")
+@Styles.Render("~/Content/bootstrap")
+<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"
+    rel="stylesheet">
+<h3>印表機</h3>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>
+                項次
+            </th>
+            <th>
+                料號
+            </th>
+            <th>
+                名稱
+            </th>
+            <th>
+                所屬部門
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @Html.Raw(ViewData["RefTable"])
+    </tbody>
+</table>

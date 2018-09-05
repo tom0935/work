@@ -1,0 +1,67 @@
+﻿@model IntranetSystem.Models.RequisitionOrder
+@{
+    ViewBag.Title = "耗材申請單";
+    string WebSiteRootPath = (Request.ApplicationPath == "/") ? "" : Request.ApplicationPath;
+}
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-primary">
+            <div class="panel-heading">@ViewBag.Title</div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="form-group">
+                        <label for="DNAME" class="col-sm-2 control-label">
+                            部 門<br>
+                            DEPARTMENT</label>
+                        <div class="col-sm-2" style="font-size: large;">
+                            @Model.DNAME
+                        </div>
+                        <label for="CODE" class="col-sm-2 control-label">
+                            單 號<br>
+                            ORDER NO</label>
+                        <div class="col-sm-2" style="font-size: x-large;">@Model.RID.ToString().PadLeft(8, '0')</div>
+                        <label for="CREATE_DATE" class="col-sm-2 control-label">
+                            建 立 日 期<br>
+                            CREATE DATE</label>
+                        <div class="col-sm-2" style="font-size: large;">
+                            @Model.CREATE_DATE
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="form-group has-success col-sm-12">
+                    <div id="MaterialLists">
+                        <img alt="loading" title="loading" src="~/Content/images/loader2.gif" />
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="row">
+                    <div class="form-group">
+                        <label for="REMARK" class="col-sm-2 control-label">
+                            申請單備註</label>
+                        <div class="col-sm-10">
+                            @Model.REMARK
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            @Html.ActionLink("回上層", "Index", "RequisitionOrder", null, new { @class = "btn btn-block btn-default" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section header {
+}
+@section scripts {
+    <script type="text/javascript"> $(document).ready(function () { refreshMaterial()
+    }); function refreshMaterial() { $.post("@WebSiteRootPath/RequisitionOrder/MaterialListView",
+    { did: @Model.DID.ToString(), rid:@Model.RID.ToString() }) .done(function (data)
+{ $("div#MaterialLists").html(data); }); } </script>
+}

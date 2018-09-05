@@ -1,0 +1,836 @@
+﻿@{
+    ViewBag.Title = "email 簽名檔維護";
+}
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="~/Content/easyui/themes/bootstrap/easyui.css" rel="stylesheet" />	
+	
+    
+    <script src="~/Content/easyui/jquery.easyui.min.js"></script>
+    
+
+ <script src="~/Scripts/bootstrap-table.min.js"></script>
+ <script src="~/Scripts/bootstrap-table-zh-TW.min.js"></script>
+ <script src="~/Scripts/bootbox.min.js"></script>
+
+
+
+ <script src="~/Scripts/BTable.js"></script>
+ 
+ <script src="~/Scripts/bootstrap-switch.min.js"></script>
+ <link href="~/Content/bootstrap-switch.min.css" rel="stylesheet">
+ <script src="~/Scripts/validator.min.js"></script>
+ <script src="~/Scripts/jquery.form.min.js"></script>
+
+ <script src="https://apis.google.com/js/client.js"> </script>
+ 
+ <script src="~/Scripts/bootstrap-filestyle.min.js"></script>
+ 
+ <link rel="stylesheet" href="~/Content/bootstrap-table.css">
+
+      <style>
+    .panel-header, .panel-body {
+    border-width: 0px;
+    }
+    .datagrid,.combo-p{
+    border:solid 1px #D4D4D4;
+    }
+    .datagrid *{
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    }
+	.panel-body{
+			padding:10;
+		}
+		.datagrid-btable{
+			border-collapse:separate;
+		}
+
+            .dev-instructions {
+                display: none;
+            }
+
+            .relative {
+                position: relative;
+            }
+        </style>
+<div id="alert_placeholder"></div>
+<h4><span class="label label-primary">@ViewBag.Title</span></h4>
+<script>
+
+
+
+    var valid = false;
+  var selections = [];
+    $(document).ready(function () {
+        initTable();
+
+
+        //部門
+        $.ajax({            
+            type: "post",
+            dataType: "json",
+            url: '@Url.Action("getDepart", "Sign")',
+            sync: false,
+            success: function (data, textStatus, jqXHR) {                     
+                $.each(data, function (index, value) {
+                    $("#DEPART").append("<option value='" + value.CODE + "'>" + value.CODE + " " + value.NAME + "</option>");
+                })
+            }
+        });
+        
+        
+        
+    });
+
+    function initTable() {
+
+        $('#JOB').combobox({
+            onChange: function (param) {
+                showremark();
+            }
+        });
+
+        $('#DPT').combobox({
+            onChange: function (param) {
+                showremark();
+            }
+        });
+
+        $('#table').bootstrapTable({
+            url: '@Url.Action("getSign", "Sign")',
+            columns: [            
+            {
+                field: 'UUID',
+                title: '編號',
+                align: 'center',
+                valign: 'middle',
+                width: '30'
+            },
+            {
+                field: 'EDIT',
+                title: '編輯',
+                align: 'center',
+                valign: 'middle',
+                width: '20',
+                events: operateEvents,
+                formatter: operateFormatter   
+            },
+            {
+                field: 'DEL',
+                title: '刪除',
+                align: 'center',
+                valign: 'middle',
+                width: '20',
+                formatter: function (value, row, iIndex) {       
+                 return '<a class="edit" href="javascript:doRemove(\'' + row.UUID + '\')" title="刪除"><i class="glyphicon glyphicon-remove"></i></a>';                                  
+                }
+            },{         
+                field: 'DEPART',
+                title: '部門',
+                width: '100',
+                align: 'center',
+                sortable: true,
+                valign: 'middle',
+                formatter: function (value, row, iIndex) {                  
+                     return value + " " + row.DEPART_NAME ;                     
+                }
+            },{         
+                field: 'URL',
+                title: '簽名檔連結',
+                width: '20',
+                align: 'center',
+                sortable: true,
+                valign: 'middle',
+                formatter: function (value, row, iIndex) {                  
+                     return ' <a href="'+value+'" target="_blank" title="開啟網址"><i class="glyphicon glyphicon-link"></i></a>';                     
+                }
+            },{         
+                field: 'HTML',
+                title: '簽名檔嵌入碼',
+                width: '200',
+                align: 'center',
+                sortable: true,
+                valign: 'middle',
+                formatter: function (value, row, iIndex) {
+                    var str = '<input type="text" class="form-control" value="<a href=\'http://reservation.howard-hotels.com.tw/sign/index.php?depart=' + row.DEPART + '\'><img src=\'http://reservation.howard-hotels.com.tw/sign/index.php?img=' + row.DEPART + '\' border=\'0\' width=\'650\' height=\'121\'></a>" onClick="this.select()"/>';
+               
+                   return str;
+                }
+            },{
+                field: 'IMG',
+                title: '簽名圖檔名稱',
+                width: '100',
+                align: 'left',
+                sortable: true,
+                valign: 'middle'
+            }, {
+                field: 'EDIT_USER',
+                title: '編輯人員',
+                align: 'center',
+                width: '100',
+                sortable: true,
+                valign: 'middle'
+            },
+              {
+                  field: 'EDIT_DT',
+                  title: '編輯日期',
+                  align: 'center',
+                  width: '80',
+                  sortable: true,
+                  valign: 'middle'
+              }
+            ],
+            onClickRow: function (row, $element) {
+                selectDtl(row);
+            }
+        });
+
+
+
+
+
+         // $('#PRINT_MARK').bootstrapSwitch();
+         /*
+        setTimeout(function () {
+            $('#table').bootstrapTable('resetView');
+        }, 200);
+       */
+        $('#table').on('check.bs.table uncheck.bs.table ' +
+                'check-all.bs.table uncheck-all.bs.table', function () {
+                    selections = getIdSelections();
+                });
+        $('#table').on('click-row.bs.table', function (e, row, $element) {
+            $('.success').removeClass('success');
+            $($element).addClass('success');
+        });
+
+
+
+
+
+        /*
+        $('#table').on('expand-row.bs.table', function (e, index, row, $detail) {
+            if (index % 2 == 1) {
+                $detail.html('Loading from ajax request...');
+                $.get('LICENSE', function (res) {
+                    $detail.html(res.replace(/\n/g, '<br>'));
+                });
+            }
+        });
+        $('#table').on('all.bs.table', function (e, name, args) {
+            // console.log(name, args);
+        });
+        */
+        $('#create').click(function () {
+            $('#dgTitle').html('新增資料');
+            initForm();
+            openModel();
+        });
+
+        $('#createSales').click(function () {
+            initForm2();
+            $('#myModal2').modal('toggle');
+        });
+
+
+
+
+        $('#remove').click(function () {
+
+            bootbox.confirm("確認刪除?", function (result) {
+                if (result) {
+                    var obj = {};
+                    //var ids = getIdSelections();
+                    //var UUID = $.parseJSON(JSON.stringify(ids));
+                    var row = $('#table').bootstrapTable('getSelections');
+                    obj.list = row;
+
+                    $.ajax({
+                        url: '@Url.Action("doRemove", "Sign")',
+                        type: "post",
+                        data: JSON.stringify(obj),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (data, textStatus, jqXHR) {
+                          if(data.status !="0"){
+                            var ids = getIdSelections();
+                            $('#table').bootstrapTable('remove', {
+                                field: 'UUID',
+                                values: ids
+                            });
+                            $('#table').bootstrapTable("refresh");
+                            $('#remove').prop('disabled', true);
+                            showalert('選取資料已刪除', 'alert-success');
+                          }else{                        
+                             showalert(data.message, 'alert-danger');
+                          }
+                        }
+                    });
+                }
+            });
+
+
+
+        });
+
+
+    }
+
+
+
+    function doEdit(uuid) {
+        var row = $('#table').bootstrapTable("getRowByUniqueId", uuid);
+        $('#dgTitle').html('編輯資料');
+            $('#UUID').val(row.UUID);
+            $('#UUID2').val(row.UUID);
+            $('#URL').val(row.URL);
+            $('#DEPART').val(row.DEPART);
+            if(row.IMG!=''){
+                $('#img').attr("src", "http://reservation.howard-hotels.com.tw/sign/images/" + row.IMG);
+            }
+
+
+          //  getDepartCurrent(uuid);
+            
+            openModel();
+    }
+
+
+
+
+
+
+    function operateFormatter(value, row, index) {
+        return '<a class="edit" href="javascript:doEdit(\'' + row.UUID + '\')" title="編輯"><i class="glyphicon glyphicon-edit"></i></a>';
+    }
+
+    window.operateEvents = {
+        'click .remove': function (e, value, row, index) {
+
+        }
+    };
+
+    function showremark() {
+       
+        var job = $('#JOB').combobox('getText');
+        var dpt = $('#DPT').combobox('getText');
+       
+    
+    
+
+        $('#REMARK2').val("The Howard Plaza Hotel Taipei-" + job + "-" + dpt);
+       // console.info(job);
+    }
+
+    $(window).load(function () {
+
+        showremark();
+        $('#form').validator().on('submit', function (e) {
+            /*
+            var o = $('#DEPART').selectivity('data');
+            if (o.length == 0 ){
+            alert('尚未選取適用廳別!');
+            return false;
+            }*/
+            if (e.isDefaultPrevented()) {
+
+            } else {
+                bootbox.confirm("確認儲存?", function (result) {
+
+                    if (result) {
+
+                        var url;
+                        var obj = getObj();
+
+
+                        //var obj={};
+                        if ($('#dgTitle').html() == "新增資料") {
+                            url = '@Url.Action("doCreate", "Sign")';
+                        } else {
+                            url = '@Url.Action("doEdit", "Sign")';
+                            obj.UUID = $('#UUID').val();
+                        }
+
+
+
+                        $('#form').ajaxSubmit({
+                            url: url,
+                            type: 'post',
+                            dataType: 'json',
+                            data: obj,
+                            contentType: "application/json",
+                            success: function (data) {
+                                if (data.status > 0) {
+                                    $('#myModal').modal('hide');
+                                    $('#table').bootstrapTable("refresh");
+                                    showalert('資料已儲存更新', 'alert-success');
+                                } else {
+                                    $('#myModal').modal('hide');
+                                    showalert(data.message, 'alert-danger');
+                                }
+                            }
+                        });
+
+
+                    }
+                });
+                return false;
+            }
+        });
+
+
+        $('#form2').validator().on('submit', function (e) {
+            if (e.isDefaultPrevented()) {
+
+            } else {
+               
+           
+                        var url;
+                        var obj = getObj2();
+                        url = '@Url.Action("doPrint", "Sign")';
+                        $('#form2').ajaxSubmit({
+                            url: url,
+                            type: 'post',
+                            dataType: 'json',
+                            data: obj,
+                            //    contentType: "application/json",
+                            success: function (data) {
+                                if (data.CODE.length > 0) {
+                                    $('#CODE').val(data.CODE);
+
+                                } else {
+                                    $('#myModal2').modal('hide');
+                                    showalert(data.message, 'alert-danger');
+                                }
+                            }
+                        });
+                
+                return false;
+            }
+        });
+
+
+
+
+    });
+
+    
+
+
+
+    function initForm() {
+        $('#UUID').val('');
+        $('#UUID2').val('');
+        $('#URL').val('');
+        $('#IMG').val('');
+        $('#img').attr("src", "");
+    }
+
+    function initForm2() {
+        $('#ENAME').val('');
+        $('#CNAME').val('');
+        $('#MOBILE').val('');
+        $('#CODE').val('');        
+    }
+
+    function getObj() {
+     
+        var obj = {};
+        
+        obj.URL = $('#URL').val();        
+        obj.REMARK = $('#REMARK').val();
+        obj.DEPART = $('#DEPART').val();        
+        return obj;
+    }
+
+
+    function getObj2(){
+        var obj = {};
+        obj.ENAME = $('#ENAME').val();
+        obj.CANME = $('#CNAME').val();
+        obj.TEL = $('#TEL').val();
+        obj.FAX = $('#FAX').val();
+        obj.MOBILE = $('#MOBILE').val();
+        obj.EMAIL = $('#EMAIL').val();
+        
+        obj.JOB = $('#JOB').combobox('getText');
+        obj.DPT = $('#DPT').combobox('getText');
+        obj.REMARK = $('#REMARK').val();
+        
+        return obj;
+    }
+
+
+
+
+    /*
+    function showModel2(){ 
+        $('#pdfModal').modal('toggle');
+    }
+    */
+    function openModel() {
+ 
+        $('#myModal').modal('toggle');
+    }
+
+    function doSave() {
+       
+        $('#form').validator('validate');
+
+        if (valid) {
+
+
+            bootbox.confirm("確認儲存?", function (result) {
+
+                if (result) {
+
+                    var url;
+                    var obj = getObj();
+
+                    if ($('#dgTitle').html() == "新增資料") {
+                        url = '@Url.Action("doCreate", "QRCode")';
+                    } else {
+                        url = '@Url.Action("doEdit", "QRCode")';
+                        obj.UUID = $('#UUID').val();
+                    }
+
+
+
+
+                    $.ajax({
+                        url: url,
+                        type: "post",
+                        data: JSON.stringify(obj),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (data, textStatus, jqXHR) {
+                            
+                            if (data.status > 0) {
+                                $('#myModal').modal('hide');
+                                $('#table').bootstrapTable("refresh");                                
+                                if ($('#dgTitle').html() == "新增資料") {
+                                   showalert('資料新增完成!產生短網址,請稍後...', 'alert-success');
+
+                                }else{
+                                   showalert('資料已儲存更新', 'alert-success');
+                                }
+                            } else {
+                                $('#myModal').modal('hide');
+                                showalert(data.message, 'alert-danger');
+                            }
+                        }, beforeSend: function (xhr, settings) {
+                           settings.data =
+                          settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+                         }
+                    });
+
+                }
+            });
+        }
+    }
+
+
+ 
+ 
+ 
+ function getGoogl(UUID) {
+    gapi.client.setApiKey('AIzaSyC609e_6-82BmUSxqtVz7McpcrflJA5IBw');  //API key
+    gapi.client.load('urlshortener', 'v1').then(
+    function(){
+        var aurl = 'http://reservation.howard-hotels.com.tw/WebBooking/index.php/QRCode/index/' + UUID;
+    
+       var request = gapi.client.urlshortener.url.insert({
+          'resource': {'longUrl': aurl}
+       });
+    
+
+
+    request.execute(function(response) 
+    { 
+        if(response.id != null)
+        {
+        url = '@Url.Action("doEditURL", "QRCode")';
+        var obj={};
+          obj.URL_DTL=response.id;
+          obj.UUID_DTL=UUID;
+                    $.ajax({
+                        url: url,
+                        type: "post",
+                        data: JSON.stringify(obj),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (data, textStatus, jqXHR) {                            
+                            if (data.status > 0) {
+                               var o={};
+                               o.UUID= $('#QRCODE_UUID').val();
+                               $('#dtltable').bootstrapTable("refresh",{ query:o });
+                                showalert('資料已儲存更新', 'alert-success');                           
+                            }
+                        }, beforeSend: function (xhr, settings) {
+                           settings.data =
+                          settings.data.replace(/%5D%5B(.+?)%5D=/g, "%5D.$1=");
+                         }
+                    });           
+        }
+        else
+        {
+            showalert(response.error + ' : 產生短網址出現錯誤!', 'alert-danger');            
+        } 
+      });
+      }
+    );  
+  } 
+
+
+
+
+      function doRemove(UUID){
+            bootbox.confirm("確認刪除?", function (result) {
+                if (result) {
+                    var obj = {};
+                    obj.UUID=UUID;
+
+                    $.ajax({
+                        url: '@Url.Action("doRemove", "Sign")',
+                        type: "post",
+                        data: JSON.stringify(obj),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (data, textStatus, jqXHR) {
+                          if(data.status !="0"){
+                            var ids = getIdSelections();
+                            $('#table').bootstrapTable('remove', {
+                                field: 'UUID',
+                                values: ids
+                            });
+                            $('#table').bootstrapTable("refresh");
+                            showalert('選取資料已刪除', 'alert-success');
+                          }else{                        
+                             showalert(data.message, 'alert-danger');
+                          }
+                        }
+                    });
+                }
+            });
+      }
+
+
+
+</script>
+Outlook 簽名檔路徑<br />
+
+Win7 - <a href="C:/Users/@User.Identity.Name/AppData/Roaming/Microsoft/Signatures/" >C:\Users\@User.Identity.Name\AppData\Roaming\Microsoft\Signatures\</a>
+<br />
+WinXP - <a href="C:/Documents and Settings/@User.Identity.Name/Application Data/Microsoft/Signatures/" >C:\Documents and Settings\@User.Identity.Name\Application Data\Microsoft\Signatures\</a>
+
+<div id="toolbar">
+
+    <button id="create" class="btn btn-success">
+        <i class="glyphicon glyphicon-plus"></i> 新增
+    </button>
+    <button id="createSales" class="btn btn-success">
+        <i class="glyphicon glyphicon-plus"></i> 製作業務員簽名檔
+    </button>
+
+</div>
+
+
+<div class="panel panel-default col-md-12">
+ <div class="panel-body collapse in" id="pb">
+    <table id="table"
+       data-toolbar="#toolbar"
+       data-classes="table table-hover table-condensed"
+    
+       data-search="true"
+       
+       data-unique-id="UUID"
+       data-show-refresh="true"
+       data-show-toggle="true"
+       data-show-columns="true"
+       data-show-export="true"
+       data-minimum-count-columns="2"
+       data-sort-name="UUID"
+       data-pagination="true"
+       data-id-field="UUID"
+       data-page-size="20"
+       data-page-list="[20, 50, 100,All]"
+       data-show-footer="false"
+       data-side-pagination="server"
+       data-click-to-select="true"
+       data-single-select="true"
+       data-response-handler="responseHandler"></table>
+    </div>
+</div>
+<form data-toggle="validator" id="form" class="form-horizontal" role="form" enctype="multipart/form-data">
+
+     <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+             <input type="hidden" id="UUID" name="UUID" >
+             <input type="hidden" id="ary" name="ary" >
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h5 class="modal-title" id="dgTitle"></h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="UUID2">編號</label>
+                        <div class="col-sm-10">                                                        
+                            <input type="text" class="form-control" id="UUID2" name="UUID2" disabled >
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="URL">簽名檔連結</label>
+                        <div class="col-sm-10">                            
+                           <input type="text" class="form-control" id="URL" name="URL" placeholder="活動網址" required>
+                        </div>
+                    </div>                   
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="DEPART">部門</label>
+                        <div class="col-sm-10">
+                             <select class="form-control" id="DEPART" name="DEPART"></select>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="REMARK">備註</label>
+                        <div class="col-sm-10">                           
+                            <input type="text" class="form-control" id="REMARK" name="REMARK" placeholder="備註" >
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="IMG">圖片上傳</label>
+                        <div class="col-sm-10">
+                           <input type="file" id="IMG" name="IMG" class="filestyle" data-buttonName="btn-primary" data-buttonText="選取圖片">
+                        </div>
+                    </div>
+
+
+
+	<div class="row">
+		<div class="col-md-12" >
+			<img title="預覽圖" id="img" name="img" src="" class="img-thumbnail" />
+		</div>
+
+	</div>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-ok"></i> 儲存</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="glyphicon glyphicon-remove"></i> 關閉</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</form> 
+<form data-toggle="validator" id="form2" class="form-horizontal" role="form">
+     <div id="myModal2" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h5 class="modal-title">請輸入業務員基本資料</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="JOB">職稱</label>
+                        <div class="col-sm-10">                            
+                <select id="JOB" class="easyui-combobox" name="JOB" style="width:400px; height:30px">
+                <option value="Accounts Manager">業務部主任 Accounts Manager</option>
+                <option value="Asst. Sales Manager">業務副理 Asst. Sales Manager</option>
+                <option value="Sales Manager">業務部經理 Sales Manager</option>
+                <option value="Senior Sales Manager">資深業務經理 Senior Sales Manager</option>
+                <option value="Manager, E-Commerce & Admin.">行政兼電子商務業務經理 Manager, E-Commerce & Admin.</option>
+                <option value="Manager">經理 Manager</option>
+                <option value="Supervisor">主任 Supervisor</option>
+
+                </select>
+                          <div class="help-block with-errors"></div>
+                        </div>
+                    </div>  
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="DPT">部門</label>
+                        <div class="col-sm-10">                            
+                <select id="DPT" class="easyui-combobox" name="DPT" style="width:400px; height:30px">
+                <option value="Sales Department">業務部 Sales Department</option>
+                <option value="Sales & Marketing Division">行政兼電子商務 Sales & Marketing Division</option>
+                <option value="Public Relations">公關室 Public Relations</option>
+                <option value="Marketing">市場室 Marketing</option>
+                <option value="Art">設計室 Art</option>                
+                </select>
+                          <div class="help-block with-errors"></div>
+                        </div>
+                    </div>  
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="CNAME">中文姓名</label>
+                        <div class="col-sm-10">                            
+                          <input type="text" class="form-control" id="CNAME" name="CNAME" placeholder="中文姓名" required>
+                          <div class="help-block with-errors"></div>
+                        </div>
+                    </div>   
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="ENAME">英文姓名</label>
+                        <div class="col-sm-10">
+                             <input type="text" class="form-control" id="ENAME" name="ENAME" placeholder="英文姓名" required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>                   
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="TEL">TEL</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="TEL" name="TEL" placeholder="電話" value="23267527" required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="FAX">FAX</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="FAX" name="FAX" placeholder="FAX" value="27082376" required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="MOBILE">MOBILE</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="MOBILE" name="MOBILE" placeholder="MOBILE" required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="EMAIL">EMAIL</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="EMAIL" name="EMAIL" placeholder="EMAIL"  value="howard-hotels.com.tw" required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="EMAIL">附註</label>
+                        <div class="col-sm-10">
+                            <textarea id="REMARK2" name="REMARK2" class="form-control" rows="3" ></textarea>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="EMAIL">簽名檔嵌入碼</label>
+                        <div class="col-sm-10">
+                            <textarea id="CODE" name="CODE" class="form-control" rows="3" onClick="this.select()"></textarea>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-ok"></i> 送出產生嵌入碼</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="glyphicon glyphicon-remove"></i> 關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </form>

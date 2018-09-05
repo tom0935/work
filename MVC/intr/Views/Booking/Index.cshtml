@@ -1,0 +1,49 @@
+﻿@section scripts{
+    <link href="~/Content/easyui/themes/bootstrap/easyui.css" rel="stylesheet" />
+    <link href="~/Content/easyui/themes/icon.css" rel="stylesheet" type="text/css">
+    <link href="~/Content/easyui/demo/demo.css" rel="stylesheet" type="text/css">
+    <script src="~/Content/easyui/jquery.easyui.min.js"></script>
+    <script src="~/Content/easyui/locale/easyui-lang-zh_TW.js"></script>
+    <script type="text/javascript" src="~/Content/easyui/easyloader.js"></script>
+    <script type="text/javascript" src="~/Content/easyui/exts/datebox-ext.js"></script>
+    <script type="text/javascript" src="~/Content/js/util/datetime/DateTimeUtil.js"></script>
+    <script src="~/Scripts/booking.js"></script>
+    <script>
+        var getGridJSON = '@Url.Action("GetGrid", "Booking")';
+        $(window).load(function () {
+            initOrderDataGrid();
+        });
+
+        function removePid(pid) {
+            alert("PID = " + pid);
+            var result = "";
+            $.ajax({
+                url: '@Url.Action("RemovePid", "Booking")',
+                type: "post",
+                dataType: 'text',
+                async: false,
+                data: { pid: pid },
+                success: function (data, textStatus, jqXHR) {
+                    result = data;
+                }
+            });
+            return result;
+        }
+    </script>
+}
+<input type="hidden" id="dlgmode" name="dlgmode" value="" />
+<table id="OrderDataGrid">
+</table>
+<div id="dlg" style="padding: 10px">
+    查詢起日<input id="SDT" type="text" class="easyui-datebox" data-options="prompt:'YYYY-MM-DD'"
+        required="required"><a id="btn" href="#" class="easyui-linkbutton" onclick="dlgCheckNowDate('SDT')">當日</a><br />
+    <br />
+    查詢迄日<input id="EDT" type="text" class="easyui-datebox" data-options="prompt:'YYYY-MM-DD'"
+        required="required"><a id="btn" href="#" class="easyui-linkbutton" onclick="dlgCheckNowDate('EDT')">當日</a><br />
+    <br />
+    <div id="posnoDiv" style="display: none">
+        商品代碼<input id="SPOSNO" type="text" style="width: 80px">
+        ~
+        <input id="EPOSNO" type="text" style="width: 80px"><a id="btn" href="#" class="easyui-linkbutton"
+            onclick="dlgCheckall()">全部</a></div>
+</div>

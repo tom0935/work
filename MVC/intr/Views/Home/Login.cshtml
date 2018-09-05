@@ -1,0 +1,125 @@
+﻿@model IntranetSystem.Poco.BulletinViewModels
+@{
+    ViewBag.Title = "使用者登入";
+}
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.8.1/bootstrap-table.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.8.1/locale/bootstrap-table-zh-TW.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.8.1/bootstrap-table.min.js"></script>
+<script>
+    function operateFormatter(value, row, index) {
+        return [
+            '<a href="/INTRA/Uploads/'+row.CATEGORY +'/'+ row.PATH + '" target="_blank">' + row.NAME + '</a>'
+        ].join('');
+    }
+</script>
+<div class="row">
+    <div class="col-sm-5 col-sm-offset-1">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <span class="glyphicon glyphicon-user"></span>@ViewBag.Title</div>
+            <div class="panel-body">
+                <div class="container">
+                    <!-- Form Start -->
+                    @using (Html.BeginForm("Login", "Home", FormMethod.Post, new { @class = "form-signin", role = "from" }))
+                    {
+                        <!--<h2 class="form-signin-heading">@ViewBag.Title</h2>-->
+                        <input type="text" name="userid" id="userid" class="form-control" placeholder="帳號"
+                            autofocus>
+                        <input type="password" name="passwd" id="passwd" class="form-control" placeholder="密碼"
+                            data-placement="left" data-toggle="tooltip" data-trigger="manual" data-original-title="CapsLock 大寫鎖定中">
+                        <label class="checkbox">
+                            <input type="checkbox" name="remember" id="remember-me" value="True">
+                            記得我7天 <small>(若沒勾選，閒置60分鐘會自動登出) </small>
+                        </label>
+                        <button class="btn btn-lg btn-primary btn-block" type="submit">
+                            登入</button>
+                        <br />
+                        <a href="http://10.0.23.17/ASP/software/ChromeStandaloneSetup.exe">
+                            <img src="~/Content/images/chrome-16.png" />
+                            Chrome 瀏覽器下載 </a>
+                        <br />
+                        <a href="http://10.0.23.17/ASP/software/AdbeRdr1010_zh_TW.exe">
+                            <img src="~/Content/easyui/themes/icons/pdf-icon.png" />
+                            Adobe Reader下載 </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-5">
+        <div class="panel panel-danger">
+            <div class="panel-heading">
+                <span class="glyphicon glyphicon-eye-open"></span>安全聯防通報</div>
+            <div class="panel-body">
+                <ul>
+                    @if (Model.SBD != null)
+                    {
+                        foreach (var item in Model.SBD)
+                        {
+                        <li><a href="~/Uploads/@item.CATEGORY/@item.PATH">@item.NAME</a> <span style="float: right;
+                            font-weight: bold;">| @item.BDATE.ToShortDateString()</span></li>  
+                            if (@item.RN ==-1)
+                            {
+                              <li><a href="#" data-toggle="modal" data-target="#myModal">More...</a></li>   
+                            }
+                        }
+                    }
+                </ul>
+                
+            </div>
+        </div>
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <span class="glyphicon glyphicon-file"></span>各式表單下載</div>
+            <div class="panel-body">
+                <ul>
+                    @if (Model.DOC != null)
+                    {
+                        foreach (var item in Model.DOC)
+                        {
+                        <li><a href="~/Uploads/@item.CATEGORY/@item.PATH">@item.NAME</a> <span style="float: right;
+                            font-weight: bold;">| @item.BDATE.ToShortDateString()</span></li>  
+                            if (@item.RN ==-1)
+                            {
+                              <li><a href="#">More...</a></li>   
+                            }                                          
+                        }
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+@section header{
+    <link href="~/Content/Signin.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+$(function () { $("#passwd").keypress(function (e) { if ( (e.which >= 65 && e.which
+<= 90 && !e.shiftKey) //沒按下Shift鍵，卻輸入大寫字母 || (e.which >= 97 && e.which <= 122 &&
+e.shiftKey) //按下Shift鍵時，卻輸入小寫字母 ) { $('#passwd').tooltip('show'); } else { $('#passwd').tooltip('hide');
+} }).focusout(function () { $('#passwd').tooltip('hide'); }); }); </script>
+}
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <div "modal-dialog modal-lg">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">安全聯防通報</h4>
+      </div>
+      <div class="modal-body">
+        <table data-toggle="table" data-url="/INTRA/Bulletin/getGrid" data-height="500"  data-side-pagination="server"  data-pagination="true" data-page-list="[5, 10, 20, 50, 100, 200]" >
+         <thead>
+            <tr>                             
+               <th data-field="NAME" data-formatter="operateFormatter" data-align="left" data-sortable="true">內容</th>
+               <th data-field="BDATE" data-align="center" data-sortable="true">日期</th>                          
+             </tr>
+         </thead>
+        </table> 
+      </div>
+    </div>
+
+  </div>
+</div>

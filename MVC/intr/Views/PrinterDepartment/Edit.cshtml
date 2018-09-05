@@ -1,0 +1,103 @@
+﻿@model IntranetSystem.Models.PrinterDepartment
+@{
+    ViewBag.Title = "印表機與部門對應";
+    string WebSiteRootPath = (Request.ApplicationPath == "/") ? "" : Request.ApplicationPath;
+}
+<div class="row">
+    <div class="col-sm-10 col-sm-offset-1">
+        <div class="panel panel-primary">
+            <div class="panel-heading">@ViewBag.Title</div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="form-group">
+                        <label for="PRINTER" class="col-sm-2 control-label">
+                            印表機名稱：</label>
+                        <div class="col-sm-8">@Model.PRINTER</div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <fieldset>
+                    <legend style="font-size: 1em; width: auto;">選擇部門</legend>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <select id="DepartmentLists" name="DepartmentLists" size="10" class="form-control"
+                                multiple ondblclick="addDepartment();" data-toggle="tooltip" data-original-title="雙擊可加入部門">
+                                @Html.Raw(ViewData["DepartmentLists"])
+                            </select>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <!-- Form Start -->
+            @using (Html.BeginForm("Edit", "PrinterDepartment", FormMethod.Post, new { @class = "form-horizontal", role = "from" }))
+            {                
+                <div class="panel-body">
+                    <fieldset>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        項次
+                                    </th>
+                                    <th>
+                                        部門代碼
+                                    </th>
+                                    <th>
+                                        名稱
+                                    </th>
+                                    <th>
+                                        組別
+                                    </th>
+                                    <th>
+                                        實機
+                                    </th>
+                                    <th>
+                                        &nbsp;
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @Html.Raw(ViewData["Details"])
+                            </tbody>
+                        </table>
+                    </fieldset>
+                </div>
+                                
+                <div class="panel-footer">
+                    <div class="row">
+                        <div class="col-sm-4 col-sm-offset-2">
+                            <button type="submit" class="btn btn-block btn-success">
+                                確認送出</button>
+                        </div>
+                        <div class="col-sm-4">
+                            @Html.ActionLink("回上層", "Index", "Material", new { @id = 1 }, new { @class = "btn btn-block btn-default" })
+                        </div>
+                    </div>
+                </div>
+            }
+            <!-- Form Stop -->
+        </div>
+    </div>
+</div>
+@section header {
+    @Scripts.Render("~/bundles/jbval")
+    <script type="text/javascript">        $(function () {
+            $("input,select,textarea").not("[type=submit]").jqBootstrapValidation();
+        }); </script>
+}
+
+@section scripts {
+    @Scripts.Render("~/bundles/printer")
+    <style type="text/css">
+        .tooltip-inner
+        {
+            max-width: 800px;
+        }
+        .chk-size
+        {
+            width:24px;
+            height:24px;
+        }
+    </style>
+}

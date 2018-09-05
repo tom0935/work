@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="2.0" xmlns:edmx="http://schemas.microsoft.com/ado/2008/10/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="FDPOSModel.Store" Alias="Self" Provider="Oracle.DataAccess.Client" ProviderManifestToken="9.2" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
+        <EntityContainer Name="FDPOSModelStoreContainer">
+          <EntitySet Name="FDPOST01" EntityType="FDPOSModel.Store.FDPOST01" store:Type="Tables" Schema="HWTPE" />
+        </EntityContainer>
+        <EntityType Name="FDPOST01">
+          <Key>
+            <PropertyRef Name="POSNO" />
+            <PropertyRef Name="POSPNO" />
+          </Key>
+          <Property Name="POSNO" Type="varchar2" Nullable="false" MaxLength="4" />
+          <Property Name="POSPNO" Type="varchar2" Nullable="false" MaxLength="13" />
+          <Property Name="POSPNM" Type="varchar2" MaxLength="30" />
+          <Property Name="PRICE" Type="number" Precision="6" />
+          <Property Name="DUTYFREE" Type="varchar2" MaxLength="1" />
+          <Property Name="ATTRIB" Type="varchar2" MaxLength="2" />
+          <Property Name="COST" Type="number" Precision="8" Scale="2" />
+          <Property Name="COST_RATE" Type="number" Precision="4" Scale="2" />
+          <Property Name="ENAME" Type="varchar2" MaxLength="30" />
+          <Property Name="POUND" Type="number" Precision="6" Scale="2" />
+          <Property Name="REMARK" Type="varchar2" MaxLength="200" />
+          <Property Name="MENUATR" Type="varchar2" MaxLength="1" />
+          <Property Name="SALE" Type="varchar2" MaxLength="1" />
+          <Property Name="SOURCE" Type="varchar2" MaxLength="2" />
+          <Property Name="PRINO" Type="varchar2" MaxLength="10" />
+          <Property Name="CLASSID" Type="varchar2" MaxLength="2" />
+          <Property Name="PACKAGE" Type="varchar2" MaxLength="1" />
+          <Property Name="STOP" Type="varchar2" MaxLength="1" />
+          <Property Name="QTY" Type="number" />
+          <Property Name="NOWQTY" Type="number" />
+          <Property Name="KPOSPNM" Type="varchar2" MaxLength="30" />
+          <Property Name="USERID" Type="varchar2" MaxLength="10" />
+          <Property Name="UDATE" Type="varchar2" MaxLength="10" />
+          <Property Name="MENUCHK" Type="varchar2" MaxLength="1" />
+          <Property Name="TYPE" Type="varchar2" MaxLength="1" />
+          <Property Name="CASE_CHARGE" Type="varchar2" MaxLength="1" />
+          <Property Name="SEQ" Type="number" />
+          <Property Name="CLASSID_BAK" Type="varchar2" MaxLength="2" />
+        </EntityType>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="FDPOSModel" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+        <EntityContainer Name="FDPOSEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="FDPOST01" EntityType="FDPOSModel.FDPOST01" />
+        </EntityContainer>
+        <EntityType Name="FDPOST01">
+          <Key>
+            <PropertyRef Name="POSNO" />
+            <PropertyRef Name="POSPNO" />
+          </Key>
+          <Property Type="String" Name="POSNO" Nullable="false" MaxLength="4" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="POSPNO" Nullable="false" MaxLength="13" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="POSPNM" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Type="Int32" Name="PRICE" />
+          <Property Type="String" Name="DUTYFREE" MaxLength="1" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="ATTRIB" MaxLength="2" FixedLength="false" Unicode="false" />
+          <Property Type="Decimal" Name="COST" Precision="8" Scale="2" />
+          <Property Type="Decimal" Name="COST_RATE" Precision="4" Scale="2" />
+          <Property Type="String" Name="ENAME" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Type="Decimal" Name="POUND" Precision="6" Scale="2" />
+          <Property Type="String" Name="REMARK" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="MENUATR" MaxLength="1" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="SALE" MaxLength="1" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="SOURCE" MaxLength="2" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="PRINO" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="CLASSID" MaxLength="2" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="PACKAGE" MaxLength="1" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="STOP" MaxLength="1" FixedLength="false" Unicode="false" />
+          <Property Type="Decimal" Name="QTY" Precision="38" Scale="0" />
+          <Property Type="Decimal" Name="NOWQTY" Precision="38" Scale="0" />
+          <Property Type="String" Name="KPOSPNM" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="USERID" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="UDATE" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="MENUCHK" MaxLength="1" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="TYPE" MaxLength="1" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="CASE_CHARGE" MaxLength="1" FixedLength="false" Unicode="false" />
+          <Property Type="Decimal" Name="SEQ" Precision="38" Scale="0" />
+          <Property Type="String" Name="CLASSID_BAK" MaxLength="2" FixedLength="false" Unicode="false" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2008/09/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="FDPOSModelStoreContainer" CdmEntityContainer="FDPOSEntities">
+          <EntitySetMapping Name="FDPOST01">
+            <EntityTypeMapping TypeName="FDPOSModel.FDPOST01">
+              <MappingFragment StoreEntitySet="FDPOST01">
+                <ScalarProperty Name="CLASSID_BAK" ColumnName="CLASSID_BAK" />
+                <ScalarProperty Name="SEQ" ColumnName="SEQ" />
+                <ScalarProperty Name="CASE_CHARGE" ColumnName="CASE_CHARGE" />
+                <ScalarProperty Name="TYPE" ColumnName="TYPE" />
+                <ScalarProperty Name="MENUCHK" ColumnName="MENUCHK" />
+                <ScalarProperty Name="UDATE" ColumnName="UDATE" />
+                <ScalarProperty Name="USERID" ColumnName="USERID" />
+                <ScalarProperty Name="KPOSPNM" ColumnName="KPOSPNM" />
+                <ScalarProperty Name="NOWQTY" ColumnName="NOWQTY" />
+                <ScalarProperty Name="QTY" ColumnName="QTY" />
+                <ScalarProperty Name="STOP" ColumnName="STOP" />
+                <ScalarProperty Name="PACKAGE" ColumnName="PACKAGE" />
+                <ScalarProperty Name="CLASSID" ColumnName="CLASSID" />
+                <ScalarProperty Name="PRINO" ColumnName="PRINO" />
+                <ScalarProperty Name="SOURCE" ColumnName="SOURCE" />
+                <ScalarProperty Name="SALE" ColumnName="SALE" />
+                <ScalarProperty Name="MENUATR" ColumnName="MENUATR" />
+                <ScalarProperty Name="REMARK" ColumnName="REMARK" />
+                <ScalarProperty Name="POUND" ColumnName="POUND" />
+                <ScalarProperty Name="ENAME" ColumnName="ENAME" />
+                <ScalarProperty Name="COST_RATE" ColumnName="COST_RATE" />
+                <ScalarProperty Name="COST" ColumnName="COST" />
+                <ScalarProperty Name="ATTRIB" ColumnName="ATTRIB" />
+                <ScalarProperty Name="DUTYFREE" ColumnName="DUTYFREE" />
+                <ScalarProperty Name="PRICE" ColumnName="PRICE" />
+                <ScalarProperty Name="POSPNM" ColumnName="POSPNM" />
+                <ScalarProperty Name="POSPNO" ColumnName="POSPNO" />
+                <ScalarProperty Name="POSNO" ColumnName="POSNO" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2008/10/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="False" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams>
+      <Diagram Name="FDPOSModel" ZoomLevel="96">
+        <EntityTypeShape EntityType="FDPOSModel.FDPOST01" Width="1.5" PointX="0.75" PointY="0.75" Height="5.8961393229166656" />
+      </Diagram>
+    </Diagrams>
+  </Designer>
+</edmx:Edmx>
